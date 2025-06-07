@@ -1,0 +1,21 @@
+name: Flake
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check-flake:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v6
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: Show flake
+        run: nix flake show
+      - name: Check flake
+        run: nix flake check
