@@ -33,6 +33,7 @@
               pkgs.rust-analyzer
               pkgs.clippy
               pkgs.rustfmt
+              pkgs.cargo-nextest
             ];
           };
         }
