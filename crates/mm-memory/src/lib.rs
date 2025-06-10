@@ -1,3 +1,78 @@
+/*!
+# Memory Management for Middle Manager
+
+This crate provides a memory management system for the Middle Manager project,
+implementing a knowledge graph using Neo4j as the backend storage.
+
+## Architecture
+
+The crate follows hexagonal architecture (also known as ports and adapters):
+
+- **Domain**: Core business logic and entities
+- **Ports**: Interface definitions for interacting with external systems
+- **Adapters**: Implementations of ports for specific technologies
+- **Service**: Application services that coordinate domain operations
+
+## Usage
+
+```rust,no_run
+use mm_memory::{MemoryEntity, Neo4jConfig, create_neo4j_service};
+use std::collections::HashMap;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create a Neo4j configuration
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+    
+    // Create a memory service
+    let service = create_neo4j_service(config).await?;
+    
+    // Create an entity
+    let entity = MemoryEntity {
+        name: "example:entity:test".to_string(),
+        labels: vec!["Memory".to_string(), "Example".to_string()],
+        observations: vec!["This is an example entity".to_string()],
+        properties: HashMap::new(),
+    };
+    
+    // Store the entity
+    service.create_entity(&entity).await?;
+    
+    // Retrieve the entity
+    let found = service.find_entity_by_name("example:entity:test").await?;
+    
+    if let Some(found_entity) = found {
+        println!("Found entity: {}", found_entity.name);
+    } else {
+        println!("Entity not found");
+    }
+    
+    Ok(())
+}
+```
+
+## Error Handling
+
+The crate uses a flexible error handling system with generic error types:
+
+- `MemoryError<E>`: Generic error type that can wrap adapter-specific errors
+- `ValidationError`: Domain-specific validation errors
+- `MemoryResult<T, E>`: Result type for memory operations
+
+## Relationship Naming Convention
+
+All relationships in the knowledge graph follow snake_case naming convention:
+- `uses`
+- `contains`
+- `relates_to`
+- `implements`
+- etc.
+*/
+
 pub mod domain;
 pub mod ports;
 pub mod adapters;
@@ -12,6 +87,41 @@ pub use adapters::neo4j::{Neo4jRepository, Neo4jConfig};
 pub use service::memory::MemoryService;
 
 /// Create a Neo4j-based memory service
+///
+/// This is a convenience function that creates a Neo4j repository and wraps it in a memory service.
+///
+/// # Arguments
+///
+/// * `config` - Configuration for connecting to Neo4j
+///
+/// # Returns
+///
+/// A memory service that uses Neo4j as the backend storage
+///
+/// # Errors
+///
+/// Returns a `MemoryError` if the connection to Neo4j fails
+///
+/// # Example
+///
+/// ```no_run
+/// use mm_memory::{Neo4jConfig, create_neo4j_service};
+///
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let config = Neo4jConfig {
+///         uri: "neo4j://localhost:7688".to_string(),
+///         username: "neo4j".to_string(),
+///         password: "password".to_string(),
+///     };
+///     
+///     let service = create_neo4j_service(config).await?;
+///     
+///     // Use the service...
+///     
+///     Ok(())
+/// }
+/// ```
 pub async fn create_neo4j_service(
     config: Neo4jConfig
 ) -> Result<MemoryService<Neo4jRepository, neo4rs::Error>, MemoryError<neo4rs::Error>> {

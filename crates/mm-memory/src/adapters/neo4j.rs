@@ -8,20 +8,44 @@ use crate::domain::validation_error::ValidationError;
 use crate::ports::repository::MemoryRepository;
 
 /// Configuration for connecting to Neo4j
+///
+/// This struct contains the configuration parameters needed to connect to a Neo4j database.
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct Neo4jConfig {
+    /// URI of the Neo4j server (e.g., "neo4j://localhost:7688")
     pub uri: String,
+    
+    /// Username for authentication
     pub username: String,
+    
+    /// Password for authentication
     pub password: String,
 }
 
 /// Neo4j implementation of the MemoryRepository
+///
+/// This adapter implements the `MemoryRepository` trait using Neo4j as the backend storage.
+/// It handles the details of connecting to Neo4j, executing Cypher queries, and
+/// converting between Neo4j nodes and domain entities.
 pub struct Neo4jRepository {
+    /// Neo4j graph connection
     graph: Graph,
 }
 
 impl Neo4jRepository {
     /// Create a new Neo4j repository with the given configuration
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - Configuration for connecting to Neo4j
+    ///
+    /// # Returns
+    ///
+    /// A new `Neo4jRepository` if the connection was successful
+    ///
+    /// # Errors
+    ///
+    /// Returns a `MemoryError` if the connection to Neo4j fails
     pub async fn new(config: Neo4jConfig) -> Result<Self, MemoryError<neo4rs::Error>> {
         let graph = Graph::new(&config.uri, &config.username, &config.password)
             .await

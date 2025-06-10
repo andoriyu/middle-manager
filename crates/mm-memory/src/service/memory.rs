@@ -6,12 +6,22 @@ use crate::domain::error::MemoryResult;
 use crate::ports::repository::MemoryRepository;
 
 /// Service for memory operations
+///
+/// This service provides a high-level API for interacting with the memory store.
+/// It uses a repository to perform the actual operations, and adds additional
+/// business logic as needed.
+///
+/// The service is generic over the repository type `R` and the error type `E`,
+/// allowing it to work with different repository implementations.
 pub struct MemoryService<R, E>
 where
     R: MemoryRepository<E>,
     E: StdError + Send + Sync + 'static
 {
+    /// The repository used to perform memory operations
     repository: R,
+    
+    /// Phantom data to track the error type
     _error_type: PhantomData<E>,
 }
 
@@ -21,6 +31,14 @@ where
     E: StdError + Send + Sync + 'static
 {
     /// Create a new memory service with the given repository
+    ///
+    /// # Arguments
+    ///
+    /// * `repository` - The repository to use for memory operations
+    ///
+    /// # Returns
+    ///
+    /// A new `MemoryService` that uses the given repository
     pub fn new(repository: R) -> Self {
         Self { 
             repository,
@@ -29,14 +47,46 @@ where
     }
     
     /// Create a new entity in the memory graph
+    ///
+    /// # Arguments
+    ///
+    /// * `entity` - The entity to create
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if the entity was created successfully, or an error if something went wrong
+    ///
+    /// # Errors
+    ///
+    /// Returns a `MemoryError` if:
+    /// - The entity name is empty
+    /// - The entity has no labels
+    /// - There was an error connecting to the memory store
+    /// - There was an error executing the query
     pub async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), E> {
-        // Validation is now handled in the repository
+        // Validation is handled in the repository
         self.repository.create_entity(entity).await
     }
     
     /// Find an entity by name
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the entity to find
+    ///
+    /// # Returns
+    ///
+    /// `Ok(Some(entity))` if the entity was found, `Ok(None)` if the entity was not found,
+    /// or an error if something went wrong
+    ///
+    /// # Errors
+    ///
+    /// Returns a `MemoryError` if:
+    /// - The name is empty
+    /// - There was an error connecting to the memory store
+    /// - There was an error executing the query
     pub async fn find_entity_by_name(&self, name: &str) -> MemoryResult<Option<MemoryEntity>, E> {
-        // Validation is now handled in the repository
+        // Validation is handled in the repository
         self.repository.find_entity_by_name(name).await
     }
 }
