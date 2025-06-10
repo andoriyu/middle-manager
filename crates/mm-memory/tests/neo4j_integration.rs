@@ -1,4 +1,4 @@
-use mm_memory::{MemoryEntity, MemoryStore, Neo4jConfig};
+use mm_memory::{MemoryEntity, Neo4jConfig, create_neo4j_service, ValidationError};
 use std::collections::HashMap;
 
 #[tokio::test]
@@ -9,10 +9,10 @@ async fn test_find_nonexistent_entity() {
         password: "password".to_string(),
     };
     
-    let store = MemoryStore::new(config).await.unwrap();
+    let service = create_neo4j_service(config).await.unwrap();
     
     // Test that finding a non-existent entity returns None
-    let result = store.find_entity_by_name("non:existent:entity").await.unwrap();
+    let result = service.find_entity_by_name("non:existent:entity").await.unwrap();
     assert!(result.is_none());
 }
 
@@ -24,7 +24,7 @@ async fn test_create_and_find_entity() {
         password: "password".to_string(),
     };
     
-    let store = MemoryStore::new(config).await.unwrap();
+    let service = create_neo4j_service(config).await.unwrap();
     
     let entity = MemoryEntity {
         name: "test:entity:create".to_string(),
@@ -34,10 +34,10 @@ async fn test_create_and_find_entity() {
     };
     
     // Test that entity creation doesn't error
-    store.create_entity(&entity).await.unwrap();
+    service.create_entity(&entity).await.unwrap();
     
     // Test that we can find the entity after creation
-    let found = store.find_entity_by_name("test:entity:create").await.unwrap();
+    let found = service.find_entity_by_name("test:entity:create").await.unwrap();
     assert!(found.is_some());
     
     let found_entity = found.unwrap();
@@ -47,4 +47,30 @@ async fn test_create_and_find_entity() {
     // Check that labels contain the expected values
     assert!(found_entity.labels.contains(&"Memory".to_string()));
     assert!(found_entity.labels.contains(&"Test".to_string()));
+}
+
+#[tokio::test]
+async fn test_validation_errors() {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+    
+    let service = create_neo4j_service(config).await.unwrap();
+    
+    // Test empty entity name
+    let result = service.find_entity_by_name("").await;
+    assert!(result.is_err());
+    
+    // Test entity with no labels
+    let entity = MemoryEntity {
+        name: "test:entity:no_labels".to_string(),
+        labels: vec![],
+        observations: vec!["This entity has no labels".to_string()],
+        properties: HashMap::new(),
+    };
+    
+    let result = service.create_entity(&entity).await;
+    assert!(result.is_err());
 }
