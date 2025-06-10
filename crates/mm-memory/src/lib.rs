@@ -1,4 +1,4 @@
-use neo4rs::Graph;
+use neo4rs::{Graph, Node, Query};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
@@ -11,6 +11,9 @@ pub enum MemoryError {
     
     #[error("Query execution error: {0}")]
     QueryError(String),
+    
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
 }
 
 /// Result type for memory operations
@@ -25,7 +28,7 @@ pub struct Neo4jConfig {
 }
 
 /// Memory entity representing a node in the knowledge graph
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct MemoryEntity {
     pub name: String,
     pub labels: Vec<String>,
@@ -35,7 +38,7 @@ pub struct MemoryEntity {
 
 /// Memory store for interacting with Neo4j
 pub struct MemoryStore {
-    _graph: Graph,
+    graph: Graph,
 }
 
 impl MemoryStore {
@@ -45,33 +48,76 @@ impl MemoryStore {
             .await
             .map_err(|e| MemoryError::ConnectionError(e.to_string()))?;
         
-        Ok(Self { _graph: graph })
+        Ok(Self { graph })
+    }
+    
+    /// Create a new entity in the memory graph
+    pub async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<()> {
+        let labels = entity.labels.join(":");
+        let mut params = HashMap::new();
+        params.insert("name".to_string(), entity.name.clone());
+        params.insert("observations".to_string(), serde_json::to_string(&entity.observations)
+            .map_err(|e| MemoryError::SerializationError(e.to_string()))?);
+        
+        // Add all custom properties
+        for (key, value) in &entity.properties {
+            params.insert(key.clone(), value.clone());
+        }
+        
+        let query_str = format!(
+            "CREATE (n:{} {{name: $name, observations: $observations}})",
+            labels
+        );
+        
+        let query = Query::new(query_str).params(params);
+        self.graph.run(query).await
+            .map_err(|e| MemoryError::QueryError(e.to_string()))?;
+        
+        Ok(())
     }
     
     /// Find an entity by name
-    /// Always returns None for simplicity
-    pub async fn find_entity_by_name(&self, _name: &str) -> MemoryResult<Option<MemoryEntity>> {
-        // Simplified implementation that always returns None
-        Ok(None)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
-    #[tokio::test]
-    async fn test_find_nonexistent_entity() {
-        let config = Neo4jConfig {
-            uri: "neo4j://localhost:7688".to_string(),
-            username: "neo4j".to_string(),
-            password: "password".to_string(),
-        };
+    pub async fn find_entity_by_name(&self, name: &str) -> MemoryResult<Option<MemoryEntity>> {
+        let query = Query::new("MATCH (n {name: $name}) RETURN n".to_string())
+            .param("name", name.to_string());
         
-        let store = MemoryStore::new(config).await.unwrap();
+        let mut result = self.graph.execute(query).await
+            .map_err(|e| MemoryError::QueryError(e.to_string()))?;
         
-        // Test that finding a non-existent entity returns None
-        let result = store.find_entity_by_name("non:existent:entity").await.unwrap();
-        assert!(result.is_none());
+        if let Some(row) = result.next().await
+            .map_err(|e| MemoryError::QueryError(e.to_string()))? {
+            
+            let node: Node = row.get("n")
+                .map_err(|e| MemoryError::QueryError(e.to_string()))?;
+            
+            let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
+            let name = node.get::<String>("name")
+                .map_err(|e| MemoryError::QueryError(e.to_string()))?;
+            
+            let observations_json = node.get::<String>("observations")
+                .map_err(|e| MemoryError::QueryError(e.to_string()))?;
+            
+            let observations: Vec<String> = serde_json::from_str(&observations_json)
+                .map_err(|e| MemoryError::SerializationError(e.to_string()))?;
+            
+            // Extract all other properties
+            let mut properties = HashMap::new();
+            for key in node.keys() {
+                if key != "name" && key != "observations" {
+                    if let Ok(value) = node.get::<String>(&key) {
+                        properties.insert(key.to_string(), value);
+                    }
+                }
+            }
+            
+            Ok(Some(MemoryEntity {
+                name,
+                labels,
+                observations,
+                properties,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 }
