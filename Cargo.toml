@@ -1,2 +1,3 @@
 [workspace]
-members = ["crates/mm-cli", "crates/mm-core", "crates/mm-server"]
+members = ["crates/mm-cli", "crates/mm-core", "crates/mm-memory", "crates/mm-server"]
+resolver = "3"
