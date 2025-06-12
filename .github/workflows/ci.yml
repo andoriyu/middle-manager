@@ -47,8 +47,14 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
+    env:
+      MM_NEO4J__URI: neo4j://localhost:7688
+      MM_NEO4J__USERNAME: neo4j
+      MM_NEO4J__PASSWORD: password
     steps:
       - uses: actions/checkout@v4
+      - name: Start services
+        run: docker compose up -d
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
@@ -58,7 +64,7 @@ jobs:
         with:
           tool: cargo-nextest
       - name: Run tests
-        run: cargo nextest run --workspace --all-targets --profile ci
+        run: cargo nextest run --workspace --all-targets --profile ci --no-fail-fast
       - name: Upload junit report
         uses: actions/upload-artifact@v4
         with:
