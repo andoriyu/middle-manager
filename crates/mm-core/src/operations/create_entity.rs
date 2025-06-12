@@ -69,7 +69,6 @@ pub async fn create_entity(ports: &Ports, command: CreateEntityCommand) -> Creat
 mod tests {
     use super::*;
     use crate::service::MockMemoryService;
-    use mockall::predicate::*;
     use std::sync::Arc;
 
     #[tokio::test]
