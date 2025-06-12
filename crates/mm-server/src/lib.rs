@@ -146,14 +146,13 @@ mod tests {
     use mm_core::MemoryServiceImpl;
     use rust_mcp_sdk::error::McpSdkError;
     use rust_mcp_sdk::error::SdkResult;
-    use rust_mcp_sdk::schema::ClientMessage;
     use rust_mcp_sdk::schema::InitializeRequestParams;
+    use rust_mcp_sdk::schema::schema_utils::ClientMessage;
     use rust_mcp_sdk::schema::{
         Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
         schema_utils::NotificationFromServer,
     };
-    use rust_mcp_sdk::transport::McpDispatch;
-    use rust_mcp_sdk::transport::MessageDispatcher;
+    use rust_mcp_sdk::{McpDispatch, MessageDispatcher};
     use serde_json::Value;
     use std::future::Future;
     use std::option::Option;
