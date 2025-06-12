@@ -117,6 +117,20 @@ Integration tests can be run with:
 cargo test --test '*'
 ```
 
+Integration tests require a running Neo4j database started via Docker Compose.
+If the database isn't available, skip them with:
+
+```bash
+cargo test --workspace --lib
+```
+
+To run all tests, start Neo4j first:
+
+```bash
+docker compose up -d
+cargo test --workspace
+```
+
 ### Testing with Mock Services
 
 The project uses `mockall` for mocking services in tests. Example of testing with mocks:
