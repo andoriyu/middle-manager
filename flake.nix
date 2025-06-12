@@ -45,6 +45,7 @@
               pkg-config
               openssl
               openssl.dev
+              nodejs
             ];
             
             # Set environment variables for OpenSSL

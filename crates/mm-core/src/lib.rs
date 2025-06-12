@@ -1,11 +1,16 @@
 mod config;
 mod error;
-mod mcp;
+mod ports;
+mod operations;
 mod service;
 
 pub use config::Config;
-pub use error::{Error, Result};
-pub use mcp::{CreateEntityTool, GetEntityTool};
+pub use error::{Error, Result as CoreResult};
+pub use ports::Ports;
+pub use operations::{
+    GetEntityCommand, GetEntityError, GetEntityResult, get_entity,
+    CreateEntityCommand, CreateEntityError, CreateEntityResult, create_entity,
+};
 pub use service::MemoryService;
 
 // Re-export necessary types from mm-memory
