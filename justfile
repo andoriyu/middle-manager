@@ -28,10 +28,15 @@ clippy:
 check:
     cargo check
 
-# Run the MCP inspector with mm-cli
+# Run the MCP inspector with mm-cli using local config
 inspect:
-    npx @modelcontextprotocol/inspector cargo run -p mm-cli
+    npx @modelcontextprotocol/inspector cargo run -p mm-cli -- --config config/local.toml
 
-# Run the MCP inspector with mm-cli in debug mode
+# Run the MCP inspector with mm-cli in debug mode using local config
 inspect-debug:
-    npx @modelcontextprotocol/inspector cargo run -p mm-cli -- --log-level debug
+    npx @modelcontextprotocol/inspector cargo run -p mm-cli -- --config config/local.toml --log-level debug
+    
+# Delete Neo4j data and logs volumes
+clean-neo4j:
+    docker compose down
+    docker volume rm middle-manager_neo4j_data middle-manager_neo4j_logs
