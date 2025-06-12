@@ -36,26 +36,13 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     env:
-      MM_NEO4J__URI: "neo4j://localhost:${{ job.services.neo4j.ports['7687'] }}"
-    services:
-      neo4j:
-        image: neo4j:5.15.0
-        ports:
-          - 7475:7474
-          - 7688:7687
-        env:
-          NEO4J_AUTH: neo4j/password
-          NEO4J_PLUGINS: '["apoc"]'
-          NEO4J_apoc_export_file_enabled: 'true'
-          NEO4J_apoc_import_file_enabled: 'true'
-          NEO4J_apoc_import_file_use__neo4j__config: 'true'
-        options: >-
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+      MM_NEO4J__URI: neo4j://localhost:7688
+      MM_NEO4J__USERNAME: neo4j
+      MM_NEO4J__PASSWORD: password
     steps:
       - uses: actions/checkout@v4
+      - name: Start services
+        run: docker compose up -d
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
