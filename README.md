@@ -187,3 +187,31 @@ The project follows a hexagonal architecture (ports and adapters) pattern:
 - **MCP Protocol**: External interface for AI assistants
 
 This architecture ensures that the core domain logic is isolated from external concerns, making it more maintainable and testable.
+
+### Ports & Adapters Diagram
+
+```mermaid
+graph TD
+    %% Ports defined in mm-core
+    subgraph "mm-core"
+        core_service_trait["MemoryService trait"]
+    end
+
+    %% Ports and adapters in mm-memory
+    subgraph "mm-memory"
+        repository_trait["MemoryRepository trait"]
+        memory_service_impl["MemoryService struct"]
+        neo4j_repo["Neo4jRepository"]
+    end
+
+    %% Adapter in mm-server
+    subgraph "mm-server"
+        server_handler["MiddleManagerHandler"]
+    end
+
+    %% Relationships with labels
+    server_handler --"depends on"--> core_service_trait
+    core_service_trait --"implemented in"--> memory_service_impl
+    memory_service_impl --"uses"--> repository_trait
+    repository_trait --"implemented in"--> neo4j_repo
+```
