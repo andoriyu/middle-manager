@@ -1,7 +1,10 @@
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
-use tracing::{info, Level};
-use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+use std::fs::{File, OpenOptions};
+use std::io;
+use tracing::Level;
+use tracing_subscriber::{EnvFilter, fmt, prelude::*, Registry};
+use tracing_subscriber::fmt::writer::MakeWriterExt;
 use mm_server::run_server;
 
 /// Middle Manager CLI
@@ -11,6 +14,16 @@ struct Args {
     /// Log level
     #[arg(short, long, value_enum, default_value_t = LogLevel::Info)]
     log_level: LogLevel,
+
+    /// Path to log file (required if log level is specified)
+    #[arg(short = 'f', long, value_name = "FILE", required_if_eq("log_level", "error"),
+          required_if_eq("log_level", "warn"), required_if_eq("log_level", "info"),
+          required_if_eq("log_level", "debug"), required_if_eq("log_level", "trace"))]
+    logfile: Option<PathBuf>,
+
+    /// Rotate logs (clear log file if it exists)
+    #[arg(short = 'r', long, default_value_t = true)]
+    rotate_logs: bool,
 
     /// Path to config file
     #[arg(short, long, value_name = "FILE")]
@@ -39,6 +52,20 @@ impl From<LogLevel> for Level {
     }
 }
 
+/// Create a file writer for logging
+fn create_file_writer(path: &PathBuf, rotate: bool) -> io::Result<File> {
+    if rotate {
+        // Create or truncate the file
+        File::create(path)
+    } else {
+        // Open for appending
+        OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+    }
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
@@ -48,12 +75,25 @@ async fn main() -> anyhow::Result<()> {
     let filter = EnvFilter::from_default_env()
         .add_directive(level.into());
     
-    tracing_subscriber::registry()
-        .with(fmt::layer())
-        .with(filter)
-        .init();
+    // Set up logging
+    let subscriber = Registry::default().with(filter);
     
-    info!("Starting Middle Manager CLI");
+    if let Some(logfile_path) = &args.logfile {
+        // Create log file writer
+        let file = create_file_writer(logfile_path, args.rotate_logs)?;
+        
+        // Set up file logging only (no console)
+        let file_layer = fmt::layer()
+            .with_writer(file.with_max_level(level));
+        
+        // Register only the file layer
+        subscriber
+            .with(file_layer)
+            .init();
+    } else {
+        // No logging output at all if no logfile is specified
+        subscriber.init();
+    }
     
     // Determine config paths
     let config_paths: Vec<PathBuf> = if let Some(config_path) = args.config {
