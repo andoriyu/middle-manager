@@ -18,21 +18,24 @@ All workspace crates reside in the `crates/` directory to keep the repository ro
 ```mermaid
 graph TD
     %% Crate relationships
-    mm_cli["mm-cli::main"] --> mm_server["mm-server"]
+    mm_cli["mm-cli"] --> mm_server["mm-server"]
     mm_server --> mm_core["mm-core"]
     mm_core --> mm_memory["mm-memory"]
 
     %% mm-cli details
     subgraph "mm-cli"
-        main_fn["main() -> run_server"]
+        main_fn["main()"]
+        run_server_fn["run_server()"]
+        main_fn --> run_server_fn
+        run_server_fn --> create_handler
     end
 
     %% mm-server details
     subgraph "mm-server"
         create_handler["create_handler()"]
         subgraph "mcp"
-            create_tool["CreateEntityTool.call_tool"]
-            get_tool["GetEntityTool.call_tool"]
+            create_tool["CreateEntityTool::call_tool"]
+            get_tool["GetEntityTool::call_tool"]
         end
         create_handler --> create_tool
         create_handler --> get_tool
@@ -55,8 +58,10 @@ graph TD
         memory_service["MemoryService"]
         repository_trait["MemoryRepository"]
         neo4j_repo["Neo4jRepository"]
+        neo4j_db[(Neo4j)]
         memory_service --> repository_trait
         repository_trait --> neo4j_repo
+        neo4j_repo --> neo4j_db
     end
 
     %% Flow connections
