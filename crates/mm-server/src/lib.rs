@@ -142,15 +142,32 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_core::MockMemoryService;
+    use mm_core::MemoryServiceImpl;
     use serde_json::Value;
     use rust_mcp_sdk::error::SdkResult;
-    use rust_mcp_sdk::schema::{Implementation, InitializeResult, ServerCapabilities, LATEST_PROTOCOL_VERSION};
+    use rust_mcp_sdk::schema::{
+        Implementation, InitializeResult, ServerCapabilities, LATEST_PROTOCOL_VERSION,
+        schema_utils::NotificationFromServer,
+    };
+    use std::pin::Pin;
+    use std::future::Future;
+    use rust_mcp_sdk::error::McpSdkError;
+    use rust_mcp_sdk::schema::InitializeRequestParams;
+    use rust_mcp_sdk::schema::ClientMessage;
+    use rust_mcp_sdk::transport::MessageDispatcher;
+    use rust_mcp_sdk::transport::McpDispatch;
+    use tokio::sync::RwLock;
+    use std::option::Option;
 
     struct MockServer;
     
+    #[async_trait]
     impl McpServer for MockServer {
-        fn send_notification(&self, _method: &str, _params: Value) -> SdkResult<()> {
+        async fn start(&self) -> SdkResult<()> {
+            Ok(())
+        }
+
+        async fn send_notification(&self, _notification: NotificationFromServer) -> SdkResult<()> {
             Ok(())
         }
         
@@ -166,6 +183,23 @@ mod tests {
                 instructions: None,
                 protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
             })
+        }
+
+        fn set_client_details(&self, _params: InitializeRequestParams) -> SdkResult<()> {
+            Ok(())
+        }
+
+        fn client_info(&self) -> Option<InitializeRequestParams> {
+            None
+        }
+
+        async fn sender(&self) -> &RwLock<Option<MessageDispatcher<ClientMessage>>> {
+            static SENDER: std::sync::OnceLock<RwLock<Option<MessageDispatcher<ClientMessage>>>> = std::sync::OnceLock::new();
+            SENDER.get_or_init(|| RwLock::new(None))
+        }
+
+        async fn stderr_message(&self, _message: String) -> SdkResult<()> {
+            Ok(())
         }
     }
 }
