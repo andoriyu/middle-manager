@@ -16,8 +16,9 @@
           pkgs = import nixpkgs { inherit system; overlays = [ rust-overlay.overlays.default ]; };
           naersk-lib = pkgs.callPackage naersk { };
         in
-        {
-          default = naersk-lib.buildPackage {
+        rec {
+          middle_manager = naersk-lib.buildPackage {
+            pname = "middle_manager";
             src = self;
             cargoLock = ./Cargo.lock;
             nativeBuildInputs = with pkgs; [
@@ -28,7 +29,17 @@
               openssl
               openssl.dev
             ];
+            overrideMain = old: {
+              preConfigure = (old.preConfigure or "") + ''
+                cargo_build_options="$cargo_build_options -p mm-cli"
+              '';
+            };
+            postInstall = ''
+              mv $out/bin/mm-cli $out/bin/middle_manager
+            '';
           };
+
+          default = middle_manager;
         }
       );
 
