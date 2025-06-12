@@ -2,18 +2,18 @@ use clap::{Parser, ValueEnum};
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info, Level};
+use tracing::{Level, debug, info};
 use tracing_subscriber::fmt::writer::MakeWriterExt;
-use tracing_subscriber::{fmt, prelude::*, EnvFilter, Registry};
+use tracing_subscriber::{EnvFilter, Registry, fmt, prelude::*};
 
-use mm_core::{create_neo4j_service, neo4rs, Config};
+use mm_core::{Config, create_neo4j_service, neo4rs};
 use rust_mcp_sdk::{
+    McpServer, StdioTransport, TransportOptions,
     mcp_server::server_runtime_core,
     schema::{
-        Implementation, InitializeResult, ServerCapabilities, ServerCapabilitiesTools,
-        LATEST_PROTOCOL_VERSION,
+        Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
+        ServerCapabilitiesTools,
     },
-    McpServer, StdioTransport, TransportOptions,
 };
 
 /// Middle Manager CLI

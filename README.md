@@ -71,6 +71,8 @@ graph TD
 
 Run `cargo build` from the repository root to compile all crates.
 
+The workspace requires the **Rust 2024 edition**, so ensure your toolchain is up to date.
+
 ### Using Nix
 
 If you have [Nix](https://nixos.org/) installed you can build the CLI package with:
