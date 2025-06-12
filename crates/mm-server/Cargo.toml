@@ -3,6 +3,11 @@ name = "mm-server"
 version = "0.1.0"
 edition = "2024"
 
+# Specify this is a library crate only
+[lib]
+name = "mm_server"
+path = "src/lib.rs"
+
 [dependencies]
 mm-core = { path = "../mm-core" }
 mm-memory = { path = "../mm-memory" }
