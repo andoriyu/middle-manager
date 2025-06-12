@@ -192,6 +192,11 @@ This architecture ensures that the core domain logic is isolated from external c
 
 ```mermaid
 graph TD
+    %% Color legend for crates
+    classDef mm-core fill:#D5F5E3,stroke:#333;
+    classDef mm-memory fill:#D6EAF8,stroke:#333;
+    classDef mm-server fill:#FAD7A0,stroke:#333;
+
     %% Ports defined in mm-core
     subgraph "mm-core"
         core_service_trait["MemoryService trait"]
@@ -214,4 +219,21 @@ graph TD
     core_service_trait --"implemented in"--> memory_service_impl
     memory_service_impl --"uses"--> repository_trait
     repository_trait --"implemented in"--> neo4j_repo
+
+    %% Apply crate colors
+    class core_service_trait mm-core;
+    class repository_trait mm-memory;
+    class memory_service_impl mm-memory;
+    class neo4j_repo mm-memory;
+    class server_handler mm-server;
+
+    %% Legend showing colors for crates
+    subgraph "Legend"
+        legend_core["mm-core"]
+        legend_memory["mm-memory"]
+        legend_server["mm-server"]
+    end
+    class legend_core mm-core;
+    class legend_memory mm-memory;
+    class legend_server mm-server;
 ```
