@@ -31,7 +31,7 @@ async fn test_create_and_find_entity() {
 
     let entity = MemoryEntity {
         name: "test:entity:create".to_string(),
-        labels: vec!["Memory".to_string(), "Test".to_string()],
+        labels: vec!["TestCreateAndFind".to_string()],
         observations: vec!["This is a test entity for creation".to_string()],
         properties: HashMap::new(),
     };
@@ -52,7 +52,7 @@ async fn test_create_and_find_entity() {
 
     // Check that labels contain the expected values
     assert!(found_entity.labels.contains(&"Memory".to_string()));
-    assert!(found_entity.labels.contains(&"Test".to_string()));
+    assert!(found_entity.labels.contains(&"TestCreateAndFind".to_string()));
 }
 
 #[tokio::test]
