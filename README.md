@@ -13,6 +13,53 @@ The project is organized as a Rust workspace with the following crates:
 
 All workspace crates reside in the `crates/` directory to keep the repository root tidy.
 
+### Code Structure Diagram
+
+```mermaid
+graph TD
+    %% mm-cli details
+    subgraph "mm-cli"
+        main_fn["main()"]
+        run_server_fn["run_server()"]
+        main_fn --> run_server_fn
+        run_server_fn --> create_handler
+    end
+
+    %% mm-server details
+    subgraph "mm-server"
+        create_handler["create_handler()"]
+        subgraph "mcp"
+            create_tool["CreateEntityTool::call_tool"]
+            get_tool["GetEntityTool::call_tool"]
+        end
+        create_handler --> create_tool
+        create_handler --> get_tool
+    end
+
+    %% mm-core details
+    subgraph "mm-core"
+        create_op["create_entity"]
+        get_op["get_entity"]
+        create_op --> memory_service["MemoryService"]
+        get_op --> memory_service["MemoryService"]
+    end
+
+    %% mm-memory details
+    subgraph "mm-memory"
+        memory_service["MemoryService"]
+        repository_trait["MemoryRepository"]
+        neo4j_repo["Neo4jRepository"]
+        neo4j_db[(Neo4j)]
+        memory_service --> repository_trait
+        repository_trait --> neo4j_repo
+        neo4j_repo --> neo4j_db
+    end
+
+    %% Flow connections
+    create_tool --> create_op
+    get_tool --> get_op
+```
+
 ## Features
 
 - **MCP Server**: Implements the Model Context Protocol for AI assistant integration
