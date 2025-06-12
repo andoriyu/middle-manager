@@ -1,4 +1,4 @@
-use mm_memory::{MemoryEntity, Neo4jConfig, ValidationError, create_neo4j_service};
+use mm_memory::{MemoryEntity, Neo4jConfig, create_neo4j_service};
 use std::collections::HashMap;
 
 #[tokio::test]
