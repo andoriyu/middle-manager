@@ -17,11 +17,6 @@ All workspace crates reside in the `crates/` directory to keep the repository ro
 
 ```mermaid
 graph TD
-    %% Crate relationships
-    mm_cli["mm-cli"] --> mm_server["mm-server"]
-    mm_server --> mm_core["mm-core"]
-    mm_core --> mm_memory["mm-memory"]
-
     %% mm-cli details
     subgraph "mm-cli"
         main_fn["main()"]
@@ -43,14 +38,10 @@ graph TD
 
     %% mm-core details
     subgraph "mm-core"
-        operations_mod["operations"]
         create_op["create_entity"]
         get_op["get_entity"]
-        ports_struct["Ports"]
-        operations_mod --> create_op
-        operations_mod --> get_op
-        create_op --> ports_struct
-        get_op --> ports_struct
+        create_op --> memory_service["MemoryService"]
+        get_op --> memory_service["MemoryService"]
     end
 
     %% mm-memory details
@@ -67,7 +58,6 @@ graph TD
     %% Flow connections
     create_tool --> create_op
     get_tool --> get_op
-    ports_struct --> memory_service
 ```
 
 ## Features
