@@ -1,7 +1,24 @@
 # Middle Manager
 
-A Rust workspace containing the `mm-cli` binary and `mm-core` library crates.
+Middle Manager is a Model Context Protocol (MCP) server that provides tools for interacting with a Neo4j memory graph. It uses a hexagonal architecture to separate domain logic from external protocols.
+
+## Project Structure
+
+The project is organized as a Rust workspace with the following crates:
+
+- **mm-cli**: Command-line interface for running the MCP server
+- **mm-core**: Core domain logic and operations
+- **mm-server**: MCP server implementation
+- **mm-memory**: Memory graph repository and service
+
 All workspace crates reside in the `crates/` directory to keep the repository root tidy.
+
+## Features
+
+- **MCP Server**: Implements the Model Context Protocol for AI assistant integration
+- **Memory Graph**: Stores and retrieves knowledge from a Neo4j graph database
+- **Entity Management**: Create and retrieve entities with labels, observations, and properties
+- **Configurable Logging**: Control log level and file output
 
 ## Building
 
@@ -9,29 +26,82 @@ Run `cargo build` from the repository root to compile all crates.
 
 ## Running
 
-Execute `cargo run -p mm-cli` to build and run the CLI.
+Execute `cargo run -p mm-cli` to build and run the CLI with default settings.
 
-## Using Nix
+### CLI Options
 
-First, install Nix using the Determinate Systems installer:
+```
+USAGE:
+    mm-cli [OPTIONS]
 
-```bash
-curl -L https://install.determinate.systems/nix | sh -s -- install
+OPTIONS:
+    -l, --log-level <LOG_LEVEL>    Log level [default: info] [possible values: error, warn, info, debug, trace]
+    -f, --logfile <FILE>           Path to log file (required if log level is specified)
+    -r, --rotate-logs              Rotate logs (clear log file if it exists) [default: true]
+    -c, --config <FILE>            Path to config file
+    -h, --help                     Print help
+    -V, --version                  Print version
 ```
 
-This repository provides a Nix flake. Enter the development environment with
+### Configuration
+
+The server looks for configuration files in the following order:
+1. Custom config file specified with `-c` or `--config`
+2. `config/default.toml`
+3. `config/local.toml` (gitignored for local overrides)
+
+Example configuration:
+
+```toml
+[neo4j]
+uri = "neo4j://localhost:7687"
+username = "neo4j"
+password = "password"
+```
+
+## Development
+
+### Using Just
+
+The project includes a `justfile` with common development tasks:
+
+```bash
+# List available commands
+just
+
+# Run the MCP inspector with mm-cli
+just inspect
+
+# Run with debug logging
+just inspect-debug
+
+# Clean Neo4j volumes
+just clean-neo4j
+```
+
+### Using MCP Inspector
+
+To test the MCP server with the inspector:
+
+```bash
+npx @modelcontextprotocol/inspector cargo run -p mm-cli
+```
+
+### Using Nix
+
+This repository provides a Nix flake. Enter the development environment with:
 
 ```bash
 nix develop
 ```
 
-and build the workspace via
+Build the workspace via:
 
 ```bash
 nix build
 ```
 
-To run the flake's checks, use
+Run the flake's checks:
 
 ```bash
 nix flake check
@@ -40,3 +110,14 @@ nix flake check
 The flake uses [naersk](https://github.com/nix-community/naersk) together
 with the [rust overlay](https://github.com/oxalica/rust-overlay) to build the
 Rust workspace.
+
+## Architecture
+
+The project follows a hexagonal architecture (ports and adapters) pattern:
+
+- **Core Domain**: Business logic independent of external protocols
+- **Ports**: Interfaces for external dependencies
+- **Adapters**: Implementations of ports for specific technologies
+- **MCP Protocol**: External interface for AI assistants
+
+This architecture ensures that the core domain logic is isolated from external concerns, making it more maintainable and testable.
