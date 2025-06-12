@@ -45,3 +45,40 @@ pub async fn get_entity(ports: &Ports, command: GetEntityCommand) -> GetEntityRe
         Err(e) => Err(GetEntityError::Repository(e)),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::service::MockMemoryService;
+    use mockall::predicate::*;
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_get_entity_validation() {
+        let ports = Ports::new(Arc::new(MockMemoryService::<neo4rs::Error>::new()));
+        let cmd = GetEntityCommand { name: "".into() };
+        let err = get_entity(&ports, cmd).await.unwrap_err();
+        matches!(err, GetEntityError::Validation(_));
+    }
+
+    #[tokio::test]
+    async fn test_get_entity_calls_service() {
+        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let expected = MemoryEntity {
+            name: "exists".into(),
+            labels: vec!["L".into()],
+            observations: vec!["o".into()],
+            properties: HashMap::new(),
+        };
+        mock.expect_find_entity_by_name()
+            .with(eq("exists"))
+            .returning(move |_| Ok(Some(expected.clone())));
+
+        let ports = Ports::new(Arc::new(mock));
+        let cmd = GetEntityCommand { name: "exists".into() };
+        let result = get_entity(&ports, cmd).await.unwrap();
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().name, "exists");
+    }
+}

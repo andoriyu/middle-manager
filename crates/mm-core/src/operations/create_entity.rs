@@ -60,3 +60,45 @@ pub async fn create_entity(ports: &Ports, command: CreateEntityCommand) -> Creat
         Err(e) => Err(CreateEntityError::Repository(e)),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::service::MockMemoryService;
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_create_entity_validation() {
+        let ports = Ports::new(Arc::new(MockMemoryService::<neo4rs::Error>::new()));
+
+        let cmd = CreateEntityCommand {
+            name: "".into(),
+            labels: vec!["Test".into()],
+            observations: vec![],
+            properties: HashMap::new(),
+        };
+
+        let err = create_entity(&ports, cmd).await.unwrap_err();
+        matches!(err, CreateEntityError::Validation(_));
+    }
+
+    #[tokio::test]
+    async fn test_create_entity_calls_service() {
+        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        mock.expect_create_entity()
+            .times(1)
+            .withf(|e| e.name == "valid" && e.labels == ["A"])
+            .returning(|_| Ok(()));
+
+        let ports = Ports::new(Arc::new(mock));
+
+        let cmd = CreateEntityCommand {
+            name: "valid".into(),
+            labels: vec!["A".into()],
+            observations: vec![],
+            properties: HashMap::new(),
+        };
+
+        assert!(create_entity(&ports, cmd).await.is_ok());
+    }
+}

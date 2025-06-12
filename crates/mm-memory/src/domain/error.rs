@@ -173,3 +173,73 @@ where
 ///
 /// This is a type alias for `Result<T, MemoryError<E>>`.
 pub type MemoryResult<T, E> = Result<T, MemoryError<E>>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_connection_error_constructors() {
+        let err = MemoryError::<std::io::Error>::connection_error("oops");
+        match err {
+            MemoryError::ConnectionError { message, source } => {
+                assert_eq!(message, "oops");
+                assert!(source.is_none());
+            }
+            _ => panic!("wrong variant"),
+        }
+
+        let src = std::io::Error::new(std::io::ErrorKind::Other, "src");
+        let err = MemoryError::connection_error_with_source("fail", src);
+        match err {
+            MemoryError::ConnectionError { message, source } => {
+                assert_eq!(message, "fail");
+                assert!(source.is_some());
+            }
+            _ => panic!("wrong variant"),
+        }
+    }
+
+    #[test]
+    fn test_query_error_constructors() {
+        let err = MemoryError::<std::io::Error>::query_error("bad query");
+        match err {
+            MemoryError::QueryError { message, source } => {
+                assert_eq!(message, "bad query");
+                assert!(source.is_none());
+            }
+            _ => panic!("wrong variant"),
+        }
+
+        let src = std::io::Error::new(std::io::ErrorKind::Other, "db");
+        let err = MemoryError::query_error_with_source("bad", src);
+        match err {
+            MemoryError::QueryError { message, source } => {
+                assert_eq!(message, "bad");
+                assert!(source.is_some());
+            }
+            _ => panic!("wrong variant"),
+        }
+    }
+
+    #[test]
+    fn test_runtime_error_constructors() {
+        let err = MemoryError::<std::io::Error>::runtime_error("oops");
+        match err {
+            MemoryError::RuntimeError { message, source } => {
+                assert_eq!(message, "oops");
+                assert!(source.is_none());
+            }
+            _ => panic!("wrong variant"),
+        }
+
+        let err = MemoryError::<std::io::Error>::runtime_error_with_source("bad", std::fmt::Error);
+        match err {
+            MemoryError::RuntimeError { message, source } => {
+                assert_eq!(message, "bad");
+                assert!(source.is_some());
+            }
+            _ => panic!("wrong variant"),
+        }
+    }
+}

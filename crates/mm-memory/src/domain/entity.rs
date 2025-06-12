@@ -69,3 +69,22 @@ pub struct MemoryEntity {
 pub fn is_snake_case(s: &str) -> bool {
     s.chars().all(|c| c.is_lowercase() || c == '_' || c.is_numeric())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::is_snake_case;
+
+    #[test]
+    fn test_is_snake_case_valid() {
+        assert!(is_snake_case("hello_world"));
+        assert!(is_snake_case("hello"));
+        assert!(is_snake_case("snake_case123"));
+    }
+
+    #[test]
+    fn test_is_snake_case_invalid() {
+        assert!(!is_snake_case("HelloWorld"));
+        assert!(!is_snake_case("Hello_World"));
+        assert!(!is_snake_case("with-hyphen"));
+    }
+}
