@@ -24,6 +24,20 @@ All workspace crates reside in the `crates/` directory to keep the repository ro
 
 Run `cargo build` from the repository root to compile all crates.
 
+### Using Nix
+
+If you have [Nix](https://nixos.org/) installed you can build the CLI package with:
+
+```bash
+nix build .#middle_manager
+```
+
+The [Determinate Systems installer](https://install.determinate.systems/nix) provides a fast way to install Nix:
+
+```bash
+curl -L https://install.determinate.systems/nix | sh -s -- --no-confirm
+```
+
 ## Running
 
 Execute `cargo run -p mm-cli` to build and run the CLI with default settings.
