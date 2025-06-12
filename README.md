@@ -120,6 +120,11 @@ username = "neo4j"
 password = "password"
 ```
 
+When using the provided `docker-compose.yml` file, Neo4j is exposed on host
+port `7688` rather than the default `7687`. Update `config/local.toml` or set
+the environment variable `MM_NEO4J__URI` to `neo4j://localhost:7688` when
+running with Docker.
+
 ## Development
 
 ### Using Just
