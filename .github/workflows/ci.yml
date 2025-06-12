@@ -59,12 +59,16 @@ jobs:
         with:
           toolchain: stable
           rustflags: ""
+          components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
-      - name: Run tests
-        run: cargo nextest run --workspace --all-targets --profile ci --no-fail-fast
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Run tests with coverage
+        run: |
+          mkdir -p coverage
+          cargo llvm-cov nextest --workspace --all-targets --profile ci --no-fail-fast --lcov --output-path coverage/lcov.info
       - name: Upload junit report
         uses: actions/upload-artifact@v4
         with:
@@ -75,3 +79,12 @@ jobs:
         with:
           paths: "target/nextest/ci/junit.xml"
         if: always()
+      - name: Setup LCOV
+        uses: hrishikesh-kadam/setup-lcov@v1
+      - name: Report coverage to PR
+        uses: zgosalvez/github-actions-report-lcov@v4
+        with:
+          coverage-files: coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          artifact-name: code-coverage-report
+          update-comment: true
