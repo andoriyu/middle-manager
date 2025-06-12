@@ -14,10 +14,10 @@ pub struct Config {
 pub struct Neo4jConfig {
     /// URI of the Neo4j server (e.g., "neo4j://localhost:7688")
     pub uri: String,
-    
+
     /// Username for authentication
     pub username: String,
-    
+
     /// Password for authentication
     pub password: String,
 }
@@ -33,37 +33,37 @@ impl Config {
             },
         }
     }
-    
+
     /// Load configuration from environment variables and specified config files
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `config_paths` - Paths to configuration files to load
     pub fn load<P: AsRef<Path>>(config_paths: &[P]) -> Result<Self, ConfigError> {
-        let mut builder = ConfigBuilder::builder()
-            .add_source(config::Environment::with_prefix("MM"));
-        
+        let mut builder =
+            ConfigBuilder::builder().add_source(config::Environment::with_prefix("MM"));
+
         // Add each config path to the builder
         for path in config_paths {
             builder = builder.add_source(File::from(path.as_ref()).required(false));
         }
-        
+
         builder.build()?.try_deserialize()
     }
-    
+
     /// Load configuration from a string source (useful for testing)
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `config_str` - Configuration string in TOML format
     pub fn load_from_string(config_str: &str) -> Result<Self, ConfigError> {
         let source = config::File::from_str(config_str, FileFormat::Toml);
-        
+
         let config = ConfigBuilder::builder()
             .add_source(source)
             .build()?
             .try_deserialize()?;
-            
+
         Ok(config)
     }
 }
@@ -106,11 +106,11 @@ mod tests {
         username = "test_user"
         password = "test_password"
         "#;
-        
+
         // Load the config from string
-        let config = Config::load_from_string(config_content)
-            .expect("Failed to load config from string");
-        
+        let config =
+            Config::load_from_string(config_content).expect("Failed to load config from string");
+
         // Verify the loaded values
         assert_eq!(config.neo4j.uri, "neo4j://testhost:7687");
         assert_eq!(config.neo4j.username, "test_user");
@@ -126,9 +126,9 @@ mod tests {
                 password: "test_conversion_password".to_string(),
             },
         };
-        
+
         let memory_config: mm_memory::Neo4jConfig = config.into();
-        
+
         assert_eq!(memory_config.uri, "neo4j://testconversion:7687");
         assert_eq!(memory_config.username, "test_conversion_user");
         assert_eq!(memory_config.password, "test_conversion_password");

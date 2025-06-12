@@ -1,25 +1,21 @@
 mod config;
 pub mod error;
-mod ports;
 mod operations;
+mod ports;
 mod service;
 
 pub use config::Config;
-pub use error::{Error, Result as CoreResult, CoreError};
-pub use ports::Ports;
+pub use error::{CoreError, Error, Result as CoreResult};
 pub use operations::{
-    GetEntityCommand, GetEntityError, GetEntityResult, get_entity,
-    CreateEntityCommand, CreateEntityError, CreateEntityResult, create_entity,
+    CreateEntityCommand, CreateEntityError, CreateEntityResult, GetEntityCommand, GetEntityError,
+    GetEntityResult, create_entity, get_entity,
 };
+pub use ports::Ports;
 pub use service::MemoryService;
 
 // Re-export necessary types from mm-memory
 pub use mm_memory::{
-    MemoryEntity, 
-    create_neo4j_service, 
-    Neo4jRepository, 
-    neo4rs,
-    MemoryService as MemoryServiceImpl,
+    MemoryEntity, MemoryService as MemoryServiceImpl, Neo4jRepository, create_neo4j_service, neo4rs,
 };
 
 #[cfg(test)]

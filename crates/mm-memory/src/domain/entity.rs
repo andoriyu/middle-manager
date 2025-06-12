@@ -32,13 +32,13 @@ use std::collections::HashMap;
 pub struct MemoryEntity {
     /// Unique name of the entity, following a colon-separated format
     pub name: String,
-    
+
     /// Labels for categorizing the entity, following CamelCase format
     pub labels: Vec<String>,
-    
+
     /// Facts or notes about the entity
     pub observations: Vec<String>,
-    
+
     /// Additional key-value properties
     pub properties: HashMap<String, String>,
 }
@@ -67,5 +67,6 @@ pub struct MemoryEntity {
 /// assert!(!is_snake_case("Hello_World"));
 /// ```
 pub fn is_snake_case(s: &str) -> bool {
-    s.chars().all(|c| c.is_lowercase() || c == '_' || c.is_numeric())
+    s.chars()
+        .all(|c| c.is_lowercase() || c == '_' || c.is_numeric())
 }

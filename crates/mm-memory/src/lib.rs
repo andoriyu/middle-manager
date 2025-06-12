@@ -27,10 +27,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         username: "neo4j".to_string(),
         password: "password".to_string(),
     };
-    
+
     // Create a memory service
     let service = create_neo4j_service(config).await?;
-    
+
     // Create an entity
     let entity = MemoryEntity {
         name: "example:entity:test".to_string(),
@@ -38,19 +38,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         observations: vec!["This is an example entity".to_string()],
         properties: HashMap::new(),
     };
-    
+
     // Store the entity
     service.create_entity(&entity).await?;
-    
+
     // Retrieve the entity
     let found = service.find_entity_by_name("example:entity:test").await?;
-    
+
     if let Some(found_entity) = found {
         println!("Found entity: {}", found_entity.name);
     } else {
         println!("Entity not found");
     }
-    
+
     Ok(())
 }
 ```
@@ -73,17 +73,17 @@ All relationships in the knowledge graph follow snake_case naming convention:
 - etc.
 */
 
+pub mod adapters;
 pub mod domain;
 pub mod ports;
-pub mod adapters;
 pub mod service;
 
 // Re-export main types for convenience
+pub use adapters::neo4j::{Neo4jConfig, Neo4jRepository};
 pub use domain::entity::MemoryEntity;
 pub use domain::error::{MemoryError, MemoryResult};
 pub use domain::validation_error::ValidationError;
 pub use ports::repository::MemoryRepository;
-pub use adapters::neo4j::{Neo4jRepository, Neo4jConfig};
 pub use service::memory::MemoryService;
 
 // Re-export neo4rs for use by other crates
@@ -127,7 +127,7 @@ pub type Error = neo4rs::Error;
 /// }
 /// ```
 pub async fn create_neo4j_service(
-    config: Neo4jConfig
+    config: Neo4jConfig,
 ) -> Result<MemoryService<Neo4jRepository, neo4rs::Error>, MemoryError<neo4rs::Error>> {
     let repository = Neo4jRepository::new(config).await?;
     Ok(MemoryService::new(repository))

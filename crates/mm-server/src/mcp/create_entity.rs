@@ -1,12 +1,10 @@
-use std::collections::HashMap;
-use mm_core::{
-    Ports, CreateEntityCommand, create_entity,
-};
-use rust_mcp_sdk::schema::schema_utils::CallToolError;
+use mm_core::{CreateEntityCommand, Ports, create_entity};
+use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use rust_mcp_sdk::schema::CallToolResult;
-use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
+use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
-use tracing::{error};
+use std::collections::HashMap;
+use tracing::error;
 
 use crate::mcp::error::ToolError;
 
@@ -19,13 +17,13 @@ use crate::mcp::error::ToolError;
 pub struct CreateEntityTool {
     /// Name of the entity
     pub name: String,
-    
+
     /// Labels for the entity
     pub labels: Vec<String>,
-    
+
     /// Observations about the entity
     pub observations: Vec<String>,
-    
+
     /// Additional properties for the entity
     #[serde(default)]
     pub properties: Option<HashMap<String, String>>,
@@ -41,12 +39,12 @@ impl CreateEntityTool {
             observations: self.observations.clone(),
             properties: self.properties.clone().unwrap_or_default(),
         };
-        
+
         // Execute the operation
         match create_entity(ports, command).await {
             Ok(_) => Ok(CallToolResult::text_content(
                 format!("Entity '{}' created successfully", self.name),
-                None
+                None,
             )),
             Err(e) => {
                 // Log the detailed error
@@ -54,7 +52,7 @@ impl CreateEntityTool {
                 // Return a simplified error for the MCP protocol
                 let tool_error = ToolError::from(e);
                 Err(CallToolError::new(tool_error))
-            },
+            }
         }
     }
 }

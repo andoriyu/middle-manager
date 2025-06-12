@@ -1,19 +1,17 @@
-use std::sync::Arc;
-use std::error::Error as StdError;
 use async_trait::async_trait;
+use std::error::Error as StdError;
+use std::sync::Arc;
 
-use mm_core::{
-    Ports, MemoryService, neo4rs,
-};
+use mm_core::{MemoryService, Ports, neo4rs};
 use rust_mcp_sdk::schema::{
-    schema_utils::{CallToolError, NotificationFromClient, RequestFromClient, ResultFromServer},
     ClientRequest, ListToolsResult, RpcError,
+    schema_utils::{CallToolError, NotificationFromClient, RequestFromClient, ResultFromServer},
 };
 use rust_mcp_sdk::{
-    mcp_server::{enforce_compatible_protocol_version, ServerHandlerCore},
     McpServer,
+    mcp_server::{ServerHandlerCore, enforce_compatible_protocol_version},
 };
-use tracing::{debug};
+use tracing::debug;
 
 mod mcp;
 use mcp::MemoryTools;
@@ -70,7 +68,8 @@ where
                         &initialize_request.params.protocol_version,
                         &server_info.protocol_version,
                     )
-                    .map_err(|err| RpcError::internal_error().with_message(err.to_string()))? {
+                    .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?
+                    {
                         server_info.protocol_version = initialize_request.params.protocol_version;
                     }
 
@@ -85,12 +84,12 @@ where
                         tools: MemoryTools::tools(),
                     }
                     .into())
-                },
+                }
 
                 ClientRequest::CallToolRequest(request) => {
                     let tool_name = request.tool_name().to_string();
                     debug!("Handling call tool request: {}", tool_name);
-                    
+
                     // Create ports with the memory service
                     let ports = Ports::new(self.service.clone());
 
@@ -114,8 +113,10 @@ where
                     Ok(result.into())
                 }
 
-                _ => Err(RpcError::method_not_found()
-                    .with_message(format!("No handler is implemented for '{}'.", client_request.method()))),
+                _ => Err(RpcError::method_not_found().with_message(format!(
+                    "No handler is implemented for '{}'.",
+                    client_request.method()
+                ))),
             },
             RequestFromClient::CustomRequest(_) => Err(RpcError::method_not_found()
                 .with_message("No handler is implemented for custom requests.".to_string())),
@@ -143,24 +144,24 @@ where
 mod tests {
     use super::*;
     use mm_core::MemoryServiceImpl;
-    use serde_json::Value;
+    use rust_mcp_sdk::error::McpSdkError;
     use rust_mcp_sdk::error::SdkResult;
+    use rust_mcp_sdk::schema::ClientMessage;
+    use rust_mcp_sdk::schema::InitializeRequestParams;
     use rust_mcp_sdk::schema::{
-        Implementation, InitializeResult, ServerCapabilities, LATEST_PROTOCOL_VERSION,
+        Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
         schema_utils::NotificationFromServer,
     };
-    use std::pin::Pin;
-    use std::future::Future;
-    use rust_mcp_sdk::error::McpSdkError;
-    use rust_mcp_sdk::schema::InitializeRequestParams;
-    use rust_mcp_sdk::schema::ClientMessage;
-    use rust_mcp_sdk::transport::MessageDispatcher;
     use rust_mcp_sdk::transport::McpDispatch;
-    use tokio::sync::RwLock;
+    use rust_mcp_sdk::transport::MessageDispatcher;
+    use serde_json::Value;
+    use std::future::Future;
     use std::option::Option;
+    use std::pin::Pin;
+    use tokio::sync::RwLock;
 
     struct MockServer;
-    
+
     #[async_trait]
     impl McpServer for MockServer {
         async fn start(&self) -> SdkResult<()> {
@@ -170,7 +171,7 @@ mod tests {
         async fn send_notification(&self, _notification: NotificationFromServer) -> SdkResult<()> {
             Ok(())
         }
-        
+
         fn server_info(&self) -> &InitializeResult {
             static SERVER_INFO: std::sync::OnceLock<InitializeResult> = std::sync::OnceLock::new();
             SERVER_INFO.get_or_init(|| InitializeResult {
@@ -194,7 +195,8 @@ mod tests {
         }
 
         async fn sender(&self) -> &RwLock<Option<MessageDispatcher<ClientMessage>>> {
-            static SENDER: std::sync::OnceLock<RwLock<Option<MessageDispatcher<ClientMessage>>>> = std::sync::OnceLock::new();
+            static SENDER: std::sync::OnceLock<RwLock<Option<MessageDispatcher<ClientMessage>>>> =
+                std::sync::OnceLock::new();
             SENDER.get_or_init(|| RwLock::new(None))
         }
 

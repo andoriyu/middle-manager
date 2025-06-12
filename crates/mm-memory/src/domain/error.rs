@@ -16,9 +16,9 @@ use crate::domain::validation_error::ValidationError;
 ///
 /// The generic parameter `E` allows for adapter-specific error types.
 #[derive(Error, Debug)]
-pub enum MemoryError<E> 
-where 
-    E: StdError + Send + Sync + 'static
+pub enum MemoryError<E>
+where
+    E: StdError + Send + Sync + 'static,
 {
     /// Error connecting to the memory store
     #[error("Database connection error: {message}")]
@@ -29,7 +29,7 @@ where
         #[source]
         source: Option<E>,
     },
-    
+
     /// Error executing a query
     #[error("Query execution error: {message}")]
     QueryError {
@@ -39,7 +39,7 @@ where
         #[source]
         source: Option<E>,
     },
-    
+
     /// Runtime error that can wrap any error type
     #[error("Runtime error: {message}")]
     RuntimeError {
@@ -49,19 +49,19 @@ where
         #[source]
         source: Option<Box<dyn StdError + Send + Sync>>,
     },
-    
+
     /// Error serializing or deserializing data
     #[error("Serialization error")]
     SerializationError(#[from] serde_json::Error),
-    
+
     /// Domain validation error
     #[error("Validation error")]
     ValidationError(#[from] ValidationError),
 }
 
-impl<E> MemoryError<E> 
-where 
-    E: StdError + Send + Sync + 'static
+impl<E> MemoryError<E>
+where
+    E: StdError + Send + Sync + 'static,
 {
     /// Create a new connection error without a source
     ///
@@ -78,7 +78,7 @@ where
             source: None,
         }
     }
-    
+
     /// Create a new connection error with a source
     ///
     /// # Arguments
@@ -95,7 +95,7 @@ where
             source: Some(source),
         }
     }
-    
+
     /// Create a new query error without a source
     ///
     /// # Arguments
@@ -111,7 +111,7 @@ where
             source: None,
         }
     }
-    
+
     /// Create a new query error with a source
     ///
     /// # Arguments
@@ -128,7 +128,7 @@ where
             source: Some(source),
         }
     }
-    
+
     /// Create a new runtime error without a source
     ///
     /// # Arguments
@@ -144,7 +144,7 @@ where
             source: None,
         }
     }
-    
+
     /// Create a new runtime error with a source
     ///
     /// This method can wrap any error type that implements `StdError + Send + Sync + 'static`.

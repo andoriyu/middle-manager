@@ -1,5 +1,5 @@
-use std::error::Error as StdError;
 use async_trait::async_trait;
+use std::error::Error as StdError;
 
 use crate::domain::entity::MemoryEntity;
 use crate::domain::error::MemoryResult;
@@ -15,7 +15,7 @@ use crate::domain::error::MemoryResult;
 #[async_trait]
 pub trait MemoryRepository<E>
 where
-    E: StdError + Send + Sync + 'static
+    E: StdError + Send + Sync + 'static,
 {
     /// Create a new entity in the memory graph
     ///
@@ -35,7 +35,7 @@ where
     /// - There was an error connecting to the memory store
     /// - There was an error executing the query
     async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), E>;
-    
+
     /// Find an entity by name
     ///
     /// # Arguments

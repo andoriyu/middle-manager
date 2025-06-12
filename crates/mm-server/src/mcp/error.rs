@@ -1,7 +1,7 @@
-use std::fmt;
-use std::error::Error as StdError;
 use mm_core::CoreError;
 use mm_core::{CreateEntityError, GetEntityError};
+use std::error::Error as StdError;
+use std::fmt;
 
 /// Error type for MCP tools
 #[derive(Debug)]
@@ -11,14 +11,6 @@ pub struct ToolError {
 }
 
 impl ToolError {
-    /// Create a new tool error with a message
-    pub fn new<S: Into<String>>(message: S) -> Self {
-        Self {
-            message: message.into(),
-            source: None,
-        }
-    }
-
     /// Create a new tool error with a message and source
     pub fn with_source<S, E>(message: S, source: E) -> Self
     where
@@ -40,7 +32,9 @@ impl fmt::Display for ToolError {
 
 impl StdError for ToolError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        self.source.as_ref().map(|s| s.as_ref() as &(dyn StdError + 'static))
+        self.source
+            .as_ref()
+            .map(|s| s.as_ref() as &(dyn StdError + 'static))
     }
 }
 

@@ -1,6 +1,6 @@
 pub mod create_entity;
-pub mod get_entity;
 pub mod error;
+pub mod get_entity;
 
 use rust_mcp_sdk::tool_box;
 

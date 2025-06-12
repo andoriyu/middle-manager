@@ -16,11 +16,11 @@ use crate::ports::repository::MemoryRepository;
 pub struct MemoryService<R, E>
 where
     R: MemoryRepository<E>,
-    E: StdError + Send + Sync + 'static
+    E: StdError + Send + Sync + 'static,
 {
     /// The repository used to perform memory operations
     repository: R,
-    
+
     /// Phantom data to track the error type
     _error_type: PhantomData<E>,
 }
@@ -28,7 +28,7 @@ where
 impl<R, E> MemoryService<R, E>
 where
     R: MemoryRepository<E>,
-    E: StdError + Send + Sync + 'static
+    E: StdError + Send + Sync + 'static,
 {
     /// Create a new memory service with the given repository
     ///
@@ -40,12 +40,12 @@ where
     ///
     /// A new `MemoryService` that uses the given repository
     pub fn new(repository: R) -> Self {
-        Self { 
+        Self {
             repository,
             _error_type: PhantomData,
         }
     }
-    
+
     /// Create a new entity in the memory graph
     ///
     /// # Arguments
@@ -67,7 +67,7 @@ where
         // Validation is handled in the repository
         self.repository.create_entity(entity).await
     }
-    
+
     /// Find an entity by name
     ///
     /// # Arguments

@@ -1,7 +1,7 @@
-use crate::ports::Ports;
 use crate::MemoryEntity;
 use crate::error::CoreError;
 use crate::neo4rs;
+use crate::ports::Ports;
 use thiserror::Error;
 
 /// Command to retrieve an entity by name
@@ -15,7 +15,7 @@ pub struct GetEntityCommand {
 pub enum GetEntityError {
     #[error("Repository error: {0}")]
     Repository(#[from] CoreError<neo4rs::Error>),
-    
+
     #[error("Validation error: {0}")]
     Validation(String),
 }
@@ -36,11 +36,17 @@ pub type GetEntityResult = Result<Option<MemoryEntity>, GetEntityError>;
 pub async fn get_entity(ports: &Ports, command: GetEntityCommand) -> GetEntityResult {
     // Validate command
     if command.name.is_empty() {
-        return Err(GetEntityError::Validation("Entity name cannot be empty".to_string()));
+        return Err(GetEntityError::Validation(
+            "Entity name cannot be empty".to_string(),
+        ));
     }
-    
+
     // Find entity using the memory service
-    match ports.memory_service.find_entity_by_name(&command.name).await {
+    match ports
+        .memory_service
+        .find_entity_by_name(&command.name)
+        .await
+    {
         Ok(entity) => Ok(entity),
         Err(e) => Err(GetEntityError::Repository(e)),
     }
