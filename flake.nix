@@ -46,6 +46,7 @@
               openssl
               openssl.dev
               nodejs
+              cargo-nextest
             ];
             
             # Set environment variables for OpenSSL
