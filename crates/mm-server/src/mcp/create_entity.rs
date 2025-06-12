@@ -6,6 +6,9 @@ use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use rust_mcp_sdk::schema::CallToolResult;
 use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
 use serde::{Deserialize, Serialize};
+use tracing::{error};
+
+use crate::mcp::error::ToolError;
 
 /// MCP tool for creating entities
 #[mcp_tool(
@@ -45,7 +48,13 @@ impl CreateEntityTool {
                 format!("Entity '{}' created successfully", self.name),
                 None
             )),
-            Err(e) => Err(CallToolError::new(e)),
+            Err(e) => {
+                // Log the detailed error
+                error!("Failed to create entity: {:#?}", e);
+                // Return a simplified error for the MCP protocol
+                let tool_error = ToolError::from(e);
+                Err(CallToolError::new(tool_error))
+            },
         }
     }
 }

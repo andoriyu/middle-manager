@@ -1310,6 +1310,7 @@ dependencies = [
  "clap",
  "mm-core",
  "mm-server",
+ "rust-mcp-sdk",
  "tokio",
  "tracing",
  "tracing-subscriber",

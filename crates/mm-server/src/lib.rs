@@ -1,48 +1,61 @@
 use std::sync::Arc;
+use std::error::Error as StdError;
 use async_trait::async_trait;
 
 use mm_core::{
-    Config, Ports, MemoryServiceImpl,
-    Neo4jRepository, create_neo4j_service, neo4rs,
+    Ports, MemoryService, neo4rs,
 };
 use rust_mcp_sdk::schema::{
     schema_utils::{CallToolError, NotificationFromClient, RequestFromClient, ResultFromServer},
     ClientRequest, ListToolsResult, RpcError,
-    Implementation, InitializeResult, ServerCapabilities, ServerCapabilitiesTools,
-    LATEST_PROTOCOL_VERSION,
 };
 use rust_mcp_sdk::{
-    mcp_server::{enforce_compatible_protocol_version, ServerHandlerCore, server_runtime_core},
-    StdioTransport, TransportOptions, McpServer,
+    mcp_server::{enforce_compatible_protocol_version, ServerHandlerCore},
+    McpServer,
 };
-use std::path::Path;
-use tracing::{debug, info};
+use tracing::{debug};
 
 mod mcp;
 use mcp::MemoryTools;
 
 /// Middle Manager MCP server handler
-pub struct MiddleManagerHandler<S>
+pub struct MiddleManagerHandler<S, E>
 where
-    S: mm_core::MemoryService<neo4rs::Error> + Send + Sync + 'static,
+    S: MemoryService<E> + Send + Sync + 'static,
+    E: StdError + Send + Sync + 'static,
 {
     service: Arc<S>,
+    _phantom: std::marker::PhantomData<E>,
 }
 
-impl<S> MiddleManagerHandler<S>
+impl<S, E> MiddleManagerHandler<S, E>
 where
-    S: mm_core::MemoryService<neo4rs::Error> + Send + Sync + 'static,
+    S: MemoryService<E> + Send + Sync + 'static,
+    E: StdError + Send + Sync + 'static,
 {
     /// Create a new Middle Manager MCP server handler
     pub fn new(service: S) -> Self {
         Self {
             service: Arc::new(service),
+            _phantom: std::marker::PhantomData,
         }
     }
 }
 
+/// Create a Middle Manager MCP server handler with the given memory service
+pub fn create_handler<S, E>(memory_service: S) -> MiddleManagerHandler<S, E>
+where
+    S: MemoryService<E> + Send + Sync + 'static,
+    E: StdError + Send + Sync + 'static,
+{
+    MiddleManagerHandler::new(memory_service)
+}
+
 #[async_trait]
-impl ServerHandlerCore for MiddleManagerHandler<MemoryServiceImpl<Neo4jRepository, neo4rs::Error>> {
+impl<S> ServerHandlerCore for MiddleManagerHandler<S, neo4rs::Error>
+where
+    S: MemoryService<neo4rs::Error> + Send + Sync + 'static,
+{
     async fn handle_request(
         &self,
         request: RequestFromClient,
@@ -126,56 +139,13 @@ impl ServerHandlerCore for MiddleManagerHandler<MemoryServiceImpl<Neo4jRepositor
     }
 }
 
-/// Run the Middle Manager MCP server
-pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> anyhow::Result<()> {
-    // Load configuration
-    let config = Config::load(config_paths)
-        .map_err(|e| anyhow::anyhow!("Failed to load configuration: {}", e))?;
-    
-    info!("Starting Middle Manager MCP server");
-    debug!("Using Neo4j URI: {}", config.neo4j.uri);
-    
-    // Create memory service
-    let neo4j_config = config.neo4j.into();
-    let memory_service = create_neo4j_service(neo4j_config).await
-        .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
-    
-    // Create server handler
-    let handler = MiddleManagerHandler::new(memory_service);
-    
-    // Create server details
-    let server_details = InitializeResult {
-        server_info: Implementation {
-            name: "Middle Manager MCP Server".to_string(),
-            version: "0.1.0".to_string(),
-        },
-        capabilities: ServerCapabilities {
-            tools: Some(ServerCapabilitiesTools { list_changed: None }),
-            ..Default::default()
-        },
-        meta: None,
-        instructions: Some("Middle Manager MCP Server provides tools for interacting with the memory graph.".to_string()),
-        protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
-    };
-
-    // Create transport
-    let transport = StdioTransport::new(TransportOptions::default())
-        .map_err(|e| anyhow::anyhow!("Failed to create stdio transport: {}", e))?;
-    
-    // Create and start server
-    let server = server_runtime_core::create_server(server_details, transport, handler);
-    info!("Server initialized, starting...");
-    server.start().await
-        .map_err(|e| anyhow::anyhow!("Server failed to start or run: {}", e))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use mm_core::MockMemoryService;
-    use std::collections::HashMap;
     use serde_json::Value;
     use rust_mcp_sdk::error::SdkResult;
+    use rust_mcp_sdk::schema::{Implementation, InitializeResult, ServerCapabilities, LATEST_PROTOCOL_VERSION};
 
     struct MockServer;
     
