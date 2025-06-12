@@ -11,14 +11,6 @@ pub struct ToolError {
 }
 
 impl ToolError {
-    /// Create a new tool error with a message
-    pub fn new<S: Into<String>>(message: S) -> Self {
-        Self {
-            message: message.into(),
-            source: None,
-        }
-    }
-
     /// Create a new tool error with a message and source
     pub fn with_source<S, E>(message: S, source: E) -> Self
     where
