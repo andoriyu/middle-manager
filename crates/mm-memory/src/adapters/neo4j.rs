@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use neo4rs::{self, Graph, Node, Query};
 use serde_json;
+use async_trait::async_trait;
 
 use crate::domain::entity::MemoryEntity;
 use crate::domain::error::{MemoryError, MemoryResult};
@@ -58,6 +59,7 @@ impl Neo4jRepository {
     }
 }
 
+#[async_trait]
 impl MemoryRepository<neo4rs::Error> for Neo4jRepository {
     async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), neo4rs::Error> {
         // Validate entity

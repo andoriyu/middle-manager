@@ -1,4 +1,5 @@
 use std::error::Error as StdError;
+use async_trait::async_trait;
 
 use crate::domain::entity::MemoryEntity;
 use crate::domain::error::MemoryResult;
@@ -11,6 +12,7 @@ use crate::domain::error::MemoryResult;
 ///
 /// Implementations of this trait should handle the details of interacting
 /// with the specific memory store technology (e.g., Neo4j, MongoDB, etc.).
+#[async_trait]
 pub trait MemoryRepository<E>
 where
     E: StdError + Send + Sync + 'static

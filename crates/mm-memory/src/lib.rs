@@ -86,6 +86,10 @@ pub use ports::repository::MemoryRepository;
 pub use adapters::neo4j::{Neo4jRepository, Neo4jConfig};
 pub use service::memory::MemoryService;
 
+// Re-export neo4rs for use by other crates
+pub use neo4rs;
+pub type Error = neo4rs::Error;
+
 /// Create a Neo4j-based memory service
 ///
 /// This is a convenience function that creates a Neo4j repository and wraps it in a memory service.

@@ -10,4 +10,4 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1.0"
 tracing = "0.1"
-mm-core = { path = "../mm-core" }
+async-trait = { workspace = true }

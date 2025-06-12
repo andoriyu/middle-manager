@@ -20,6 +20,14 @@
           default = naersk-lib.buildPackage {
             src = self;
             cargoLock = ./Cargo.lock;
+            nativeBuildInputs = with pkgs; [
+              cmake
+              pkg-config
+            ];
+            buildInputs = with pkgs; [
+              openssl
+              openssl.dev
+            ];
           };
         }
       );
@@ -28,12 +36,21 @@
         let pkgs = import nixpkgs { inherit system; overlays = [ rust-overlay.overlays.default ]; }; in
         {
           default = pkgs.mkShell {
-            buildInputs = [
-              pkgs.rust-bin.stable.latest.default
-              pkgs.rust-analyzer
-              pkgs.clippy
-              pkgs.rustfmt
+            buildInputs = with pkgs; [
+              rust-bin.stable.latest.default
+              rust-analyzer
+              clippy
+              rustfmt
+              cmake
+              pkg-config
+              openssl
+              openssl.dev
             ];
+            
+            # Set environment variables for OpenSSL
+            OPENSSL_DIR = "${pkgs.openssl.dev}";
+            OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
+            OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
           };
         }
       );
