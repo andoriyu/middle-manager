@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 use crate::MemoryConfig;
 use crate::domain::entity::MemoryEntity;
 use crate::domain::error::MemoryResult;
+use crate::domain::validation_error::ValidationError;
 use crate::ports::repository::MemoryRepository;
 
 /// Service for memory operations
@@ -69,6 +70,9 @@ where
     /// - There was an error connecting to the memory store
     /// - There was an error executing the query
     pub async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), E> {
+        if entity.labels.is_empty() {
+            return Err(ValidationError::NoLabels(entity.name.clone()).into());
+        }
         let mut tagged = entity.clone();
         if let Some(tag) = &self.config.default_tag {
             if !tagged.labels.contains(tag) {
@@ -156,5 +160,30 @@ mod tests {
         };
 
         service.create_entity(&entity).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_empty_labels_error() {
+        let mut mock = MockMemoryRepository::<TestError>::new();
+        // create_entity should not be called because validation fails
+        mock.expect_create_entity().times(0);
+        mock.expect_find_entity_by_name().returning(|_| Ok(None));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: Some("Memory".to_string()),
+            },
+        );
+
+        let entity = MemoryEntity {
+            name: "test:entity".to_string(),
+            labels: vec![],
+            observations: vec![],
+            properties: std::collections::HashMap::new(),
+        };
+
+        let result = service.create_entity(&entity).await;
+        assert!(result.is_err());
     }
 }
