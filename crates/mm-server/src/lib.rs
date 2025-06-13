@@ -1,15 +1,23 @@
 use async_trait::async_trait;
 use std::error::Error as StdError;
+use std::path::Path;
 use std::sync::Arc;
 
-use mm_core::{MemoryService, Ports, neo4rs};
+use anyhow::Result as AnyResult;
+
+use mm_core::{Config, MemoryService, Ports, create_neo4j_service, neo4rs};
+
 use rust_mcp_sdk::schema::{
     ClientRequest, ListToolsResult, RpcError,
     schema_utils::{CallToolError, NotificationFromClient, RequestFromClient, ResultFromServer},
 };
 use rust_mcp_sdk::{
-    McpServer,
-    mcp_server::{ServerHandlerCore, enforce_compatible_protocol_version},
+    McpServer, StdioTransport, TransportOptions,
+    mcp_server::{ServerHandlerCore, enforce_compatible_protocol_version, server_runtime_core},
+    schema::{
+        Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
+        ServerCapabilitiesTools,
+    },
 };
 use tracing::debug;
 
@@ -138,4 +146,52 @@ where
     ) -> std::result::Result<(), RpcError> {
         Ok(())
     }
+}
+
+/// Run the Middle Manager MCP server
+pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
+    // Load configuration
+    let config = Config::load(config_paths)
+        .map_err(|e| anyhow::anyhow!("Failed to load configuration: {}", e))?;
+
+    tracing::info!("Starting Middle Manager MCP server");
+    tracing::debug!("Using Neo4j URI: {}", config.neo4j.uri);
+
+    // Create memory service
+    let memory_service = create_neo4j_service(config.neo4j, config.memory)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
+
+    // Create server handler
+    let handler = create_handler::<_, neo4rs::Error>(memory_service);
+
+    // Create server details
+    let server_details = InitializeResult {
+        server_info: Implementation {
+            name: "Middle Manager MCP Server".to_string(),
+            version: "0.1.0".to_string(),
+        },
+        capabilities: ServerCapabilities {
+            tools: Some(ServerCapabilitiesTools { list_changed: None }),
+            ..Default::default()
+        },
+        meta: None,
+        instructions: Some(
+            "Middle Manager MCP Server provides tools for interacting with the memory graph."
+                .to_string(),
+        ),
+        protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
+    };
+
+    // Create transport
+    let transport = StdioTransport::new(TransportOptions::default())
+        .map_err(|e| anyhow::anyhow!("Failed to create stdio transport: {}", e))?;
+
+    // Create and start server
+    let server = server_runtime_core::create_server(server_details, transport, handler);
+    tracing::info!("Server initialized, starting...");
+    server
+        .start()
+        .await
+        .map_err(|e| anyhow::anyhow!("Server failed to start or run: {}", e))
 }
