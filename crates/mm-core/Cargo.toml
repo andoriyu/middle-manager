@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-mm-memory = { path = "../mm-memory" }
+mm-memory-neo4j = { path = "../mm-memory-neo4j" }
 config = "0.15.11"
 serde = { workspace = true }
 serde_json = { workspace = true }

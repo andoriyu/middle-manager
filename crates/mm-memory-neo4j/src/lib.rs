@@ -88,7 +88,7 @@ pub type Error = neo4rs::Error;
 /// # Example
 ///
 /// ```no_run
-/// use mm_memory::{Neo4jConfig, create_neo4j_service};
+/// use mm_memory_neo4j::{Neo4jConfig, create_neo4j_service};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {

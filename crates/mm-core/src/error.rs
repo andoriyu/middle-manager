@@ -11,13 +11,13 @@ where
     Config(String),
 
     #[error("Memory error")]
-    Memory(#[from] mm_memory::MemoryError<E>),
+    Memory(#[from] mm_memory_neo4j::MemoryError<E>),
 
     #[error("Serialization error")]
     Serialization(#[from] serde_json::Error),
 
     #[error("Validation error")]
-    Validation(#[from] mm_memory::ValidationError),
+    Validation(#[from] mm_memory_neo4j::ValidationError),
 
     #[error("Entity not found: {0}")]
     NotFound(String),
@@ -30,6 +30,6 @@ where
 pub type CoreResult<T, E> = std::result::Result<T, CoreError<E>>;
 
 // Type aliases for common error types
-// Use the Error type that mm-memory re-exports
-pub type Error = CoreError<mm_memory::Error>;
-pub type Result<T> = CoreResult<T, mm_memory::Error>;
+// Use the Error type that mm-memory-neo4j re-exports
+pub type Error = CoreError<mm_memory_neo4j::Error>;
+pub type Result<T> = CoreResult<T, mm_memory_neo4j::Error>;

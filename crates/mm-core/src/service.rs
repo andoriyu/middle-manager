@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::error::Error as StdError;
 
-use mm_memory::{MemoryEntity, MemoryRepository, MemoryService as MemoryServiceImpl};
+use mm_memory_neo4j::{MemoryEntity, MemoryRepository, MemoryService as MemoryServiceImpl};
 #[cfg(test)]
 use mockall::automock;
 
@@ -21,7 +21,7 @@ where
     async fn find_entity_by_name(&self, name: &str) -> CoreResult<Option<MemoryEntity>, E>;
 }
 
-// Implement MemoryService directly for the MemoryServiceImpl from mm-memory
+// Implement MemoryService directly for the MemoryServiceImpl from mm-memory-neo4j
 #[async_trait]
 impl<R, E> MemoryService<E> for MemoryServiceImpl<R, E>
 where

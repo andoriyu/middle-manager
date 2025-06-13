@@ -59,7 +59,7 @@ pub struct MemoryEntity {
 /// # Examples
 ///
 /// ```
-/// use mm_memory::domain::entity::is_snake_case;
+/// use mm_memory_neo4j::domain::entity::is_snake_case;
 ///
 /// assert!(is_snake_case("hello_world"));
 /// assert!(is_snake_case("hello"));
