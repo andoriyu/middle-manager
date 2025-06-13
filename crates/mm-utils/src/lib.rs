@@ -1,13 +1,15 @@
-//! Utility functions for common tasks within mm-core
-/// Check if a string is in snake_case format
+//! Utility helpers that are independent from the rest of the project.
+
+/// Check if a string is in snake_case format.
 ///
 /// This function verifies that all characters are lowercase, digits, or
-/// underscores. It is used when validating entity names or other identifiers.
+/// underscores. It can be used when validating identifiers or any string that
+/// must follow the snake_case convention.
 ///
 /// # Examples
 ///
 /// ```
-/// use mm_core::utils::is_snake_case;
+/// use mm_utils::is_snake_case;
 ///
 /// assert!(is_snake_case("hello_world"));
 /// assert!(is_snake_case("hello"));
