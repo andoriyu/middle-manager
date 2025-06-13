@@ -2,6 +2,7 @@ pub mod error;
 mod operations;
 mod ports;
 mod service;
+pub mod utils;
 
 pub use error::{CoreError, Error, Result as CoreResult};
 pub use operations::{

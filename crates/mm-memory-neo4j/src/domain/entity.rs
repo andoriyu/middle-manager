@@ -42,31 +42,3 @@ pub struct MemoryEntity {
     /// Additional key-value properties
     pub properties: HashMap<String, String>,
 }
-
-/// Check if a string is in snake_case format
-///
-/// This function checks if a string follows the snake_case naming convention,
-/// which means all lowercase letters with underscores separating words.
-///
-/// # Arguments
-///
-/// * `s` - The string to check
-///
-/// # Returns
-///
-/// `true` if the string is in snake_case format, `false` otherwise
-///
-/// # Examples
-///
-/// ```
-/// use mm_memory_neo4j::domain::entity::is_snake_case;
-///
-/// assert!(is_snake_case("hello_world"));
-/// assert!(is_snake_case("hello"));
-/// assert!(!is_snake_case("HelloWorld"));
-/// assert!(!is_snake_case("Hello_World"));
-/// ```
-pub fn is_snake_case(s: &str) -> bool {
-    s.chars()
-        .all(|c| c.is_lowercase() || c == '_' || c.is_numeric())
-}
