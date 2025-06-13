@@ -3,7 +3,7 @@ use mm_memory_neo4j::{MemoryConfig, Neo4jConfig};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-/// Configuration for mm-core
+/// Configuration for mm-server
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
     /// Neo4j configuration

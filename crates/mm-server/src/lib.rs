@@ -5,7 +5,10 @@ use std::sync::Arc;
 
 use anyhow::Result as AnyResult;
 
-use mm_core::{Config, MemoryService, Ports, create_neo4j_service, neo4rs};
+use mm_core::{MemoryService, Ports, create_neo4j_service, neo4rs};
+
+mod config;
+pub use config::Config;
 
 use rust_mcp_sdk::schema::{
     ClientRequest, ListToolsResult, RpcError,
