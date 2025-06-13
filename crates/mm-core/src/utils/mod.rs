@@ -1,5 +1,4 @@
-/// Utility functions for common tasks within mm-core
-
+//! Utility functions for common tasks within mm-core
 /// Check if a string is in snake_case format
 ///
 /// This function verifies that all characters are lowercase, digits, or
