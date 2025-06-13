@@ -1,4 +1,5 @@
 use config::{Config as ConfigBuilder, ConfigError, File, FileFormat};
+use mm_memory::MemoryConfig;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -10,22 +11,6 @@ pub struct Config {
 
     /// Memory related configuration
     pub memory: MemoryConfig,
-}
-
-/// Memory configuration settings
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct MemoryConfig {
-    /// Optional default tag added to every created entity
-    #[serde(default)]
-    pub default_tag: Option<String>,
-}
-
-impl Default for MemoryConfig {
-    fn default() -> Self {
-        Self {
-            default_tag: Some("Memory".to_string()),
-        }
-    }
 }
 
 /// Neo4j configuration
@@ -110,14 +95,6 @@ impl From<Config> for mm_memory::Neo4jConfig {
     }
 }
 
-impl From<MemoryConfig> for mm_memory::MemoryConfig {
-    fn from(cfg: MemoryConfig) -> Self {
-        mm_memory::MemoryConfig {
-            default_tag: cfg.default_tag,
-        }
-    }
-}
-
 impl From<Neo4jConfig> for mm_memory::Neo4jConfig {
     fn from(config: Neo4jConfig) -> Self {
         Self {
@@ -170,15 +147,5 @@ password = "test_password"
         assert_eq!(memory_config.uri, "neo4j://testconversion:7687");
         assert_eq!(memory_config.username, "test_conversion_user");
         assert_eq!(memory_config.password, "test_conversion_password");
-    }
-
-    #[test]
-    fn test_memory_config_conversion() {
-        let cfg = MemoryConfig {
-            default_tag: Some("Example".to_string()),
-        };
-
-        let converted: mm_memory::MemoryConfig = cfg.clone().into();
-        assert_eq!(converted.default_tag, Some("Example".to_string()));
     }
 }

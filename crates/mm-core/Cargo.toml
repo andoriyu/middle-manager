@@ -6,12 +6,12 @@ edition = "2024"
 [dependencies]
 mm-memory = { path = "../mm-memory" }
 config = "0.15.11"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-thiserror = "1.0"
-tracing = "0.1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
 async-trait = { workspace = true }
 
 [dev-dependencies]
-mockall = "0.12.1"
-tokio = { version = "1", features = ["full", "test-util"] }
+mockall = { workspace = true }
+tokio = { workspace = true, features = ["full", "test-util"] }

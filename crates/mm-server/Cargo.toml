@@ -11,10 +11,10 @@ path = "src/lib.rs"
 [dependencies]
 mm-core = { path = "../mm-core" }
 mm-memory = { path = "../mm-memory" }
-tokio = { version = "1", features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
 rust-mcp-sdk = { workspace = true }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tracing = "0.1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
 anyhow = "1.0"
 async-trait = { workspace = true }
