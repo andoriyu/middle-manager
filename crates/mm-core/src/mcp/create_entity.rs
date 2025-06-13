@@ -107,7 +107,7 @@ mod tests {
         
         let tool = CreateEntityTool {
             name: "test:entity".to_string(),
-            labels: vec![],  // Empty labels should cause validation error
+            labels: vec![], // Service will return a validation error
             observations: vec!["Test observation".to_string()],
             properties: HashMap::new(),
         };

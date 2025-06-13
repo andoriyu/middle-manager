@@ -99,5 +99,13 @@ async fn test_validation_errors() {
     };
 
     let result = service.create_entity(&entity).await;
-    assert!(result.is_err());
+    assert!(result.is_ok());
+
+    // Ensure the default tag was applied
+    let found = service
+        .find_entity_by_name("test:entity:no_labels")
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(found.labels.contains(&"TestValidation".to_string()));
 }
