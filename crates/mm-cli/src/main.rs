@@ -1,20 +1,12 @@
 use clap::{Parser, ValueEnum};
 use std::fs::{File, OpenOptions};
 use std::io;
-use std::path::{Path, PathBuf};
-use tracing::{Level, debug, info};
+use std::path::PathBuf;
+use tracing::Level;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt, prelude::*};
 
-use mm_core::{Config, create_neo4j_service, neo4rs};
-use rust_mcp_sdk::{
-    McpServer, StdioTransport, TransportOptions,
-    mcp_server::server_runtime_core,
-    schema::{
-        Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
-        ServerCapabilitiesTools,
-    },
-};
+use mm_server as mm_server_lib;
 
 /// Middle Manager CLI
 #[derive(Parser, Debug)]
@@ -79,54 +71,6 @@ fn create_file_writer(path: &PathBuf, rotate: bool) -> io::Result<File> {
     }
 }
 
-/// Run the Middle Manager MCP server
-async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> anyhow::Result<()> {
-    // Load configuration
-    let config = Config::load(config_paths)
-        .map_err(|e| anyhow::anyhow!("Failed to load configuration: {}", e))?;
-
-    info!("Starting Middle Manager MCP server");
-    debug!("Using Neo4j URI: {}", config.neo4j.uri);
-
-    // Create memory service
-    let memory_service = create_neo4j_service(config.neo4j, config.memory)
-        .await
-        .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
-
-    // Create server handler
-    let handler = mm_server::create_handler::<_, neo4rs::Error>(memory_service);
-
-    // Create server details
-    let server_details = InitializeResult {
-        server_info: Implementation {
-            name: "Middle Manager MCP Server".to_string(),
-            version: "0.1.0".to_string(),
-        },
-        capabilities: ServerCapabilities {
-            tools: Some(ServerCapabilitiesTools { list_changed: None }),
-            ..Default::default()
-        },
-        meta: None,
-        instructions: Some(
-            "Middle Manager MCP Server provides tools for interacting with the memory graph."
-                .to_string(),
-        ),
-        protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
-    };
-
-    // Create transport
-    let transport = StdioTransport::new(TransportOptions::default())
-        .map_err(|e| anyhow::anyhow!("Failed to create stdio transport: {}", e))?;
-
-    // Create and start server
-    let server = server_runtime_core::create_server(server_details, transport, handler);
-    info!("Server initialized, starting...");
-    server
-        .start()
-        .await
-        .map_err(|e| anyhow::anyhow!("Server failed to start or run: {}", e))
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
@@ -164,7 +108,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Run the server
-    run_server(&config_paths).await?;
+    mm_server_lib::run_server(&config_paths).await?;
 
     Ok(())
 }

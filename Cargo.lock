@@ -1308,7 +1308,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "mm-core",
  "mm-server",
  "rust-mcp-sdk",
  "tokio",
