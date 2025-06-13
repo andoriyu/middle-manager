@@ -1,5 +1,10 @@
 # Default configuration for Middle Manager
 
+
+[memory]
+# Tag added to every new entity
+default_tag = "Memory"
+
 [neo4j]
 uri = "neo4j://localhost:7687"
 username = "neo4j"

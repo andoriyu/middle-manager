@@ -1336,6 +1336,7 @@ name = "mm-memory"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "mockall",
  "neo4rs",
  "serde",
  "serde_json",

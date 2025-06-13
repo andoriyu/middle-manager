@@ -13,47 +13,6 @@ The crate follows hexagonal architecture (also known as ports and adapters):
 - **Adapters**: Implementations of ports for specific technologies
 - **Service**: Application services that coordinate domain operations
 
-## Usage
-
-```rust,no_run
-use mm_memory::{MemoryEntity, Neo4jConfig, create_neo4j_service};
-use std::collections::HashMap;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create a Neo4j configuration
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    // Create a memory service
-    let service = create_neo4j_service(config).await?;
-
-    // Create an entity
-    let entity = MemoryEntity {
-        name: "example:entity:test".to_string(),
-        labels: vec!["Memory".to_string(), "Example".to_string()],
-        observations: vec!["This is an example entity".to_string()],
-        properties: HashMap::new(),
-    };
-
-    // Store the entity
-    service.create_entity(&entity).await?;
-
-    // Retrieve the entity
-    let found = service.find_entity_by_name("example:entity:test").await?;
-
-    if let Some(found_entity) = found {
-        println!("Found entity: {}", found_entity.name);
-    } else {
-        println!("Entity not found");
-    }
-
-    Ok(())
-}
-```
 
 ## Error Handling
 
@@ -84,7 +43,27 @@ pub use domain::entity::MemoryEntity;
 pub use domain::error::{MemoryError, MemoryResult};
 pub use domain::validation_error::ValidationError;
 pub use ports::repository::MemoryRepository;
+use serde::{Deserialize, Serialize};
 pub use service::memory::MemoryService;
+
+/// Configuration options for memory service behavior
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct MemoryConfig {
+    /// Optional tag automatically added to every created entity
+    #[serde(default)]
+    pub default_tag: Option<String>,
+}
+
+/// Default tag used when none is specified in the configuration
+pub const DEFAULT_MEMORY_TAG: &str = "Memory";
+
+impl Default for MemoryConfig {
+    fn default() -> Self {
+        Self {
+            default_tag: Some(DEFAULT_MEMORY_TAG.to_string()),
+        }
+    }
+}
 
 // Re-export neo4rs for use by other crates
 pub use neo4rs;
@@ -118,8 +97,8 @@ pub type Error = neo4rs::Error;
 ///         username: "neo4j".to_string(),
 ///         password: "password".to_string(),
 ///     };
-///     
-///     let service = create_neo4j_service(config).await?;
+///
+///     let service = create_neo4j_service(config, MemoryConfig::default()).await?;
 ///     
 ///     // Use the service...
 ///     
@@ -128,7 +107,8 @@ pub type Error = neo4rs::Error;
 /// ```
 pub async fn create_neo4j_service(
     config: Neo4jConfig,
+    memory_config: MemoryConfig,
 ) -> Result<MemoryService<Neo4jRepository, neo4rs::Error>, MemoryError<neo4rs::Error>> {
     let repository = Neo4jRepository::new(config).await?;
-    Ok(MemoryService::new(repository))
+    Ok(MemoryService::new(repository, memory_config))
 }

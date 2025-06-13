@@ -1,4 +1,4 @@
-use mm_memory::{MemoryEntity, Neo4jConfig, create_neo4j_service};
+use mm_memory::{MemoryConfig, MemoryEntity, Neo4jConfig, create_neo4j_service};
 use std::collections::HashMap;
 
 #[tokio::test]
@@ -9,7 +9,14 @@ async fn test_find_nonexistent_entity() {
         password: "password".to_string(),
     };
 
-    let service = create_neo4j_service(config).await.unwrap();
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_tag: Some("TestFindNone".to_string()),
+        },
+    )
+    .await
+    .unwrap();
 
     // Test that finding a non-existent entity returns None
     let result = service
@@ -27,11 +34,18 @@ async fn test_create_and_find_entity() {
         password: "password".to_string(),
     };
 
-    let service = create_neo4j_service(config).await.unwrap();
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_tag: Some("TestCreate".to_string()),
+        },
+    )
+    .await
+    .unwrap();
 
     let entity = MemoryEntity {
         name: "test:entity:create".to_string(),
-        labels: vec!["Memory".to_string(), "Test".to_string()],
+        labels: vec!["Example".to_string()],
         observations: vec!["This is a test entity for creation".to_string()],
         properties: HashMap::new(),
     };
@@ -51,8 +65,8 @@ async fn test_create_and_find_entity() {
     assert_eq!(found_entity.observations, entity.observations);
 
     // Check that labels contain the expected values
-    assert!(found_entity.labels.contains(&"Memory".to_string()));
-    assert!(found_entity.labels.contains(&"Test".to_string()));
+    assert!(found_entity.labels.contains(&"Example".to_string()));
+    assert!(found_entity.labels.contains(&"TestCreate".to_string()));
 }
 
 #[tokio::test]
@@ -63,7 +77,14 @@ async fn test_validation_errors() {
         password: "password".to_string(),
     };
 
-    let service = create_neo4j_service(config).await.unwrap();
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_tag: Some("TestValidation".to_string()),
+        },
+    )
+    .await
+    .unwrap();
 
     // Test empty entity name
     let result = service.find_entity_by_name("").await;
@@ -78,5 +99,13 @@ async fn test_validation_errors() {
     };
 
     let result = service.create_entity(&entity).await;
-    assert!(result.is_err());
+    assert!(result.is_ok());
+
+    // Ensure the default tag was applied
+    let found = service
+        .find_entity_by_name("test:entity:no_labels")
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(found.labels.contains(&"TestValidation".to_string()));
 }
