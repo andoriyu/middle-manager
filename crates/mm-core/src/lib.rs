@@ -1,10 +1,8 @@
-mod config;
 pub mod error;
 mod operations;
 mod ports;
 mod service;
 
-pub use config::Config;
 pub use error::{CoreError, Error, Result as CoreResult};
 pub use operations::{
     CreateEntityCommand, CreateEntityError, CreateEntityResult, GetEntityCommand, GetEntityError,

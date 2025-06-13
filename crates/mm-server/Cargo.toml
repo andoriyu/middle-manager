@@ -18,3 +18,4 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 anyhow = "1.0"
 async-trait = { workspace = true }
+config = "0.15.11"
