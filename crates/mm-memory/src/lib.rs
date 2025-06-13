@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Create a memory service
-    let service = create_neo4j_service(config).await?;
+    let service = create_neo4j_service(config, MemoryConfig::default()).await?;
 
     // Create an entity
     let entity = MemoryEntity {
@@ -84,7 +84,24 @@ pub use domain::entity::MemoryEntity;
 pub use domain::error::{MemoryError, MemoryResult};
 pub use domain::validation_error::ValidationError;
 pub use ports::repository::MemoryRepository;
+use serde::{Deserialize, Serialize};
 pub use service::memory::MemoryService;
+
+/// Configuration options for memory service behavior
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct MemoryConfig {
+    /// Optional tag automatically added to every created entity
+    #[serde(default)]
+    pub default_tag: Option<String>,
+}
+
+impl Default for MemoryConfig {
+    fn default() -> Self {
+        Self {
+            default_tag: Some("Memory".to_string()),
+        }
+    }
+}
 
 // Re-export neo4rs for use by other crates
 pub use neo4rs;
@@ -118,8 +135,8 @@ pub type Error = neo4rs::Error;
 ///         username: "neo4j".to_string(),
 ///         password: "password".to_string(),
 ///     };
-///     
-///     let service = create_neo4j_service(config).await?;
+///
+///     let service = create_neo4j_service(config, MemoryConfig::default()).await?;
 ///     
 ///     // Use the service...
 ///     
@@ -128,7 +145,8 @@ pub type Error = neo4rs::Error;
 /// ```
 pub async fn create_neo4j_service(
     config: Neo4jConfig,
+    memory_config: MemoryConfig,
 ) -> Result<MemoryService<Neo4jRepository, neo4rs::Error>, MemoryError<neo4rs::Error>> {
     let repository = Neo4jRepository::new(config).await?;
-    Ok(MemoryService::new(repository))
+    Ok(MemoryService::new(repository, memory_config))
 }

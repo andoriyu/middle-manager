@@ -90,7 +90,7 @@ async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> anyhow::Result<()> {
 
     // Create memory service
     let neo4j_config = config.neo4j.into();
-    let memory_service = create_neo4j_service(neo4j_config)
+    let memory_service = create_neo4j_service(neo4j_config, config.memory.into())
         .await
         .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
 
