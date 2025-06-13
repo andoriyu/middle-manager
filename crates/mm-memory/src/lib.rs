@@ -54,10 +54,13 @@ pub struct MemoryConfig {
     pub default_tag: Option<String>,
 }
 
+/// Default tag used when none is specified in the configuration
+pub const DEFAULT_MEMORY_TAG: &str = "Memory";
+
 impl Default for MemoryConfig {
     fn default() -> Self {
         Self {
-            default_tag: Some("Memory".to_string()),
+            default_tag: Some(DEFAULT_MEMORY_TAG.to_string()),
         }
     }
 }

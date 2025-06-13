@@ -2,6 +2,7 @@ use std::error::Error as StdError;
 use std::marker::PhantomData;
 
 use crate::MemoryConfig;
+use crate::ValidationError;
 use crate::domain::entity::MemoryEntity;
 use crate::domain::error::MemoryResult;
 use crate::ports::repository::MemoryRepository;
@@ -74,6 +75,11 @@ where
                 tagged.labels.push(tag.clone());
             }
         }
+
+        if tagged.labels.is_empty() {
+            return Err(ValidationError::NoLabels(tagged.name.clone()).into());
+        }
+
         self.repository.create_entity(&tagged).await
     }
 
@@ -181,5 +187,29 @@ mod tests {
 
         let result = service.create_entity(&entity).await;
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_empty_labels_without_default_tag_fails() {
+        let mut mock = MockMemoryRepository::<TestError>::new();
+        mock.expect_create_entity().never();
+        mock.expect_find_entity_by_name().returning(|_| Ok(None));
+
+        let service = MemoryService::new(mock, MemoryConfig { default_tag: None });
+
+        let entity = MemoryEntity {
+            name: "test:entity".to_string(),
+            labels: vec![],
+            observations: vec![],
+            properties: std::collections::HashMap::new(),
+        };
+
+        let result = service.create_entity(&entity).await;
+        assert!(matches!(
+            result,
+            Err(crate::MemoryError::ValidationError(
+                ValidationError::NoLabels(_)
+            ))
+        ));
     }
 }
