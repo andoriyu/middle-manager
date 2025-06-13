@@ -42,7 +42,7 @@ middle-manager/
 │   │   ├── src/
 │   │   │   ├── mcp/        # MCP tool implementations
 │   │   │   ├── lib.rs      # Server handler implementation
-│   ├── mm-memory/      # Memory graph repository and service
+│   ├── mm-memory-neo4j/      # Memory graph repository and service
 ├── config/
 │   ├── default.toml    # Default configuration
 │   ├── local.toml      # Local overrides (gitignored)

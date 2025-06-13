@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error as StdError;
 use std::sync::Arc;
 
-use mm_memory::MemoryEntity;
+use mm_memory_neo4j::MemoryEntity;
 use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
 use serde::{Deserialize, Serialize};
 
@@ -67,7 +67,7 @@ impl CreateEntityTool {
 mod tests {
     use super::*;
     use crate::service::MockMemoryService;
-    use mm_memory::{ValidationError, neo4rs};
+    use mm_memory_neo4j::{ValidationError, neo4rs};
     use crate::error::CoreError;
     
     #[tokio::test]

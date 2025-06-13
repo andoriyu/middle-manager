@@ -9,7 +9,7 @@ The project is organized as a Rust workspace with the following crates:
 - **mm-cli**: Command-line interface for running the MCP server
 - **mm-core**: Core domain logic and operations
 - **mm-server**: MCP server implementation
-- **mm-memory**: Memory graph repository and service
+- **mm-memory-neo4j**: Memory graph repository and service
 
 All workspace crates reside in the `crates/` directory to keep the repository root tidy.
 
@@ -44,8 +44,8 @@ graph TD
         get_op --> memory_service["MemoryService"]
     end
 
-    %% mm-memory details
-    subgraph "mm-memory"
+    %% mm-memory-neo4j details
+    subgraph "mm-memory-neo4j"
         memory_service["MemoryService"]
         repository_trait["MemoryRepository"]
         neo4j_repo["Neo4jRepository"]
