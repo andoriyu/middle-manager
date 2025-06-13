@@ -13,47 +13,6 @@ The crate follows hexagonal architecture (also known as ports and adapters):
 - **Adapters**: Implementations of ports for specific technologies
 - **Service**: Application services that coordinate domain operations
 
-## Usage
-
-```rust,no_run
-use mm_memory::{MemoryEntity, Neo4jConfig, create_neo4j_service};
-use std::collections::HashMap;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create a Neo4j configuration
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    // Create a memory service
-    let service = create_neo4j_service(config, MemoryConfig::default()).await?;
-
-    // Create an entity
-    let entity = MemoryEntity {
-        name: "example:entity:test".to_string(),
-        labels: vec!["Memory".to_string(), "Example".to_string()],
-        observations: vec!["This is an example entity".to_string()],
-        properties: HashMap::new(),
-    };
-
-    // Store the entity
-    service.create_entity(&entity).await?;
-
-    // Retrieve the entity
-    let found = service.find_entity_by_name("example:entity:test").await?;
-
-    if let Some(found_entity) = found {
-        println!("Found entity: {}", found_entity.name);
-    } else {
-        println!("Entity not found");
-    }
-
-    Ok(())
-}
-```
 
 ## Error Handling
 

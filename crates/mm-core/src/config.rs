@@ -1,5 +1,5 @@
 use config::{Config as ConfigBuilder, ConfigError, File, FileFormat};
-use mm_memory::MemoryConfig;
+use mm_memory::{MemoryConfig, Neo4jConfig};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -13,35 +13,7 @@ pub struct Config {
     pub memory: MemoryConfig,
 }
 
-/// Neo4j configuration
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Neo4jConfig {
-    /// URI of the Neo4j server (e.g., "neo4j://localhost:7688")
-    pub uri: String,
-
-    /// Username for authentication
-    pub username: String,
-
-    /// Password for authentication
-    pub password: String,
-}
-
-impl Default for Neo4jConfig {
-    fn default() -> Self {
-        Self {
-            uri: "neo4j://localhost:7687".to_string(),
-            username: "neo4j".to_string(),
-            password: "password".to_string(),
-        }
-    }
-}
-
 impl Config {
-    /// Create a new configuration with default values
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Load configuration from environment variables and specified config files
     ///
     /// # Arguments
@@ -79,28 +51,12 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            neo4j: Neo4jConfig::default(),
+            neo4j: Neo4jConfig {
+                uri: "neo4j://localhost:7687".to_string(),
+                username: "neo4j".to_string(),
+                password: "password".to_string(),
+            },
             memory: MemoryConfig::default(),
-        }
-    }
-}
-
-impl From<Config> for mm_memory::Neo4jConfig {
-    fn from(config: Config) -> Self {
-        Self {
-            uri: config.neo4j.uri,
-            username: config.neo4j.username,
-            password: config.neo4j.password,
-        }
-    }
-}
-
-impl From<Neo4jConfig> for mm_memory::Neo4jConfig {
-    fn from(config: Neo4jConfig) -> Self {
-        Self {
-            uri: config.uri,
-            username: config.username,
-            password: config.password,
         }
     }
 }
@@ -132,7 +88,7 @@ password = "test_password"
     }
 
     #[test]
-    fn test_conversion_to_memory_config() {
+    fn test_neo4j_config_exposed() {
         let config = Config {
             neo4j: Neo4jConfig {
                 uri: "neo4j://testconversion:7687".to_string(),
@@ -142,10 +98,8 @@ password = "test_password"
             memory: MemoryConfig { default_tag: None },
         };
 
-        let memory_config: mm_memory::Neo4jConfig = config.into();
-
-        assert_eq!(memory_config.uri, "neo4j://testconversion:7687");
-        assert_eq!(memory_config.username, "test_conversion_user");
-        assert_eq!(memory_config.password, "test_conversion_password");
+        assert_eq!(config.neo4j.uri, "neo4j://testconversion:7687");
+        assert_eq!(config.neo4j.username, "test_conversion_user");
+        assert_eq!(config.neo4j.password, "test_conversion_password");
     }
 }
