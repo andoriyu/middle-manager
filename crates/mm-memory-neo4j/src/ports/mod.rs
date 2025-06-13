@@ -1,1 +1,1 @@
-pub mod repository;
+pub use mm_memory::MemoryRepository;

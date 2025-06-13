@@ -1,17 +1,17 @@
 [package]
-name = "mm-core"
+name = "mm-memory"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+mock = ["mockall"]
+
 [dependencies]
-mm-memory-neo4j = { path = "../mm-memory-neo4j" }
-mm-memory = { path = "../mm-memory" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
 async-trait = { workspace = true }
+mockall = { workspace = true, optional = true }
 
 [dev-dependencies]
-mockall = { workspace = true }
 tokio = { workspace = true, features = ["full", "test-util"] }

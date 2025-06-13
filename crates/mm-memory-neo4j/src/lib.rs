@@ -33,16 +33,11 @@ All relationships in the knowledge graph follow snake_case naming convention:
 */
 
 pub mod adapters;
-pub mod domain;
-pub mod ports;
 pub mod service;
 
 // Re-export main types for convenience
 pub use adapters::neo4j::{Neo4jConfig, Neo4jRepository};
-pub use domain::entity::MemoryEntity;
-pub use domain::error::{MemoryError, MemoryResult};
-pub use domain::validation_error::ValidationError;
-pub use ports::repository::MemoryRepository;
+pub use mm_memory::{MemoryEntity, MemoryError, MemoryRepository, MemoryResult, ValidationError};
 use serde::{Deserialize, Serialize};
 pub use service::memory::MemoryService;
 

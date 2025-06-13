@@ -11,13 +11,13 @@ where
     Config(String),
 
     #[error("Memory error")]
-    Memory(#[from] mm_memory_neo4j::MemoryError<E>),
+    Memory(#[from] mm_memory::MemoryError<E>),
 
     #[error("Serialization error")]
     Serialization(#[from] serde_json::Error),
 
     #[error("Validation error")]
-    Validation(#[from] mm_memory_neo4j::ValidationError),
+    Validation(#[from] mm_memory::ValidationError),
 
     #[error("Entity not found: {0}")]
     NotFound(String),

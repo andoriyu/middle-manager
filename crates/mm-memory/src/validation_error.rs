@@ -1,9 +1,6 @@
 use thiserror::Error;
 
 /// Validation errors for memory operations
-///
-/// These errors represent domain-specific validation failures.
-/// They are used to provide clear error messages for validation issues.
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum ValidationError {
     /// Error when an entity name is empty

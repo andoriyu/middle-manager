@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 use std::sync::Arc;
 
-use mm_memory_neo4j::MemoryEntity;
+use crate::MemoryEntity;
 use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
 use serde::{Deserialize, Serialize};
 
