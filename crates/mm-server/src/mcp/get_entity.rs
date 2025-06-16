@@ -1,6 +1,5 @@
 use mm_core::{GetEntityCommand, Ports, get_entity};
 use mm_memory::MemoryRepository;
-use mm_memory_neo4j::neo4rs;
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use rust_mcp_sdk::schema::CallToolResult;
 use rust_mcp_sdk::schema::schema_utils::CallToolError;
@@ -25,7 +24,8 @@ impl GetEntityTool {
     /// Execute the tool with the given ports
     pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
     where
-        R: MemoryRepository<Error = neo4rs::Error> + Send + Sync,
+        R: MemoryRepository + Send + Sync,
+        R::Error: std::error::Error + Send + Sync + 'static,
     {
         // Create command from tool parameters
         let command = GetEntityCommand {
@@ -54,5 +54,60 @@ impl GetEntityTool {
                 Err(CallToolError::new(tool_error))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mm_core::Ports;
+    use mm_memory::{MemoryConfig, MemoryEntity, MemoryError, MemoryService, MockMemoryRepository};
+    use mockall::predicate::*;
+    use serde_json::Value;
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_call_tool_success() {
+        let entity = MemoryEntity {
+            name: "test:entity".to_string(),
+            labels: vec!["Test".to_string()],
+            observations: vec![],
+            properties: HashMap::new(),
+        };
+
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_find_entity_by_name()
+            .with(eq("test:entity"))
+            .returning(move |_| Ok(Some(entity.clone())));
+
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let tool = GetEntityTool {
+            name: "test:entity".to_string(),
+        };
+
+        let result = tool.call_tool(&ports).await.expect("tool should succeed");
+        let text = result.content[0].as_text_content().unwrap().text.clone();
+        let value: Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(value["name"], "test:entity");
+    }
+
+    #[tokio::test]
+    async fn test_call_tool_repository_error() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_find_entity_by_name()
+            .returning(|_| Err(MemoryError::query_error("fail")));
+
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let tool = GetEntityTool {
+            name: "test:entity".to_string(),
+        };
+
+        let result = tool.call_tool(&ports).await;
+        assert!(result.is_err());
     }
 }

@@ -1,6 +1,5 @@
 use mm_core::{CreateEntityCommand, Ports, create_entity};
 use mm_memory::MemoryRepository;
-use mm_memory_neo4j::neo4rs;
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use rust_mcp_sdk::schema::CallToolResult;
 use rust_mcp_sdk::schema::schema_utils::CallToolError;
@@ -35,7 +34,8 @@ impl CreateEntityTool {
     /// Execute the tool with the given ports
     pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
     where
-        R: MemoryRepository<Error = neo4rs::Error> + Send + Sync,
+        R: MemoryRepository + Send + Sync,
+        R::Error: std::error::Error + Send + Sync + 'static,
     {
         // Create command from tool parameters
         let command = CreateEntityCommand {
@@ -59,5 +59,55 @@ impl CreateEntityTool {
                 Err(CallToolError::new(tool_error))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mm_core::Ports;
+    use mm_memory::{MemoryConfig, MemoryError, MemoryService, MockMemoryRepository};
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_call_tool_success() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_entity()
+            .withf(|e| e.name == "test:entity")
+            .returning(|_| Ok(()));
+
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let tool = CreateEntityTool {
+            name: "test:entity".to_string(),
+            labels: vec!["Test".to_string()],
+            observations: vec![],
+            properties: None,
+        };
+
+        let result = tool.call_tool(&ports).await.expect("tool should succeed");
+        let text = result.content[0].as_text_content().unwrap().text.clone();
+        assert_eq!(text, "Entity 'test:entity' created successfully");
+    }
+
+    #[tokio::test]
+    async fn test_call_tool_repository_error() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_entity()
+            .returning(|_| Err(MemoryError::runtime_error("fail")));
+
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let tool = CreateEntityTool {
+            name: "test:entity".to_string(),
+            labels: vec!["Test".to_string()],
+            observations: vec![],
+            properties: None,
+        };
+
+        let result = tool.call_tool(&ports).await;
+        assert!(result.is_err());
     }
 }

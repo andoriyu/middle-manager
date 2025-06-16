@@ -1366,6 +1366,7 @@ dependencies = [
  "mm-core",
  "mm-memory",
  "mm-memory-neo4j",
+ "mockall",
  "rust-mcp-sdk",
  "serde",
  "serde_json",
