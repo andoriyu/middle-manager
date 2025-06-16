@@ -7,8 +7,8 @@ Middle Manager is a Model Context Protocol (MCP) server that provides tools for 
 The project is organized as a Rust workspace with the following crates:
 
 - **mm-cli**: Command-line interface for running the MCP server
-- **mm-core**: Core domain logic and operations
-- **mm-memory**: Memory domain types, repositories, and services
+- **mm-core**: Core domain operations that depend on the `MemoryService` from `mm-memory`
+- **mm-memory**: Memory domain types including the `MemoryService` struct and `MemoryRepository` trait
 - **mm-memory-neo4j**: Neo4j-backed memory repository implementation
 - **mm-server**: MCP server implementation
 - **mm-utils**: Shared utility helpers
@@ -42,20 +42,20 @@ graph TD
     subgraph "mm-core"
         create_op["create_entity"]
         get_op["get_entity"]
-        create_op --> memory_service["MemoryService"]
+        create_op --> memory_service["MemoryService Struct"]
         get_op --> memory_service
     end
 
     %% mm-memory details
     subgraph "mm-memory"
-        memory_service["MemoryService"]
-        repository_trait["MemoryRepository"]
-        memory_service --> repository_trait
+        memory_service["MemoryService Struct"]
+        repository_trait["MemoryRepository Trait"]
+        memory_service -->|uses| repository_trait
     end
 
     %% mm-memory-neo4j details
     subgraph "mm-memory-neo4j"
-        repository_trait --> neo4j_repo["Neo4jRepository"]
+        neo4j_repo["Neo4jRepository Struct"] -->|implements| repository_trait
         neo4j_repo --> neo4j_db[(Neo4j)]
     end
 
