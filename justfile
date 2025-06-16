@@ -40,3 +40,9 @@ inspect-debug:
 clean-neo4j:
     docker compose down
     docker volume rm middle-manager_neo4j_data middle-manager_neo4j_logs
+
+# Validate code with lints, formatting, and unit tests
+validate:
+    just clippy
+    just fmt
+    cargo test --workspace --lib
