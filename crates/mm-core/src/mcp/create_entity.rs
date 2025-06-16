@@ -68,12 +68,20 @@ mod tests {
     use super::*;
     use crate::service::MockMemoryService;
     use mm_memory::ValidationError;
-    use mm_memory_neo4j::neo4rs;
     use crate::error::CoreError;
+
+    #[derive(Debug)]
+    struct TestError;
+    impl std::fmt::Display for TestError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "test error")
+        }
+    }
+    impl StdError for TestError {}
     
     #[tokio::test]
     async fn test_create_entity_success() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let mut mock = MockMemoryService::<TestError>::new();
         
         // Set up the mock expectation
         mock.expect_create_entity()
@@ -98,7 +106,7 @@ mod tests {
     
     #[tokio::test]
     async fn test_create_entity_validation_error() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let mut mock = MockMemoryService::<TestError>::new();
         
         // Set up the mock expectation
         mock.expect_create_entity()
