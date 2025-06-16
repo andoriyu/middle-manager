@@ -28,8 +28,3 @@ where
 
 /// Result type for mm-core
 pub type CoreResult<T, E> = std::result::Result<T, CoreError<E>>;
-
-// Type aliases for common error types
-// Use the Error type that mm-memory-neo4j re-exports
-pub type Error = CoreError<mm_memory_neo4j::Error>;
-pub type Result<T> = CoreResult<T, mm_memory_neo4j::Error>;

@@ -1,11 +1,12 @@
 use async_trait::async_trait;
-use std::error::Error as StdError;
 use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::Result as AnyResult;
 
-use mm_core::{MemoryService, Ports, create_neo4j_service, neo4rs};
+use mm_core::{MemoryService, Ports};
+use mm_memory_neo4j::{create_neo4j_service, neo4rs};
+use mm_memory::MemoryRepository;
 
 mod config;
 pub use config::Config;
@@ -28,42 +29,37 @@ mod mcp;
 use mcp::MemoryTools;
 
 /// Middle Manager MCP server handler
-pub struct MiddleManagerHandler<S, E>
+pub struct MiddleManagerHandler<R>
 where
-    S: MemoryService<E> + Send + Sync + 'static,
-    E: StdError + Send + Sync + 'static,
+    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
-    service: Arc<S>,
-    _phantom: std::marker::PhantomData<E>,
+    service: Arc<MemoryService<R>>,
 }
 
-impl<S, E> MiddleManagerHandler<S, E>
+impl<R> MiddleManagerHandler<R>
 where
-    S: MemoryService<E> + Send + Sync + 'static,
-    E: StdError + Send + Sync + 'static,
+    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
     /// Create a new Middle Manager MCP server handler
-    pub fn new(service: S) -> Self {
+    pub fn new(service: MemoryService<R>) -> Self {
         Self {
             service: Arc::new(service),
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 /// Create a Middle Manager MCP server handler with the given memory service
-pub fn create_handler<S, E>(memory_service: S) -> MiddleManagerHandler<S, E>
+pub fn create_handler<R>(memory_service: MemoryService<R>) -> MiddleManagerHandler<R>
 where
-    S: MemoryService<E> + Send + Sync + 'static,
-    E: StdError + Send + Sync + 'static,
+    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
     MiddleManagerHandler::new(memory_service)
 }
 
 #[async_trait]
-impl<S> ServerHandlerCore for MiddleManagerHandler<S, neo4rs::Error>
+impl<R> ServerHandlerCore for MiddleManagerHandler<R>
 where
-    S: MemoryService<neo4rs::Error> + Send + Sync + 'static,
+    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
     async fn handle_request(
         &self,
@@ -166,7 +162,7 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
         .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
 
     // Create server handler
-    let handler = create_handler::<_, neo4rs::Error>(memory_service);
+    let handler = create_handler(memory_service);
 
     // Create server details
     let server_details = InitializeResult {

@@ -1,5 +1,6 @@
 use config::{Config as ConfigBuilder, ConfigError, File, FileFormat};
-use mm_memory_neo4j::{MemoryConfig, Neo4jConfig};
+use mm_memory::MemoryConfig;
+use mm_memory_neo4j::Neo4jConfig;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 

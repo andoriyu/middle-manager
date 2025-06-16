@@ -1,7 +1,7 @@
 use crate::MemoryEntity;
 use crate::error::CoreError;
-use crate::neo4rs;
 use crate::ports::Ports;
+use mm_memory::MemoryRepository;
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -16,16 +16,19 @@ pub struct CreateEntityCommand {
 
 /// Error types that can occur when creating an entity
 #[derive(Debug, Error)]
-pub enum CreateEntityError {
+pub enum CreateEntityError<E>
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
     #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<neo4rs::Error>),
+    Repository(#[from] CoreError<E>),
 
     #[error("Validation error: {0}")]
     Validation(String),
 }
 
 /// Result type for the create_entity operation
-pub type CreateEntityResult = Result<(), CreateEntityError>;
+pub type CreateEntityResult<E> = Result<(), CreateEntityError<E>>;
 
 /// Create a new entity
 ///
@@ -37,7 +40,11 @@ pub type CreateEntityResult = Result<(), CreateEntityError>;
 /// # Returns
 ///
 /// Ok(()) if the entity was created successfully, or an error
-pub async fn create_entity(ports: &Ports, command: CreateEntityCommand) -> CreateEntityResult {
+pub async fn create_entity<R>(ports: &Ports<R>, command: CreateEntityCommand) -> CreateEntityResult<R::Error>
+where
+    R: MemoryRepository + Send + Sync,
+    R::Error: std::error::Error + Send + Sync + 'static,
+{
     // Validate command
     if command.name.is_empty() {
         return Err(CreateEntityError::Validation(
@@ -61,24 +68,26 @@ pub async fn create_entity(ports: &Ports, command: CreateEntityCommand) -> Creat
 
     match ports.memory_service.create_entity(&entity).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(CreateEntityError::Repository(e)),
+        Err(e) => Err(CreateEntityError::Repository(CoreError::from(e))),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service::MockMemoryService;
+    use mm_memory::{MockMemoryRepository, MemoryConfig, MemoryService};
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_create_entity_success() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
-        mock.expect_create_entity()
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo
+            .expect_create_entity()
             .withf(|e| e.name == "test:entity")
             .returning(|_| Ok(()));
 
-        let ports = Ports::new(Arc::new(mock));
+        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
             name: "test:entity".to_string(),
@@ -93,10 +102,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_entity_empty_name() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
-        mock.expect_create_entity().never();
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo.expect_create_entity().never();
 
-        let ports = Ports::new(Arc::new(mock));
+        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
             name: "".to_string(),

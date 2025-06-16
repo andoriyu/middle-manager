@@ -1,4 +1,3 @@
-use std::error::Error as StdError;
 use std::sync::Arc;
 
 use crate::MemoryEntity;
@@ -6,7 +5,7 @@ use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 use crate::error::{CoreError, CoreResult};
-use crate::service::MemoryService;
+use mm_memory::{MemoryRepository, MemoryService};
 
 /// Request parameters for the get_entity MCP tool
 #[mcp_tool(name = "get_entity", description = "Get an entity from the memory graph by name")]
@@ -25,13 +24,13 @@ pub struct GetEntityResponse {
 
 impl GetEntityTool {
     /// Execute the get_entity tool
-    pub async fn execute<E, S>(
+    pub async fn execute<R>(
         self,
-        service: Arc<S>,
-    ) -> CoreResult<GetEntityResponse, E>
+        service: Arc<MemoryService<R>>,
+    ) -> CoreResult<GetEntityResponse, R::Error>
     where
-        E: StdError + Send + Sync + 'static,
-        S: MemoryService<E> + Send + Sync + 'static,
+        R: MemoryRepository + Send + Sync + 'static,
+        R::Error: std::error::Error + Send + Sync + 'static,
     {
         let entity = service.find_entity_by_name(&self.name).await?;
         
@@ -45,7 +44,7 @@ impl GetEntityTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service::MockMemoryService;
+    use mm_memory::{MockMemoryRepository, MemoryConfig, MemoryService};
     use mockall::predicate::*;
     use std::collections::HashMap;
 
@@ -60,7 +59,7 @@ mod tests {
     
     #[tokio::test]
     async fn test_get_entity_found() {
-        let mut mock = MockMemoryService::<TestError>::new();
+        let mut mock_repo = MockMemoryRepository::new();
         
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
@@ -70,11 +69,12 @@ mod tests {
         };
         
         // Set up the mock expectation
-        mock.expect_find_entity_by_name()
+        mock_repo
+            .expect_find_entity_by_name()
             .with(eq("test:entity"))
             .returning(move |_| Ok(Some(entity.clone())));
-        
-        let service = Arc::new(mock);
+
+        let service = Arc::new(MemoryService::new(mock_repo, MemoryConfig::default()));
         
         let tool = GetEntityTool {
             name: "test:entity".to_string(),
@@ -89,14 +89,15 @@ mod tests {
     
     #[tokio::test]
     async fn test_get_entity_not_found() {
-        let mut mock = MockMemoryService::<TestError>::new();
+        let mut mock_repo = MockMemoryRepository::new();
         
         // Set up the mock expectation
-        mock.expect_find_entity_by_name()
+        mock_repo
+            .expect_find_entity_by_name()
             .with(eq("nonexistent:entity"))
             .returning(|_| Ok(None));
-        
-        let service = Arc::new(mock);
+
+        let service = Arc::new(MemoryService::new(mock_repo, MemoryConfig::default()));
         
         let tool = GetEntityTool {
             name: "nonexistent:entity".to_string(),

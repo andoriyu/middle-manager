@@ -1,7 +1,7 @@
 use crate::MemoryEntity;
 use crate::error::CoreError;
-use crate::neo4rs;
 use crate::ports::Ports;
+use mm_memory::MemoryRepository;
 use thiserror::Error;
 
 /// Command to retrieve an entity by name
@@ -12,16 +12,19 @@ pub struct GetEntityCommand {
 
 /// Error types that can occur when getting an entity
 #[derive(Debug, Error)]
-pub enum GetEntityError {
+pub enum GetEntityError<E>
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
     #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<neo4rs::Error>),
+    Repository(#[from] CoreError<E>),
 
     #[error("Validation error: {0}")]
     Validation(String),
 }
 
 /// Result type for the get_entity operation
-pub type GetEntityResult = Result<Option<MemoryEntity>, GetEntityError>;
+pub type GetEntityResult<E> = Result<Option<MemoryEntity>, GetEntityError<E>>;
 
 /// Get an entity by name
 ///
@@ -33,7 +36,11 @@ pub type GetEntityResult = Result<Option<MemoryEntity>, GetEntityError>;
 /// # Returns
 ///
 /// The entity if found, or None if not found
-pub async fn get_entity(ports: &Ports, command: GetEntityCommand) -> GetEntityResult {
+pub async fn get_entity<R>(ports: &Ports<R>, command: GetEntityCommand) -> GetEntityResult<R::Error>
+where
+    R: MemoryRepository + Send + Sync,
+    R::Error: std::error::Error + Send + Sync + 'static,
+{
     // Validate command
     if command.name.is_empty() {
         return Err(GetEntityError::Validation(
@@ -48,21 +55,21 @@ pub async fn get_entity(ports: &Ports, command: GetEntityCommand) -> GetEntityRe
         .await
     {
         Ok(entity) => Ok(entity),
-        Err(e) => Err(GetEntityError::Repository(e)),
+        Err(e) => Err(GetEntityError::Repository(CoreError::from(e))),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service::MockMemoryService;
+    use mm_memory::{MockMemoryRepository, MemoryConfig, MemoryService};
     use mockall::predicate::*;
     use std::collections::HashMap;
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_get_entity_success() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let mut mock_repo = MockMemoryRepository::new();
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
@@ -70,11 +77,13 @@ mod tests {
             properties: HashMap::new(),
         };
 
-        mock.expect_find_entity_by_name()
+        mock_repo
+            .expect_find_entity_by_name()
             .with(eq("test:entity"))
             .returning(move |_| Ok(Some(entity.clone())));
 
-        let ports = Ports::new(Arc::new(mock));
+        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
         let command = GetEntityCommand {
             name: "test:entity".to_string(),
         };
@@ -86,9 +95,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_entity_empty_name() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
-        mock.expect_find_entity_by_name().never();
-        let ports = Ports::new(Arc::new(mock));
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo.expect_find_entity_by_name().never();
+        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
 
         let command = GetEntityCommand {
             name: "".to_string(),

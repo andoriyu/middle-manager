@@ -11,6 +11,7 @@ path = "src/lib.rs"
 [dependencies]
 mm-core = { path = "../mm-core" }
 mm-memory-neo4j = { path = "../mm-memory-neo4j" }
+mm-memory = { path = "../mm-memory" }
 tokio = { workspace = true, features = ["full"] }
 rust-mcp-sdk = { workspace = true }
 serde = { workspace = true }
