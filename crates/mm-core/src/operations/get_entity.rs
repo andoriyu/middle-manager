@@ -62,7 +62,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_memory::{MockMemoryRepository, MemoryConfig, MemoryService};
+    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::collections::HashMap;
     use std::sync::Arc;

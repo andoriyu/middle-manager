@@ -40,7 +40,10 @@ pub type CreateEntityResult<E> = Result<(), CreateEntityError<E>>;
 /// # Returns
 ///
 /// Ok(()) if the entity was created successfully, or an error
-pub async fn create_entity<R>(ports: &Ports<R>, command: CreateEntityCommand) -> CreateEntityResult<R::Error>
+pub async fn create_entity<R>(
+    ports: &Ports<R>,
+    command: CreateEntityCommand,
+) -> CreateEntityResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
@@ -75,7 +78,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_memory::{MockMemoryRepository, MemoryConfig, MemoryService};
+    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
     #[tokio::test]
