@@ -107,4 +107,29 @@ mod tests {
         let result = get_entity(&ports, command).await;
         assert!(matches!(result, Err(GetEntityError::Validation(_))));
     }
+
+    #[tokio::test]
+    async fn test_get_entity_repository_error() {
+        use mm_memory::MemoryError;
+
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo
+            .expect_find_entity_by_name()
+            .with(eq("test:entity"))
+            .returning(|_| Err(MemoryError::query_error("db error")));
+
+        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let command = GetEntityCommand {
+            name: "test:entity".to_string(),
+        };
+
+        let result = get_entity(&ports, command).await;
+
+        assert!(matches!(
+            result,
+            Err(GetEntityError::Repository(CoreError::Memory(_)))
+        ));
+    }
 }

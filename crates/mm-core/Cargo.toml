@@ -14,3 +14,4 @@ async-trait = { workspace = true }
 [dev-dependencies]
 mockall = { workspace = true }
 tokio = { workspace = true, features = ["full", "test-util"] }
+mm-memory = { path = "../mm-memory", features = ["mock"] }
