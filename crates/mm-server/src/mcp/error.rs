@@ -47,14 +47,20 @@ where
     }
 }
 
-impl From<CreateEntityError> for ToolError {
-    fn from(error: CreateEntityError) -> Self {
+impl<E> From<CreateEntityError<E>> for ToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: CreateEntityError<E>) -> Self {
         Self::with_source(format!("Create entity error: {:#?}", error), error)
     }
 }
 
-impl From<GetEntityError> for ToolError {
-    fn from(error: GetEntityError) -> Self {
+impl<E> From<GetEntityError<E>> for ToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: GetEntityError<E>) -> Self {
         Self::with_source(format!("Get entity error: {:#?}", error), error)
     }
 }

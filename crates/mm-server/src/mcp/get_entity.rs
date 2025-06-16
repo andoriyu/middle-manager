@@ -1,4 +1,6 @@
 use mm_core::{GetEntityCommand, Ports, get_entity};
+use mm_memory::MemoryRepository;
+use mm_memory_neo4j::neo4rs;
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use rust_mcp_sdk::schema::CallToolResult;
 use rust_mcp_sdk::schema::schema_utils::CallToolError;
@@ -21,7 +23,10 @@ pub struct GetEntityTool {
 
 impl GetEntityTool {
     /// Execute the tool with the given ports
-    pub async fn call_tool(&self, ports: &Ports) -> Result<CallToolResult, CallToolError> {
+    pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
+    where
+        R: MemoryRepository<Error = neo4rs::Error> + Send + Sync,
+    {
         // Create command from tool parameters
         let command = GetEntityCommand {
             name: self.name.clone(),

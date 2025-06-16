@@ -33,32 +33,13 @@ All relationships in the knowledge graph follow snake_case naming convention:
 */
 
 pub mod adapters;
-pub mod service;
 
 // Re-export main types for convenience
 pub use adapters::neo4j::{Neo4jConfig, Neo4jRepository};
-pub use mm_memory::{MemoryEntity, MemoryError, MemoryRepository, MemoryResult, ValidationError};
-use serde::{Deserialize, Serialize};
-pub use service::memory::MemoryService;
-
-/// Configuration options for memory service behavior
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct MemoryConfig {
-    /// Optional tag automatically added to every created entity
-    #[serde(default)]
-    pub default_tag: Option<String>,
-}
-
-/// Default tag used when none is specified in the configuration
-pub const DEFAULT_MEMORY_TAG: &str = "Memory";
-
-impl Default for MemoryConfig {
-    fn default() -> Self {
-        Self {
-            default_tag: Some(DEFAULT_MEMORY_TAG.to_string()),
-        }
-    }
-}
+pub use mm_memory::{
+    DEFAULT_MEMORY_TAG, MemoryConfig, MemoryEntity, MemoryError, MemoryRepository, MemoryResult,
+    MemoryService, ValidationError,
+};
 
 // Re-export neo4rs for use by other crates
 pub use neo4rs;
@@ -103,7 +84,7 @@ pub type Error = neo4rs::Error;
 pub async fn create_neo4j_service(
     config: Neo4jConfig,
     memory_config: MemoryConfig,
-) -> Result<MemoryService<Neo4jRepository, neo4rs::Error>, MemoryError<neo4rs::Error>> {
+) -> Result<MemoryService<Neo4jRepository>, MemoryError<neo4rs::Error>> {
     let repository = Neo4jRepository::new(config).await?;
     Ok(MemoryService::new(repository, memory_config))
 }

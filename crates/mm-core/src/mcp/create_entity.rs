@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::error::Error as StdError;
 use std::sync::Arc;
 
 use crate::MemoryEntity;
@@ -7,7 +6,7 @@ use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 use crate::error::CoreResult;
-use crate::service::MemoryService;
+use mm_memory::{MemoryRepository, MemoryService};
 
 /// Request parameters for the create_entity MCP tool
 #[mcp_tool(name = "create_entity", description = "Create a new entity in the memory graph")]
@@ -39,13 +38,13 @@ pub struct CreateEntityResponse {
 
 impl CreateEntityTool {
     /// Execute the create_entity tool
-    pub async fn execute<E, S>(
+    pub async fn execute<R>(
         self,
-        service: Arc<S>,
-    ) -> CoreResult<CreateEntityResponse, E>
+        service: Arc<MemoryService<R>>,
+    ) -> CoreResult<CreateEntityResponse, R::Error>
     where
-        E: StdError + Send + Sync + 'static,
-        S: MemoryService<E> + Send + Sync + 'static,
+        R: MemoryRepository + Send + Sync + 'static,
+        R::Error: std::error::Error + Send + Sync + 'static,
     {
         let entity = MemoryEntity {
             name: self.name.clone(),
@@ -66,8 +65,7 @@ impl CreateEntityTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service::MockMemoryService;
-    use mm_memory::ValidationError;
+    use mm_memory::{MockMemoryRepository, MemoryConfig, MemoryService, ValidationError};
     use crate::error::CoreError;
 
     #[derive(Debug)]
@@ -81,13 +79,10 @@ mod tests {
     
     #[tokio::test]
     async fn test_create_entity_success() {
-        let mut mock = MockMemoryService::<TestError>::new();
-        
-        // Set up the mock expectation
-        mock.expect_create_entity()
-            .returning(|_| Ok(()));
-        
-        let service = Arc::new(mock);
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo.expect_create_entity().returning(|_| Ok(()));
+
+        let service = Arc::new(MemoryService::new(mock_repo, MemoryConfig::default()));
         
         let tool = CreateEntityTool {
             name: "test:entity".to_string(),
@@ -106,13 +101,12 @@ mod tests {
     
     #[tokio::test]
     async fn test_create_entity_validation_error() {
-        let mut mock = MockMemoryService::<TestError>::new();
-        
-        // Set up the mock expectation
-        mock.expect_create_entity()
-            .returning(|e| Err(CoreError::Validation(ValidationError::NoLabels(e.name.clone()))));
-        
-        let service = Arc::new(mock);
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo.expect_create_entity().returning(|e| {
+            Err(CoreError::Validation(ValidationError::NoLabels(e.name.clone())))
+        });
+
+        let service = Arc::new(MemoryService::new(mock_repo, MemoryConfig::default()));
         
         let tool = CreateEntityTool {
             name: "test:entity".to_string(),

@@ -1,8 +1,6 @@
-use std::error::Error as StdError;
 use std::marker::PhantomData;
 
-use crate::MemoryConfig;
-use mm_memory::{MemoryEntity, MemoryRepository, MemoryResult, ValidationError};
+use crate::{MemoryConfig, MemoryEntity, MemoryRepository, MemoryResult, ValidationError};
 
 /// Service for memory operations
 ///
@@ -10,12 +8,11 @@ use mm_memory::{MemoryEntity, MemoryRepository, MemoryResult, ValidationError};
 /// It uses a repository to perform the actual operations, and adds additional
 /// business logic as needed.
 ///
-/// The service is generic over the repository type `R` and the error type `E`,
-/// allowing it to work with different repository implementations.
-pub struct MemoryService<R, E>
+/// The service is generic over the repository type `R`, allowing it to work with
+/// different repository implementations.
+pub struct MemoryService<R>
 where
-    R: MemoryRepository<E>,
-    E: StdError + Send + Sync + 'static,
+    R: MemoryRepository,
 {
     /// The repository used to perform memory operations
     repository: R,
@@ -24,23 +21,14 @@ where
     config: MemoryConfig,
 
     /// Phantom data to track the error type
-    _error_type: PhantomData<E>,
+    _error_type: PhantomData<R::Error>,
 }
 
-impl<R, E> MemoryService<R, E>
+impl<R> MemoryService<R>
 where
-    R: MemoryRepository<E>,
-    E: StdError + Send + Sync + 'static,
+    R: MemoryRepository,
 {
     /// Create a new memory service with the given repository
-    ///
-    /// # Arguments
-    ///
-    /// * `repository` - The repository to use for memory operations
-    ///
-    /// # Returns
-    ///
-    /// A new `MemoryService` that uses the given repository
     pub fn new(repository: R, config: MemoryConfig) -> Self {
         Self {
             repository,
@@ -50,22 +38,7 @@ where
     }
 
     /// Create a new entity in the memory graph
-    ///
-    /// # Arguments
-    ///
-    /// * `entity` - The entity to create
-    ///
-    /// # Returns
-    ///
-    /// `Ok(())` if the entity was created successfully, or an error if something went wrong
-    ///
-    /// # Errors
-    ///
-    /// Returns a `MemoryError` if:
-    /// - The entity name is empty
-    /// - There was an error connecting to the memory store
-    /// - There was an error executing the query
-    pub async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), E> {
+    pub async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), R::Error> {
         let mut tagged = entity.clone();
         if let Some(tag) = &self.config.default_tag {
             if !tagged.labels.contains(tag) {
@@ -81,24 +54,10 @@ where
     }
 
     /// Find an entity by name
-    ///
-    /// # Arguments
-    ///
-    /// * `name` - The name of the entity to find
-    ///
-    /// # Returns
-    ///
-    /// `Ok(Some(entity))` if the entity was found, `Ok(None)` if the entity was not found,
-    /// or an error if something went wrong
-    ///
-    /// # Errors
-    ///
-    /// Returns a `MemoryError` if:
-    /// - The name is empty
-    /// - There was an error connecting to the memory store
-    /// - There was an error executing the query
-    pub async fn find_entity_by_name(&self, name: &str) -> MemoryResult<Option<MemoryEntity>, E> {
-        // Validation is handled in the repository
+    pub async fn find_entity_by_name(
+        &self,
+        name: &str,
+    ) -> MemoryResult<Option<MemoryEntity>, R::Error> {
         self.repository.find_entity_by_name(name).await
     }
 }
@@ -106,20 +65,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_memory::MockMemoryRepository;
-
-    #[derive(Debug)]
-    struct TestError;
-    impl std::fmt::Display for TestError {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "test error")
-        }
-    }
-    impl StdError for TestError {}
+    use crate::MockMemoryRepository;
 
     #[tokio::test]
     async fn test_default_tag_added() {
-        let mut mock = MockMemoryRepository::<TestError>::new();
+        let mut mock = MockMemoryRepository::new();
         mock.expect_create_entity()
             .withf(|e| e.labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
@@ -143,7 +93,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_no_default_tag() {
-        let mut mock = MockMemoryRepository::<TestError>::new();
+        let mut mock = MockMemoryRepository::new();
         mock.expect_create_entity()
             .withf(|e| !e.labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
@@ -162,7 +112,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_empty_labels_adds_default_tag() {
-        let mut mock = MockMemoryRepository::<TestError>::new();
+        let mut mock = MockMemoryRepository::new();
         mock.expect_create_entity()
             .withf(|e| e.labels.len() == 1 && e.labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
@@ -188,7 +138,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_empty_labels_without_default_tag_fails() {
-        let mut mock = MockMemoryRepository::<TestError>::new();
+        let mut mock = MockMemoryRepository::new();
         mock.expect_create_entity().never();
         mock.expect_find_entity_by_name().returning(|_| Ok(None));
 

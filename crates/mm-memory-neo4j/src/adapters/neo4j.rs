@@ -59,8 +59,9 @@ impl Neo4jRepository {
 }
 
 #[async_trait]
-impl MemoryRepository<neo4rs::Error> for Neo4jRepository {
-    async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), neo4rs::Error> {
+impl MemoryRepository for Neo4jRepository {
+    type Error = neo4rs::Error;
+    async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), Self::Error> {
         // Validate entity
         if entity.name.is_empty() {
             return Err(ValidationError::EmptyEntityName.into());
@@ -102,7 +103,7 @@ impl MemoryRepository<neo4rs::Error> for Neo4jRepository {
     async fn find_entity_by_name(
         &self,
         name: &str,
-    ) -> MemoryResult<Option<MemoryEntity>, neo4rs::Error> {
+    ) -> MemoryResult<Option<MemoryEntity>, Self::Error> {
         // Validate name
         if name.is_empty() {
             return Err(ValidationError::EmptyEntityName.into());
