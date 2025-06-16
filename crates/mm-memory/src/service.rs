@@ -60,6 +60,40 @@ where
     ) -> MemoryResult<Option<MemoryEntity>, R::Error> {
         self.repository.find_entity_by_name(name).await
     }
+
+    /// Replace all observations for an entity
+    pub async fn set_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), R::Error> {
+        self.repository.set_observations(name, observations).await
+    }
+
+    /// Add observations to an entity
+    pub async fn add_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), R::Error> {
+        self.repository.add_observations(name, observations).await
+    }
+
+    /// Remove all observations from an entity
+    pub async fn remove_all_observations(&self, name: &str) -> MemoryResult<(), R::Error> {
+        self.repository.remove_all_observations(name).await
+    }
+
+    /// Remove specific observations from an entity
+    pub async fn remove_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), R::Error> {
+        self.repository
+            .remove_observations(name, observations)
+            .await
+    }
 }
 
 #[cfg(test)]

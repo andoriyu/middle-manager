@@ -184,4 +184,59 @@ impl MemoryRepository for Neo4jRepository {
             Ok(None)
         }
     }
+
+    async fn set_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), Self::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::EmptyEntityName.into());
+        }
+
+        let observations_json = serde_json::to_string(observations)?;
+        let query =
+            Query::new("MATCH (n {name: $name}) SET n.observations = $observations".to_string())
+                .param("name", name.to_string())
+                .param("observations", observations_json);
+
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source(
+                format!("Failed to set observations for entity {}", name),
+                e,
+            )
+        })?;
+
+        Ok(())
+    }
+
+    async fn add_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), Self::Error> {
+        let mut current = match self.find_entity_by_name(name).await? {
+            Some(e) => e.observations,
+            None => Vec::new(),
+        };
+        current.extend_from_slice(observations);
+        self.set_observations(name, &current).await
+    }
+
+    async fn remove_all_observations(&self, name: &str) -> MemoryResult<(), Self::Error> {
+        self.set_observations(name, &[]).await
+    }
+
+    async fn remove_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), Self::Error> {
+        let mut current = match self.find_entity_by_name(name).await? {
+            Some(e) => e.observations,
+            None => Vec::new(),
+        };
+        current.retain(|o| !observations.contains(o));
+        self.set_observations(name, &current).await
+    }
 }
