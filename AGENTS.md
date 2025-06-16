@@ -193,6 +193,16 @@ just inspect      # Run with MCP inspector
 just inspect-debug # Run with debug logging
 ```
 
+To validate code before committing, run:
+```bash
+just validate
+```
+This command runs clippy, formats the code, and executes unit tests without integration tests. Ensure it passes. If `just` is missing, install it with:
+```bash
+cargo install just
+```
+
+
 ### 4. Working with Neo4j
 
 If users need to clean Neo4j data:
