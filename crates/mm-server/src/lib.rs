@@ -116,6 +116,26 @@ where
                                 RpcError::internal_error().with_message(err.to_string())
                             })?
                         }
+                        MemoryTools::SetObservationsTool(tool) => {
+                            tool.call_tool(&ports).await.map_err(|err| {
+                                RpcError::internal_error().with_message(err.to_string())
+                            })?
+                        }
+                        MemoryTools::AddObservationsTool(tool) => {
+                            tool.call_tool(&ports).await.map_err(|err| {
+                                RpcError::internal_error().with_message(err.to_string())
+                            })?
+                        }
+                        MemoryTools::RemoveAllObservationsTool(tool) => {
+                            tool.call_tool(&ports).await.map_err(|err| {
+                                RpcError::internal_error().with_message(err.to_string())
+                            })?
+                        }
+                        MemoryTools::RemoveObservationsTool(tool) => {
+                            tool.call_tool(&ports).await.map_err(|err| {
+                                RpcError::internal_error().with_message(err.to_string())
+                            })?
+                        }
                     };
                     Ok(result.into())
                 }

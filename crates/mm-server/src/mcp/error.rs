@@ -1,5 +1,8 @@
 use mm_core::CoreError;
-use mm_core::{CreateEntityError, GetEntityError};
+use mm_core::{
+    AddObservationsError, CreateEntityError, GetEntityError, RemoveAllObservationsError,
+    RemoveObservationsError, SetObservationsError,
+};
 use std::error::Error as StdError;
 use std::fmt;
 
@@ -62,6 +65,45 @@ where
 {
     fn from(error: GetEntityError<E>) -> Self {
         Self::with_source(format!("Get entity error: {:#?}", error), error)
+    }
+}
+
+impl<E> From<SetObservationsError<E>> for ToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: SetObservationsError<E>) -> Self {
+        Self::with_source(format!("Set observations error: {:#?}", error), error)
+    }
+}
+
+impl<E> From<AddObservationsError<E>> for ToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: AddObservationsError<E>) -> Self {
+        Self::with_source(format!("Add observations error: {:#?}", error), error)
+    }
+}
+
+impl<E> From<RemoveAllObservationsError<E>> for ToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: RemoveAllObservationsError<E>) -> Self {
+        Self::with_source(
+            format!("Remove all observations error: {:#?}", error),
+            error,
+        )
+    }
+}
+
+impl<E> From<RemoveObservationsError<E>> for ToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: RemoveObservationsError<E>) -> Self {
+        Self::with_source(format!("Remove observations error: {:#?}", error), error)
     }
 }
 

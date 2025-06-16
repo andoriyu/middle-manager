@@ -109,3 +109,104 @@ async fn test_validation_errors() {
         .unwrap();
     assert!(found.labels.contains(&"TestValidation".to_string()));
 }
+
+#[tokio::test]
+async fn test_set_observations() {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_tag: Some("TestSet".to_string()),
+        },
+    )
+    .await
+    .unwrap();
+
+    let entity_name = "test:entity:set";
+    let entity = MemoryEntity {
+        name: entity_name.to_string(),
+        labels: vec!["Example".to_string()],
+        observations: vec!["initial".to_string()],
+        properties: HashMap::new(),
+    };
+
+    service.create_entity(&entity).await.unwrap();
+
+    service
+        .set_observations(entity_name, &["replaced".to_string()])
+        .await
+        .unwrap();
+
+    let updated = service
+        .find_entity_by_name(entity_name)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(updated.observations, vec!["replaced".to_string()]);
+}
+
+#[tokio::test]
+async fn test_add_and_remove_observations() {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_tag: Some("TestAddRemove".to_string()),
+        },
+    )
+    .await
+    .unwrap();
+
+    let entity_name = "test:entity:modify";
+    let entity = MemoryEntity {
+        name: entity_name.to_string(),
+        labels: vec!["Example".to_string()],
+        observations: vec!["obs1".to_string(), "obs2".to_string()],
+        properties: HashMap::new(),
+    };
+
+    service.create_entity(&entity).await.unwrap();
+
+    service
+        .add_observations(entity_name, &["obs3".to_string()])
+        .await
+        .unwrap();
+
+    let after_add = service
+        .find_entity_by_name(entity_name)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(after_add.observations, vec!["obs1", "obs2", "obs3"]);
+
+    service
+        .remove_observations(entity_name, &["obs2".to_string()])
+        .await
+        .unwrap();
+
+    let after_remove = service
+        .find_entity_by_name(entity_name)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(after_remove.observations, vec!["obs1", "obs3"]);
+
+    service.remove_all_observations(entity_name).await.unwrap();
+
+    let cleared = service
+        .find_entity_by_name(entity_name)
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(cleared.observations.is_empty());
+}

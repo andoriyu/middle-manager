@@ -14,4 +14,24 @@ pub trait MemoryRepository {
         &self,
         name: &str,
     ) -> MemoryResult<Option<MemoryEntity>, Self::Error>;
+
+    async fn set_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), Self::Error>;
+
+    async fn add_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), Self::Error>;
+
+    async fn remove_all_observations(&self, name: &str) -> MemoryResult<(), Self::Error>;
+
+    async fn remove_observations(
+        &self,
+        name: &str,
+        observations: &[String],
+    ) -> MemoryResult<(), Self::Error>;
 }
