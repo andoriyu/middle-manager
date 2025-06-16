@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 use std::sync::Arc;
 
-use mm_memory_neo4j::MemoryEntity;
+use crate::MemoryEntity;
 use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
 use serde::{Deserialize, Serialize};
 
@@ -46,13 +46,21 @@ impl GetEntityTool {
 mod tests {
     use super::*;
     use crate::service::MockMemoryService;
-    use mm_memory_neo4j::neo4rs;
     use mockall::predicate::*;
     use std::collections::HashMap;
+
+    #[derive(Debug)]
+    struct TestError;
+    impl std::fmt::Display for TestError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "test error")
+        }
+    }
+    impl StdError for TestError {}
     
     #[tokio::test]
     async fn test_get_entity_found() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let mut mock = MockMemoryService::<TestError>::new();
         
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
@@ -81,7 +89,7 @@ mod tests {
     
     #[tokio::test]
     async fn test_get_entity_not_found() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let mut mock = MockMemoryService::<TestError>::new();
         
         // Set up the mock expectation
         mock.expect_find_entity_by_name()

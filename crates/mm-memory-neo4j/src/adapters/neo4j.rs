@@ -3,10 +3,7 @@ use neo4rs::{self, Graph, Node, Query};
 use serde_json;
 use std::collections::HashMap;
 
-use crate::domain::entity::MemoryEntity;
-use crate::domain::error::{MemoryError, MemoryResult};
-use crate::domain::validation_error::ValidationError;
-use crate::ports::repository::MemoryRepository;
+use mm_memory::{MemoryEntity, MemoryError, MemoryRepository, MemoryResult, ValidationError};
 
 /// Configuration for connecting to Neo4j
 ///

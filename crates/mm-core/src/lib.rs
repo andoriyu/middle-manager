@@ -11,9 +11,12 @@ pub use operations::{
 pub use ports::Ports;
 pub use service::MemoryService;
 
+// Re-export types from mm-memory
+pub use mm_memory::MemoryEntity;
+
 // Re-export necessary types from mm-memory-neo4j
 pub use mm_memory_neo4j::{
-    MemoryEntity, MemoryService as MemoryServiceImpl, Neo4jRepository, create_neo4j_service, neo4rs,
+    MemoryService as MemoryServiceImpl, Neo4jRepository, create_neo4j_service, neo4rs,
 };
 
 #[cfg(test)]

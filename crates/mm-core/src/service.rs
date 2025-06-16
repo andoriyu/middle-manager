@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use std::error::Error as StdError;
 
-use mm_memory_neo4j::{MemoryEntity, MemoryRepository, MemoryService as MemoryServiceImpl};
+use mm_memory::{MemoryEntity, MemoryRepository};
+use mm_memory_neo4j::MemoryService as MemoryServiceImpl;
 #[cfg(test)]
 use mockall::automock;
 

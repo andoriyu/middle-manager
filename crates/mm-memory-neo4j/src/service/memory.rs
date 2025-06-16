@@ -2,10 +2,7 @@ use std::error::Error as StdError;
 use std::marker::PhantomData;
 
 use crate::MemoryConfig;
-use crate::ValidationError;
-use crate::domain::entity::MemoryEntity;
-use crate::domain::error::MemoryResult;
-use crate::ports::repository::MemoryRepository;
+use mm_memory::{MemoryEntity, MemoryRepository, MemoryResult, ValidationError};
 
 /// Service for memory operations
 ///
@@ -109,7 +106,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ports::repository::MockMemoryRepository;
+    use mm_memory::MockMemoryRepository;
 
     #[derive(Debug)]
     struct TestError;

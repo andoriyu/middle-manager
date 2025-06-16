@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error as StdError;
 use std::sync::Arc;
 
-use mm_memory_neo4j::MemoryEntity;
+use crate::MemoryEntity;
 use rust_mcp_sdk::macros::{mcp_tool, JsonSchema};
 use serde::{Deserialize, Serialize};
 
@@ -67,12 +67,21 @@ impl CreateEntityTool {
 mod tests {
     use super::*;
     use crate::service::MockMemoryService;
-    use mm_memory_neo4j::{ValidationError, neo4rs};
+    use mm_memory::ValidationError;
     use crate::error::CoreError;
+
+    #[derive(Debug)]
+    struct TestError;
+    impl std::fmt::Display for TestError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "test error")
+        }
+    }
+    impl StdError for TestError {}
     
     #[tokio::test]
     async fn test_create_entity_success() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let mut mock = MockMemoryService::<TestError>::new();
         
         // Set up the mock expectation
         mock.expect_create_entity()
@@ -97,7 +106,7 @@ mod tests {
     
     #[tokio::test]
     async fn test_create_entity_validation_error() {
-        let mut mock = MockMemoryService::<neo4rs::Error>::new();
+        let mut mock = MockMemoryService::<TestError>::new();
         
         // Set up the mock expectation
         mock.expect_create_entity()
