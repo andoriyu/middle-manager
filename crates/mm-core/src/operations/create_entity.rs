@@ -121,4 +121,32 @@ mod tests {
         let result = create_entity(&ports, command).await;
         assert!(matches!(result, Err(CreateEntityError::Validation(_))));
     }
+
+    #[tokio::test]
+    async fn test_create_entity_repository_error() {
+        use mm_memory::MemoryError;
+
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo
+            .expect_create_entity()
+            .withf(|e| e.name == "test:entity")
+            .returning(|_| Err(MemoryError::runtime_error("db error")));
+
+        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let command = CreateEntityCommand {
+            name: "test:entity".to_string(),
+            labels: vec!["Test".to_string()],
+            observations: vec![],
+            properties: HashMap::new(),
+        };
+
+        let result = create_entity(&ports, command).await;
+
+        assert!(matches!(
+            result,
+            Err(CreateEntityError::Repository(CoreError::Memory(_)))
+        ));
+    }
 }
