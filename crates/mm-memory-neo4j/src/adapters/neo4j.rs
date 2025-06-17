@@ -97,9 +97,6 @@ impl MemoryRepository for Neo4jRepository {
 
         Ok(())
     }
-    async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), Self::Error> {
-        self.create_entities(std::slice::from_ref(entity)).await
-    }
 
     async fn find_entity_by_name(
         &self,
@@ -275,13 +272,5 @@ impl MemoryRepository for Neo4jRepository {
         })?;
 
         Ok(())
-    }
-
-    async fn create_relationship(
-        &self,
-        relationship: &MemoryRelationship,
-    ) -> MemoryResult<(), Self::Error> {
-        self.create_relationships(std::slice::from_ref(relationship))
-            .await
     }
 }

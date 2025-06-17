@@ -10,14 +10,7 @@ use crate::relationship::MemoryRelationship;
 pub trait MemoryRepository {
     type Error: StdError + Send + Sync + 'static;
 
-    async fn create_entities(&self, entities: &[MemoryEntity]) -> MemoryResult<(), Self::Error> {
-        for entity in entities {
-            self.create_entity(entity).await?;
-        }
-        Ok(())
-    }
-
-    async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), Self::Error>;
+    async fn create_entities(&self, entities: &[MemoryEntity]) -> MemoryResult<(), Self::Error>;
     async fn find_entity_by_name(
         &self,
         name: &str,
@@ -46,15 +39,5 @@ pub trait MemoryRepository {
     async fn create_relationships(
         &self,
         relationships: &[MemoryRelationship],
-    ) -> MemoryResult<(), Self::Error> {
-        for relationship in relationships {
-            self.create_relationship(relationship).await?;
-        }
-        Ok(())
-    }
-
-    async fn create_relationship(
-        &self,
-        relationship: &MemoryRelationship,
     ) -> MemoryResult<(), Self::Error>;
 }

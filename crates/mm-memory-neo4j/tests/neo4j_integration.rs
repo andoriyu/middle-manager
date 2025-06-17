@@ -69,7 +69,10 @@ async fn test_create_and_find_entity() {
     };
 
     // Test that entity creation doesn't error
-    service.create_entity(&entity).await.unwrap();
+    service
+        .create_entities(std::slice::from_ref(&entity))
+        .await
+        .unwrap();
 
     // Test that we can find the entity after creation
     let found = service
@@ -118,7 +121,7 @@ async fn test_validation_errors() {
         properties: HashMap::new(),
     };
 
-    let result = service.create_entity(&entity).await;
+    let result = service.create_entities(std::slice::from_ref(&entity)).await;
     assert!(result.is_ok());
 
     // Ensure the default tag was applied
@@ -157,7 +160,10 @@ async fn test_set_observations() {
         properties: HashMap::new(),
     };
 
-    service.create_entity(&entity).await.unwrap();
+    service
+        .create_entities(std::slice::from_ref(&entity))
+        .await
+        .unwrap();
 
     service
         .set_observations(entity_name, &["replaced".to_string()])
@@ -199,7 +205,10 @@ async fn test_add_and_remove_observations() {
         properties: HashMap::new(),
     };
 
-    service.create_entity(&entity).await.unwrap();
+    service
+        .create_entities(std::slice::from_ref(&entity))
+        .await
+        .unwrap();
 
     service
         .add_observations(entity_name, &["obs3".to_string()])
@@ -267,8 +276,14 @@ async fn test_create_relationship() {
         properties: HashMap::new(),
     };
 
-    service.create_entity(&a).await.unwrap();
-    service.create_entity(&b).await.unwrap();
+    service
+        .create_entities(std::slice::from_ref(&a))
+        .await
+        .unwrap();
+    service
+        .create_entities(std::slice::from_ref(&b))
+        .await
+        .unwrap();
 
     let rel = MemoryRelationship {
         from: a.name.clone(),
@@ -277,5 +292,8 @@ async fn test_create_relationship() {
         properties: HashMap::new(),
     };
 
-    service.create_relationship(&rel).await.unwrap();
+    service
+        .create_relationships(std::slice::from_ref(&rel))
+        .await
+        .unwrap();
 }
