@@ -20,7 +20,7 @@ mod config;
 pub use config::Config;
 
 use rust_mcp_sdk::schema::{
-    ClientRequest, ListToolsResult, RpcError,
+    ClientRequest, ListToolsResult, Result as McpResult, RpcError,
     schema_utils::{CallToolError, NotificationFromClient, RequestFromClient, ResultFromServer},
 };
 use rust_mcp_sdk::{
@@ -110,6 +110,11 @@ where
                 ClientRequest::ListResourceTemplatesRequest(_) => {
                     debug!("Handling list resource templates request");
                     Ok(resources::list_resource_templates().into())
+                }
+
+                ClientRequest::PingRequest(_) => {
+                    debug!("Handling ping request");
+                    Ok(McpResult::default().into())
                 }
 
                 ClientRequest::ReadResourceRequest(request) => {
