@@ -31,6 +31,7 @@ All relationships in the knowledge graph follow snake_case naming convention:
 - `implements`
 - etc.
 */
+#![warn(clippy::all)]
 
 pub mod adapters;
 

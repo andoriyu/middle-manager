@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 pub mod error;
 mod operations;
 mod ports;
