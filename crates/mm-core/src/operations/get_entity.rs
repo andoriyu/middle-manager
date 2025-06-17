@@ -3,6 +3,7 @@ use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
 use mm_memory::MemoryRepository;
+use tracing::instrument;
 
 /// Command to retrieve an entity by name
 #[derive(Debug, Clone)]
@@ -24,6 +25,7 @@ pub type GetEntityResult<E> = CoreResult<Option<MemoryEntity>, E>;
 /// # Returns
 ///
 /// The entity if found, or None if not found
+#[instrument(skip(ports), fields(name = %command.name))]
 pub async fn get_entity<R>(ports: &Ports<R>, command: GetEntityCommand) -> GetEntityResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,

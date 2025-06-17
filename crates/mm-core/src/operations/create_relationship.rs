@@ -1,6 +1,7 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use mm_memory::{MemoryRelationship, MemoryRepository};
+use tracing::instrument;
 
 #[derive(Debug, Clone)]
 pub struct CreateRelationshipCommand {
@@ -9,6 +10,7 @@ pub struct CreateRelationshipCommand {
 
 pub type CreateRelationshipResult<E> = CoreResult<(), E>;
 
+#[instrument(skip(ports), fields(relationships_count = command.relationships.len()))]
 pub async fn create_relationship<R>(
     ports: &Ports<R>,
     command: CreateRelationshipCommand,

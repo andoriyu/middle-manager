@@ -2,6 +2,7 @@ use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
 use mm_memory::MemoryRepository;
+use tracing::instrument;
 
 #[derive(Debug, Clone)]
 pub struct RemoveAllObservationsCommand {
@@ -10,6 +11,7 @@ pub struct RemoveAllObservationsCommand {
 
 pub type RemoveAllObservationsResult<E> = CoreResult<(), E>;
 
+#[instrument(skip(ports), fields(name = %command.name))]
 pub async fn remove_all_observations<R>(
     ports: &Ports<R>,
     command: RemoveAllObservationsCommand,
