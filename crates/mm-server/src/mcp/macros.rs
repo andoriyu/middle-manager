@@ -33,6 +33,7 @@ macro_rules! generate_call_tool {
 
     // Custom success block version that provides both the command and the result
     ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $operation:path, |$cmd_ident:ident, $res_ident:ident| $success_block:block) => {
+        #[tracing::instrument(skip($self_ident, ports))]
         pub async fn call_tool<R>(&$self_ident, ports: &mm_core::Ports<R>) -> Result<rust_mcp_sdk::schema::CallToolResult, rust_mcp_sdk::schema::schema_utils::CallToolError>
         where
             R: mm_memory::MemoryRepository + Send + Sync,

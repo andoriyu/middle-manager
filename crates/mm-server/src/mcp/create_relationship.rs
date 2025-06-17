@@ -33,23 +33,32 @@ pub struct CreateRelationshipTool {
 }
 
 impl CreateRelationshipTool {
-    generate_call_tool!(
-        self,
-        CreateRelationshipCommand {
-            relationships => self
+    #[tracing::instrument(skip(self, ports), fields(relationships_count = self.relationships.len()))]
+    pub async fn call_tool<R>(
+        &self,
+        ports: &mm_core::Ports<R>,
+    ) -> Result<
+        rust_mcp_sdk::schema::CallToolResult,
+        rust_mcp_sdk::schema::schema_utils::CallToolError,
+    >
+    where
+        R: mm_memory::MemoryRepository + Send + Sync,
+        R::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let command = CreateRelationshipCommand {
+            relationships: self
                 .relationships
                 .iter()
                 .map(RelationshipInput::to_memory_relationship)
                 .collect(),
-        },
-        create_relationship,
-        |_cmd, _res| {
-            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                "Relationships created".to_string(),
-                None,
-            ))
-        }
-    );
+        };
+
+        crate::mcp::error::map_result(create_relationship(ports, command.clone()).await)?;
+        Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
+            "Relationships created".to_string(),
+            None,
+        ))
+    }
 }
 
 #[cfg(test)]

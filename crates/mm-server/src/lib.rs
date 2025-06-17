@@ -70,6 +70,7 @@ impl<R> ServerHandlerCore for MiddleManagerHandler<R>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
+    #[tracing::instrument(skip(self, runtime, request), fields(method = request.method()))]
     async fn handle_request(
         &self,
         request: RequestFromClient,
@@ -206,6 +207,7 @@ where
 }
 
 /// Run the Middle Manager MCP server
+#[tracing::instrument(skip(config_paths), fields(paths = config_paths.len()))]
 pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
     // Load configuration
     let config = Config::load(config_paths)

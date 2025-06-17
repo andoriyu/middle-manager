@@ -30,6 +30,7 @@ pub fn list_resources() -> ListResourcesResult {
 }
 
 /// Read a memory entity from the given URI.
+#[tracing::instrument(skip(ports), fields(uri))]
 pub async fn read_resource<R>(ports: &Ports<R>, uri: &str) -> Result<ReadResourceResult, RpcError>
 where
     R: MemoryRepository + Send + Sync,

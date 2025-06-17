@@ -13,22 +13,32 @@ pub struct CreateEntityTool {
 }
 
 impl CreateEntityTool {
-    generate_call_tool!(
-        self,
-        CreateEntityCommand {
-            entities => self.entities.clone()
-        },
-        create_entity,
-        |command, _result| {
-            serde_json::to_value(command.entities)
-                .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
-                .map_err(|e| {
-                    rust_mcp_sdk::schema::schema_utils::CallToolError::new(
-                        crate::mcp::error::ToolError::from(e),
-                    )
-                })
-        }
-    );
+    #[tracing::instrument(skip(self, ports), fields(entities_count = self.entities.len()))]
+    pub async fn call_tool<R>(
+        &self,
+        ports: &mm_core::Ports<R>,
+    ) -> Result<
+        rust_mcp_sdk::schema::CallToolResult,
+        rust_mcp_sdk::schema::schema_utils::CallToolError,
+    >
+    where
+        R: mm_memory::MemoryRepository + Send + Sync,
+        R::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let command = CreateEntityCommand {
+            entities: self.entities.clone(),
+        };
+
+        crate::mcp::error::map_result(create_entity(ports, command.clone()).await)?;
+        let json = serde_json::to_value(command.entities)
+            .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
+            .map_err(|e| {
+                rust_mcp_sdk::schema::schema_utils::CallToolError::new(
+                    crate::mcp::error::ToolError::from(e),
+                )
+            })?;
+        Ok(json)
+    }
 }
 
 #[cfg(test)]
