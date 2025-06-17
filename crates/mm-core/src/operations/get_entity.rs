@@ -1,7 +1,8 @@
 use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryRepository, ValidationError, ValidationErrorKind};
+use crate::validate_name;
+use mm_memory::MemoryRepository;
 
 /// Command to retrieve an entity by name
 #[derive(Debug, Clone)]
@@ -29,11 +30,7 @@ where
     R::Error: std::error::Error + Send + Sync + 'static,
 {
     // Validate command
-    if command.name.is_empty() {
-        return Err(CoreError::Validation(ValidationError(vec![
-            ValidationErrorKind::EmptyEntityName,
-        ])));
-    }
+    validate_name!(command.name);
 
     // Find entity using the memory service
     ports
@@ -46,7 +43,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
+    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
     use mockall::predicate::*;
     use std::collections::HashMap;
     use std::sync::Arc;
