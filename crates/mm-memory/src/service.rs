@@ -3,6 +3,7 @@ use crate::{
     MemoryResult, ValidationError, ValidationErrorKind,
 };
 use mm_utils::is_snake_case;
+use tracing::instrument;
 
 /// Service for memory operations
 ///
@@ -33,6 +34,7 @@ where
     }
 
     /// Create multiple entities in a batch
+    #[instrument(skip(self, entities), fields(entities_count = entities.len()))]
     pub async fn create_entities(
         &self,
         entities: &[MemoryEntity],
@@ -71,6 +73,7 @@ where
     }
 
     /// Find an entity by name
+    #[instrument(skip(self), fields(name))]
     pub async fn find_entity_by_name(
         &self,
         name: &str,
@@ -79,6 +82,7 @@ where
     }
 
     /// Replace all observations for an entity
+    #[instrument(skip(self, observations), fields(name, observations_count = observations.len()))]
     pub async fn set_observations(
         &self,
         name: &str,
@@ -88,6 +92,7 @@ where
     }
 
     /// Add observations to an entity
+    #[instrument(skip(self, observations), fields(name, observations_count = observations.len()))]
     pub async fn add_observations(
         &self,
         name: &str,
@@ -97,11 +102,13 @@ where
     }
 
     /// Remove all observations from an entity
+    #[instrument(skip(self), fields(name))]
     pub async fn remove_all_observations(&self, name: &str) -> MemoryResult<(), R::Error> {
         self.repository.remove_all_observations(name).await
     }
 
     /// Remove specific observations from an entity
+    #[instrument(skip(self, observations), fields(name, observations_count = observations.len()))]
     pub async fn remove_observations(
         &self,
         name: &str,
@@ -113,6 +120,7 @@ where
     }
 
     /// Create multiple relationships in a batch
+    #[instrument(skip(self, relationships), fields(relationships_count = relationships.len()))]
     pub async fn create_relationships(
         &self,
         relationships: &[MemoryRelationship],
