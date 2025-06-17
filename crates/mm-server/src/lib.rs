@@ -28,6 +28,7 @@ use tracing::debug;
 
 mod mcp;
 use mcp::MemoryTools;
+mod resources;
 
 /// Middle Manager MCP server handler
 pub struct MiddleManagerHandler<R>
@@ -92,6 +93,25 @@ where
                         tools: MemoryTools::tools(),
                     }
                     .into())
+                }
+
+                ClientRequest::ListResourcesRequest(_) => {
+                    debug!("Handling list resources request");
+                    Ok(resources::list_resources().into())
+                }
+
+                ClientRequest::ListResourceTemplatesRequest(_) => {
+                    debug!("Handling list resource templates request");
+                    Ok(resources::list_resource_templates().into())
+                }
+
+                ClientRequest::ReadResourceRequest(request) => {
+                    debug!("Handling read resource request: {}", request.params.uri);
+                    let ports = Ports::new(self.service.clone());
+                    let result = resources::read_resource(&ports, &request.params.uri)
+                        .await
+                        .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?;
+                    Ok(result.into())
                 }
 
                 ClientRequest::CallToolRequest(request) => {
@@ -198,6 +218,7 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
         },
         capabilities: ServerCapabilities {
             tools: Some(ServerCapabilitiesTools { list_changed: None }),
+            resources: Some(Default::default()),
             ..Default::default()
         },
         meta: None,
