@@ -7,9 +7,6 @@ pub enum CoreError<E>
 where
     E: StdError + Send + Sync + 'static,
 {
-    #[error("Configuration error: {0}")]
-    Config(String),
-
     #[error("Memory error")]
     Memory(#[from] mm_memory::MemoryError<E>),
 
@@ -18,12 +15,6 @@ where
 
     #[error("Validation error")]
     Validation(#[from] mm_memory::ValidationError),
-
-    #[error("Entity not found: {0}")]
-    NotFound(String),
-
-    #[error("MCP error: {0}")]
-    Mcp(String),
 }
 
 /// Result type for mm-core
