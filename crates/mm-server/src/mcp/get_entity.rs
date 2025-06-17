@@ -1,3 +1,4 @@
+use crate::mcp::error::{ToolError, map_result};
 use mm_core::{GetEntityCommand, Ports, get_entity};
 use mm_memory::MemoryRepository;
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
@@ -5,9 +6,6 @@ use rust_mcp_sdk::schema::CallToolResult;
 use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
 use serde_json;
-use tracing::error;
-
-use crate::mcp::error::ToolError;
 
 /// MCP tool for retrieving entities
 #[mcp_tool(
@@ -33,27 +31,15 @@ impl GetEntityTool {
         };
 
         // Execute the operation
-        match get_entity(ports, command).await {
-            Ok(Some(entity)) => match serde_json::to_value(entity) {
-                Ok(json) => Ok(CallToolResult::text_content(json.to_string(), None)),
-                Err(e) => {
-                    error!("Failed to serialize entity: {:#?}", e);
-                    let tool_error = ToolError::from(e);
-                    Err(CallToolError::new(tool_error))
-                }
-            },
-            Ok(None) => Ok(CallToolResult::text_content(
+        map_result(get_entity(ports, command).await).and_then(|maybe_entity| match maybe_entity {
+            Some(entity) => serde_json::to_value(entity)
+                .map(|json| CallToolResult::text_content(json.to_string(), None))
+                .map_err(|e| CallToolError::new(ToolError::from(e))),
+            None => Ok(CallToolResult::text_content(
                 format!("Entity '{}' not found", self.name),
                 None,
             )),
-            Err(e) => {
-                // Log the detailed error
-                error!("Failed to get entity: {:#?}", e);
-                // Return a simplified error for the MCP protocol
-                let tool_error = ToolError::from(e);
-                Err(CallToolError::new(tool_error))
-            }
-        }
+        })
     }
 }
 

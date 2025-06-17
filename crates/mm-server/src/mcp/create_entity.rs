@@ -5,9 +5,8 @@ use rust_mcp_sdk::schema::CallToolResult;
 use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::error;
 
-use crate::mcp::error::ToolError;
+use crate::mcp::error::map_result;
 
 /// MCP tool for creating entities
 #[mcp_tool(
@@ -45,20 +44,13 @@ impl CreateEntityTool {
             properties: self.properties.clone().unwrap_or_default(),
         };
 
-        // Execute the operation
-        match create_entity(ports, command).await {
-            Ok(_) => Ok(CallToolResult::text_content(
+        // Execute the operation and map the result
+        map_result(create_entity(ports, command).await).map(|_| {
+            CallToolResult::text_content(
                 format!("Entity '{}' created successfully", self.name),
                 None,
-            )),
-            Err(e) => {
-                // Log the detailed error
-                error!("Failed to create entity: {:#?}", e);
-                // Return a simplified error for the MCP protocol
-                let tool_error = ToolError::from(e);
-                Err(CallToolError::new(tool_error))
-            }
-        }
+            )
+        })
     }
 }
 
