@@ -33,20 +33,26 @@ macro_rules! generate_call_tool {
 
     // Custom success block version that provides both the command and the result
     ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $operation:path, |$cmd_ident:ident, $res_ident:ident| $success_block:block) => {
-        #[tracing::instrument(skip($self_ident, ports))]
         pub async fn call_tool<R>(&$self_ident, ports: &mm_core::Ports<R>) -> Result<rust_mcp_sdk::schema::CallToolResult, rust_mcp_sdk::schema::schema_utils::CallToolError>
         where
             R: mm_memory::MemoryRepository + Send + Sync,
             R::Error: std::error::Error + Send + Sync + 'static,
         {
+            use tracing::Instrument;
+
             let $cmd_ident = $command {
                 $(
                     $field: generate_call_tool!(@value $self_ident.$field $(, $value)? ),
                 )*
             };
 
-            let $res_ident = $crate::mcp::error::map_result($operation(ports, $cmd_ident.clone()).await)?;
-            $success_block
+            let span = tracing::info_span!("call_tool");
+            async move {
+                let $res_ident = $crate::mcp::error::map_result($operation(ports, $cmd_ident.clone()).await)?;
+                $success_block
+            }
+            .instrument(span)
+            .await
         }
     };
 
