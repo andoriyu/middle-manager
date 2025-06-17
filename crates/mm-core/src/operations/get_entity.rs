@@ -114,4 +114,23 @@ mod tests {
 
         assert!(matches!(result, Err(CoreError::Memory(_))));
     }
+
+    #[tokio::test]
+    async fn test_get_entity_not_found() {
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo
+            .expect_find_entity_by_name()
+            .with(eq("missing:entity"))
+            .returning(|_| Ok(None));
+
+        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let command = GetEntityCommand {
+            name: "missing:entity".to_string(),
+        };
+
+        let result = get_entity(&ports, command).await.unwrap();
+        assert!(result.is_none());
+    }
 }
