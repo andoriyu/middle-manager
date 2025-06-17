@@ -1,9 +1,5 @@
-use crate::mcp::error::map_result;
-use mm_core::{Ports, SetObservationsCommand, set_observations};
-use mm_memory::MemoryRepository;
+use mm_core::{SetObservationsCommand, set_observations};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
-use rust_mcp_sdk::schema::CallToolResult;
-use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
 
 #[mcp_tool(
@@ -17,20 +13,12 @@ pub struct SetObservationsTool {
 }
 
 impl SetObservationsTool {
-    pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
-    where
-        R: MemoryRepository + Send + Sync,
-        R::Error: std::error::Error + Send + Sync + 'static,
-    {
-        let command = SetObservationsCommand {
-            name: self.name.clone(),
-            observations: self.observations.clone(),
-        };
-
-        map_result(set_observations(ports, command).await).map(|_| {
-            CallToolResult::text_content(format!("Observations for '{}' replaced", self.name), None)
-        })
-    }
+    generate_call_tool!(
+        self,
+        SetObservationsCommand { name, observations },
+        "Observations for '{}' replaced",
+        set_observations
+    );
 }
 
 #[cfg(test)]

@@ -1,9 +1,5 @@
-use crate::mcp::error::map_result;
-use mm_core::{CreateRelationshipCommand, Ports, create_relationship};
-use mm_memory::MemoryRepository;
+use mm_core::{CreateRelationshipCommand, create_relationship};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
-use rust_mcp_sdk::schema::CallToolResult;
-use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -21,22 +17,17 @@ pub struct CreateRelationshipTool {
 }
 
 impl CreateRelationshipTool {
-    pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
-    where
-        R: MemoryRepository + Send + Sync,
-        R::Error: std::error::Error + Send + Sync + 'static,
-    {
-        let command = CreateRelationshipCommand {
-            from: self.from.clone(),
-            to: self.to.clone(),
-            name: self.name.clone(),
-            properties: self.properties.clone().unwrap_or_default(),
-        };
-
-        map_result(create_relationship(ports, command).await).map(|_| {
-            CallToolResult::text_content(format!("Relationship '{}' created", self.name), None)
-        })
-    }
+    generate_call_tool!(
+        self,
+        CreateRelationshipCommand {
+            from,
+            to,
+            name,
+            properties => self.properties.clone().unwrap_or_default()
+        },
+        "Relationship '{}' created",
+        create_relationship
+    );
 }
 
 #[cfg(test)]
