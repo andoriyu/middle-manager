@@ -2,6 +2,7 @@ use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
 use mm_memory::MemoryRepository;
+use tracing::instrument;
 
 #[derive(Debug, Clone)]
 pub struct AddObservationsCommand {
@@ -11,6 +12,7 @@ pub struct AddObservationsCommand {
 
 pub type AddObservationsResult<E> = CoreResult<(), E>;
 
+#[instrument(skip(ports), fields(name = %command.name, observations_count = command.observations.len()))]
 pub async fn add_observations<R>(
     ports: &Ports<R>,
     command: AddObservationsCommand,

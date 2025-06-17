@@ -2,6 +2,7 @@ use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use mm_memory::MemoryRepository;
+use tracing::instrument;
 
 /// Command to create a new entity
 #[derive(Debug, Clone)]
@@ -22,6 +23,7 @@ pub type CreateEntityResult<E> = CoreResult<(), E>;
 /// # Returns
 ///
 /// Ok(()) if the entity was created successfully, or an error
+#[instrument(skip(ports), fields(entities_count = command.entities.len()))]
 pub async fn create_entity<R>(
     ports: &Ports<R>,
     command: CreateEntityCommand,
