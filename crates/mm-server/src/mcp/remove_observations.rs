@@ -1,4 +1,3 @@
-use crate::generate_call_tool;
 use mm_core::{RemoveObservationsCommand, remove_observations};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use serde::{Deserialize, Serialize};

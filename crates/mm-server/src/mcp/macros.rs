@@ -1,4 +1,3 @@
-#[macro_export]
 macro_rules! generate_call_tool {
     (@value $self_field:expr $(, $value:expr)? ) => {
         generate_call_tool!(@inner $self_field $(, $value)? )

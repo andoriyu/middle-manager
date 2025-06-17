@@ -1,9 +1,10 @@
+#[macro_use]
+mod macros;
 pub mod add_observations;
 pub mod create_entity;
 pub mod create_relationship;
 pub mod error;
 pub mod get_entity;
-pub mod macros;
 pub mod remove_all_observations;
 pub mod remove_observations;
 pub mod set_observations;

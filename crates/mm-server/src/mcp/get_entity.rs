@@ -1,4 +1,3 @@
-use crate::generate_call_tool;
 use mm_core::{GetEntityCommand, get_entity};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use serde::{Deserialize, Serialize};
