@@ -34,6 +34,18 @@ where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
+    if command.from.is_empty() || command.to.is_empty() {
+        return Err(CreateRelationshipError::Validation(
+            "Entity names cannot be empty".to_string(),
+        ));
+    }
+
+    if command.name.is_empty() {
+        return Err(CreateRelationshipError::Validation(
+            "Relationship name cannot be empty".to_string(),
+        ));
+    }
+
     let rel = MemoryRelationship {
         from: command.from,
         to: command.to,
@@ -89,7 +101,7 @@ mod tests {
         let result = create_relationship(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CreateRelationshipError::Repository(CoreError::Memory(_)))
+            Err(CreateRelationshipError::Validation(_))
         ));
     }
 }
