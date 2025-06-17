@@ -1,12 +1,8 @@
-use mm_core::{CreateEntityCommand, Ports, create_entity};
-use mm_memory::MemoryRepository;
+use crate::generate_call_tool;
+use mm_core::{CreateEntityCommand, create_entity};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
-use rust_mcp_sdk::schema::CallToolResult;
-use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-use crate::mcp::error::map_result;
 
 /// MCP tool for creating entities
 #[mcp_tool(
@@ -30,28 +26,27 @@ pub struct CreateEntityTool {
 }
 
 impl CreateEntityTool {
-    /// Execute the tool with the given ports
-    pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
-    where
-        R: MemoryRepository + Send + Sync,
-        R::Error: std::error::Error + Send + Sync + 'static,
-    {
-        // Create command from tool parameters
-        let command = CreateEntityCommand {
-            name: self.name.clone(),
-            labels: self.labels.clone(),
-            observations: self.observations.clone(),
-            properties: self.properties.clone().unwrap_or_default(),
-        };
-
-        // Execute the operation and map the result
-        map_result(create_entity(ports, command).await).map(|_| {
-            CallToolResult::text_content(
-                format!("Entity '{}' created successfully", self.name),
-                None,
-            )
-        })
-    }
+    generate_call_tool!(
+        self,
+        CreateEntityCommand {
+            name,
+            labels,
+            observations,
+            properties => self.properties.clone().unwrap_or_default()
+        },
+        create_entity,
+        |command| {
+            let entity = mm_core::MemoryEntity {
+                name: command.name,
+                labels: command.labels,
+                observations: command.observations,
+                properties: command.properties,
+            };
+            serde_json::to_value(entity)
+                .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
+                .map_err(|e| rust_mcp_sdk::schema::schema_utils::CallToolError::new(crate::mcp::error::ToolError::from(e)))
+        }
+    );
 }
 
 #[cfg(test)]
@@ -80,7 +75,13 @@ mod tests {
 
         let result = tool.call_tool(&ports).await.expect("tool should succeed");
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        assert_eq!(text, "Entity 'test:entity' created successfully");
+        let expected = serde_json::json!({
+            "name": "test:entity",
+            "labels": ["Test"],
+            "observations": [],
+            "properties": {}
+        });
+        assert_eq!(text, expected.to_string());
     }
 
     #[tokio::test]

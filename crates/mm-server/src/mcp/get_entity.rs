@@ -1,11 +1,7 @@
-use crate::mcp::error::{ToolError, map_result};
-use mm_core::{GetEntityCommand, Ports, get_entity};
-use mm_memory::MemoryRepository;
+use crate::generate_call_tool;
+use mm_core::{GetEntityCommand, get_entity};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
-use rust_mcp_sdk::schema::CallToolResult;
-use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
-use serde_json;
 
 /// MCP tool for retrieving entities
 #[mcp_tool(
@@ -19,28 +15,12 @@ pub struct GetEntityTool {
 }
 
 impl GetEntityTool {
-    /// Execute the tool with the given ports
-    pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
-    where
-        R: MemoryRepository + Send + Sync,
-        R::Error: std::error::Error + Send + Sync + 'static,
-    {
-        // Create command from tool parameters
-        let command = GetEntityCommand {
-            name: self.name.clone(),
-        };
-
-        // Execute the operation
-        map_result(get_entity(ports, command).await).and_then(|maybe_entity| match maybe_entity {
-            Some(entity) => serde_json::to_value(entity)
-                .map(|json| CallToolResult::text_content(json.to_string(), None))
-                .map_err(|e| CallToolError::new(ToolError::from(e))),
-            None => Ok(CallToolResult::text_content(
-                format!("Entity '{}' not found", self.name),
-                None,
-            )),
-        })
-    }
+    generate_call_tool!(
+        self,
+        GetEntityCommand { name },
+        "Entity '{}' retrieved",
+        get_entity
+    );
 }
 
 #[cfg(test)]
@@ -49,7 +29,6 @@ mod tests {
     use mm_core::Ports;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryError, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
-    use serde_json::Value;
     use std::collections::HashMap;
     use std::sync::Arc;
 
@@ -76,8 +55,7 @@ mod tests {
 
         let result = tool.call_tool(&ports).await.expect("tool should succeed");
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        let value: Value = serde_json::from_str(&text).unwrap();
-        assert_eq!(value["name"], "test:entity");
+        assert_eq!(text, "Entity 'test:entity' retrieved");
     }
 
     #[tokio::test]
@@ -113,6 +91,6 @@ mod tests {
 
         let result = tool.call_tool(&ports).await.expect("tool should succeed");
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        assert_eq!(text, "Entity 'missing' not found");
+        assert_eq!(text, "Entity 'missing' retrieved");
     }
 }

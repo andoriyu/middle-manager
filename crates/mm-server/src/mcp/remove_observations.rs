@@ -1,9 +1,6 @@
-use crate::mcp::error::map_result;
-use mm_core::{Ports, RemoveObservationsCommand, remove_observations};
-use mm_memory::MemoryRepository;
+use crate::generate_call_tool;
+use mm_core::{RemoveObservationsCommand, remove_observations};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
-use rust_mcp_sdk::schema::CallToolResult;
-use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
 
 #[mcp_tool(
@@ -17,20 +14,12 @@ pub struct RemoveObservationsTool {
 }
 
 impl RemoveObservationsTool {
-    pub async fn call_tool<R>(&self, ports: &Ports<R>) -> Result<CallToolResult, CallToolError>
-    where
-        R: MemoryRepository + Send + Sync,
-        R::Error: std::error::Error + Send + Sync + 'static,
-    {
-        let command = RemoveObservationsCommand {
-            name: self.name.clone(),
-            observations: self.observations.clone(),
-        };
-
-        map_result(remove_observations(ports, command).await).map(|_| {
-            CallToolResult::text_content(format!("Observations removed from '{}'", self.name), None)
-        })
-    }
+    generate_call_tool!(
+        self,
+        RemoveObservationsCommand { name, observations },
+        "Observations removed from '{}'",
+        remove_observations
+    );
 }
 
 #[cfg(test)]
