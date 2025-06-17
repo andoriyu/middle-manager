@@ -54,7 +54,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
+    use mm_memory::{MemoryConfig, MemoryError, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
     #[tokio::test]
@@ -85,5 +85,24 @@ mod tests {
         };
         let result = add_observations(&ports, command).await;
         assert!(matches!(result, Err(AddObservationsError::Validation(_))));
+    }
+
+    #[tokio::test]
+    async fn test_add_observations_repository_error() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_add_observations()
+            .withf(|name, _| name == "test:entity")
+            .returning(|_, _| Err(MemoryError::runtime_error("fail")));
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+        let command = AddObservationsCommand {
+            name: "test:entity".to_string(),
+            observations: vec!["obs".to_string()],
+        };
+        let result = add_observations(&ports, command).await;
+        assert!(matches!(
+            result,
+            Err(AddObservationsError::Repository(CoreError::Memory(_)))
+        ));
     }
 }

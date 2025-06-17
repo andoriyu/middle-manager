@@ -53,7 +53,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
+    use mm_memory::{MemoryConfig, MemoryError, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
     #[tokio::test]
@@ -84,6 +84,24 @@ mod tests {
         assert!(matches!(
             result,
             Err(RemoveAllObservationsError::Validation(_))
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_remove_all_observations_repository_error() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_remove_all_observations()
+            .withf(|name| name == "test:entity")
+            .returning(|_| Err(MemoryError::runtime_error("fail")));
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+        let command = RemoveAllObservationsCommand {
+            name: "test:entity".to_string(),
+        };
+        let result = remove_all_observations(&ports, command).await;
+        assert!(matches!(
+            result,
+            Err(RemoveAllObservationsError::Repository(CoreError::Memory(_)))
         ));
     }
 }
