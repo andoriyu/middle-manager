@@ -10,8 +10,12 @@ where
     #[error("Memory error")]
     Memory(#[from] mm_memory::MemoryError<E>),
 
-    #[error("Serialization error")]
-    Serialization(#[from] serde_json::Error),
+    #[error("Serialization error: {source}")]
+    Serialization {
+        #[from]
+        #[source]
+        source: serde_json::Error,
+    },
 
     #[error("Validation error")]
     Validation(#[from] mm_memory::ValidationError),

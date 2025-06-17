@@ -34,8 +34,12 @@ where
     },
 
     /// Error serializing or deserializing data
-    #[error("Serialization error")]
-    SerializationError(#[from] serde_json::Error),
+    #[error("Serialization error: {source}")]
+    SerializationError {
+        #[from]
+        #[source]
+        source: serde_json::Error,
+    },
 
     /// Domain validation error
     #[error("Validation error")]
