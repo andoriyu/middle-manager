@@ -1,8 +1,7 @@
-use crate::error::CoreError;
+use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use mm_memory::{MemoryRelationship, MemoryRepository};
 use std::collections::HashMap;
-use thiserror::Error;
 
 #[derive(Debug, Clone)]
 pub struct CreateRelationshipCommand {
@@ -12,16 +11,7 @@ pub struct CreateRelationshipCommand {
     pub properties: HashMap<String, String>,
 }
 
-#[derive(Debug, Error)]
-pub enum CreateRelationshipError<E>
-where
-    E: std::error::Error + Send + Sync + 'static,
-{
-    #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<E>),
-}
-
-pub type CreateRelationshipResult<E> = Result<(), CreateRelationshipError<E>>;
+pub type CreateRelationshipResult<E> = CoreResult<(), E>;
 
 pub async fn create_relationship<R>(
     ports: &Ports<R>,
@@ -40,7 +30,7 @@ where
 
     match ports.memory_service.create_relationship(&rel).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(CreateRelationshipError::Repository(CoreError::from(e))),
+        Err(e) => Err(CoreError::from(e)),
     }
 }
 
@@ -84,9 +74,6 @@ mod tests {
         };
 
         let result = create_relationship(&ports, command).await;
-        assert!(matches!(
-            result,
-            Err(CreateRelationshipError::Repository(CoreError::Memory(_)))
-        ));
+        assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 }

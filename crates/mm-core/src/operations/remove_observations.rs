@@ -1,7 +1,6 @@
-use crate::error::CoreError;
+use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::MemoryRepository;
-use thiserror::Error;
+use mm_memory::{MemoryRepository, ValidationError};
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -10,21 +9,8 @@ pub struct RemoveObservationsCommand {
     pub observations: Vec<String>,
 }
 
-#[derive(Debug, Error)]
 #[allow(dead_code)]
-pub enum RemoveObservationsError<E>
-where
-    E: std::error::Error + Send + Sync + 'static,
-{
-    #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<E>),
-
-    #[error("Validation error: {0}")]
-    Validation(String),
-}
-
-#[allow(dead_code)]
-pub type RemoveObservationsResult<E> = Result<(), RemoveObservationsError<E>>;
+pub type RemoveObservationsResult<E> = CoreResult<(), E>;
 
 #[allow(dead_code)]
 pub async fn remove_observations<R>(
@@ -36,9 +22,7 @@ where
     R::Error: std::error::Error + Send + Sync + 'static,
 {
     if command.name.is_empty() {
-        return Err(RemoveObservationsError::Validation(
-            "Entity name cannot be empty".to_string(),
-        ));
+        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
     }
 
     match ports
@@ -47,7 +31,7 @@ where
         .await
     {
         Ok(_) => Ok(()),
-        Err(e) => Err(RemoveObservationsError::Repository(CoreError::from(e))),
+        Err(e) => Err(CoreError::from(e)),
     }
 }
 
@@ -86,7 +70,7 @@ mod tests {
         let result = remove_observations(&ports, command).await;
         assert!(matches!(
             result,
-            Err(RemoveObservationsError::Validation(_))
+            Err(CoreError::Validation(ValidationError::EmptyEntityName))
         ));
     }
 
@@ -103,9 +87,6 @@ mod tests {
             observations: vec!["obs".to_string()],
         };
         let result = remove_observations(&ports, command).await;
-        assert!(matches!(
-            result,
-            Err(RemoveObservationsError::Repository(CoreError::Memory(_)))
-        ));
+        assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 }

@@ -1,7 +1,6 @@
-use crate::error::CoreError;
+use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::MemoryRepository;
-use thiserror::Error;
+use mm_memory::{MemoryRepository, ValidationError};
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -10,21 +9,8 @@ pub struct SetObservationsCommand {
     pub observations: Vec<String>,
 }
 
-#[derive(Debug, Error)]
 #[allow(dead_code)]
-pub enum SetObservationsError<E>
-where
-    E: std::error::Error + Send + Sync + 'static,
-{
-    #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<E>),
-
-    #[error("Validation error: {0}")]
-    Validation(String),
-}
-
-#[allow(dead_code)]
-pub type SetObservationsResult<E> = Result<(), SetObservationsError<E>>;
+pub type SetObservationsResult<E> = CoreResult<(), E>;
 
 #[allow(dead_code)]
 pub async fn set_observations<R>(
@@ -36,9 +22,7 @@ where
     R::Error: std::error::Error + Send + Sync + 'static,
 {
     if command.name.is_empty() {
-        return Err(SetObservationsError::Validation(
-            "Entity name cannot be empty".to_string(),
-        ));
+        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
     }
 
     match ports
@@ -47,7 +31,7 @@ where
         .await
     {
         Ok(_) => Ok(()),
-        Err(e) => Err(SetObservationsError::Repository(CoreError::from(e))),
+        Err(e) => Err(CoreError::from(e)),
     }
 }
 
@@ -84,7 +68,10 @@ mod tests {
             observations: vec![],
         };
         let result = set_observations(&ports, command).await;
-        assert!(matches!(result, Err(SetObservationsError::Validation(_))));
+        assert!(matches!(
+            result,
+            Err(CoreError::Validation(ValidationError::EmptyEntityName))
+        ));
     }
 
     #[tokio::test]
@@ -100,9 +87,6 @@ mod tests {
             observations: vec!["obs".to_string()],
         };
         let result = set_observations(&ports, command).await;
-        assert!(matches!(
-            result,
-            Err(SetObservationsError::Repository(CoreError::Memory(_)))
-        ));
+        assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 }
