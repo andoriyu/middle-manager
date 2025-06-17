@@ -34,14 +34,11 @@ where
     }
 
     // Find entity using the memory service
-    match ports
+    ports
         .memory_service
         .find_entity_by_name(&command.name)
         .await
-    {
-        Ok(entity) => Ok(entity),
-        Err(e) => Err(CoreError::from(e)),
-    }
+        .map_err(CoreError::from)
 }
 
 #[cfg(test)]
