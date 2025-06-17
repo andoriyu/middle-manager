@@ -1,6 +1,7 @@
 use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use crate::validate_name;
 use mm_memory::{MemoryRepository, ValidationError, ValidationErrorKind};
 use std::collections::HashMap;
 
@@ -35,11 +36,7 @@ where
     R::Error: std::error::Error + Send + Sync + 'static,
 {
     // Validate command
-    if command.name.is_empty() {
-        return Err(CoreError::Validation(ValidationError(vec![
-            ValidationErrorKind::EmptyEntityName,
-        ])));
-    }
+    validate_name!(command.name);
 
     if command.labels.is_empty() {
         return Err(CoreError::Validation(ValidationError(vec![
