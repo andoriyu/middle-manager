@@ -36,7 +36,7 @@ middle-manager/
 │   ├── mm-cli/         # Command-line interface
 │   ├── mm-core/        # Core domain logic and operations
 │   │   ├── src/
-│   │   │   ├── operations/  # Business operations (get_entity, create_entity)
+│   │   │   ├── operations/  # Business operations (create_entity, create_relationship, get_entity, set_observations, add_observations, remove_observations, remove_all_observations)
 │   │   │   ├── ports.rs     # Dependency injection container
 │   ├── mm-server/      # MCP server implementation
 │   │   ├── src/
@@ -49,33 +49,38 @@ middle-manager/
 ├── justfile            # Common development tasks
 ```
 
+## Available MCP Resources
+
+Middle Manager exposes memory entities via URIs with the `memory://` scheme. A URI takes the form `memory://{name}` where `{name}` is the entity identifier. For example, `memory://tech:language:rust` retrieves the `tech:language:rust` entity.
+
 ## Available MCP Tools
 
 Middle Manager exposes the following tools through the MCP protocol:
 
 ### 1. `create_entity`
 
-Creates a new entity in the memory graph.
+Create new entities in the memory graph.
 
 **Parameters:**
-- `name`: String - Unique identifier for the entity
-- `labels`: Array of String - Categories or types for the entity
-- `observations`: Array of String - Facts or information about the entity
-- `properties`: Object (optional) - Additional key-value metadata
+- `entities`: Array of objects each with `name`, `labels`, `observations`, and optional `properties` fields
 
 **Example:**
 ```json
 {
-  "name": "tech:language:rust",
-  "labels": ["Memory", "Technology", "Language"],
-  "observations": [
-    "Rust is a systems programming language",
-    "Rust emphasizes safety, especially memory safety"
-  ],
-  "properties": {
-    "website": "https://www.rust-lang.org/",
-    "created_year": "2010"
-  }
+  "entities": [
+    {
+      "name": "tech:language:rust",
+      "labels": ["Memory", "Technology", "Language"],
+      "observations": [
+        "Rust is a systems programming language",
+        "Rust emphasizes safety, especially memory safety"
+      ],
+      "properties": {
+        "website": "https://www.rust-lang.org/",
+        "created_year": "2010"
+      }
+    }
+  ]
 }
 ```
 
@@ -92,6 +97,44 @@ Retrieves an entity from the memory graph by name.
   "name": "tech:language:rust"
 }
 ```
+
+### 3. `set_observations`
+
+Replace all observations for an entity.
+
+**Parameters:**
+- `name`: String - Entity to modify
+- `observations`: Array of String - New observations
+
+### 4. `add_observations`
+
+Add observations to an entity without removing existing ones.
+
+**Parameters:**
+- `name`: String - Entity to modify
+- `observations`: Array of String - Observations to add
+
+### 5. `remove_observations`
+
+Remove specific observations from an entity.
+
+**Parameters:**
+- `name`: String - Entity to modify
+- `observations`: Array of String - Observations to remove
+
+### 6. `remove_all_observations`
+
+Delete all observations from an entity.
+
+**Parameters:**
+- `name`: String - Entity to modify
+
+### 7. `create_relationship`
+
+Create relationships between entities.
+
+**Parameters:**
+- `relationships`: Array of objects with `from`, `to`, `name`, and optional `properties` fields
 
 ## Testing
 
@@ -123,6 +166,8 @@ If the database isn't available, skip them with:
 ```bash
 cargo test --workspace --lib
 ```
+
+Agents running in restricted environments (such as Codex) should only run unit tests using the command above or `just validate`.
 
 To run all tests, start Neo4j first:
 

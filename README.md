@@ -2,6 +2,26 @@
 
 Middle Manager is a Model Context Protocol (MCP) server that provides tools for interacting with a Neo4j memory graph. It uses a hexagonal architecture to separate domain logic from external protocols.
 
+### Memory
+
+#### Resources
+
+| URI | Description | Example |
+| --- | ----------- | ------- |
+| `memory://{name}` | Read a memory entity by name | `memory://tech:language:rust` |
+
+#### Tools
+
+| Name | Purpose |
+| ---- | ------- |
+| `create_entity` | Create one or more entities |
+| `create_relationship` | Create relationships between entities |
+| `get_entity` | Retrieve an entity by name |
+| `set_observations` | Replace all observations for an entity |
+| `add_observations` | Append observations to an entity |
+| `remove_observations` | Remove specific observations from an entity |
+| `remove_all_observations` | Delete all observations from an entity |
+
 ## Project Structure
 
 The project is organized as a Rust workspace with the following crates:
@@ -32,17 +52,37 @@ graph TD
         create_handler["create_handler()"]
         subgraph "mcp"
             create_tool["CreateEntityTool::call_tool"]
+            create_rel_tool["CreateRelationshipTool::call_tool"]
+            set_obs_tool["SetObservationsTool::call_tool"]
+            add_obs_tool["AddObservationsTool::call_tool"]
+            remove_obs_tool["RemoveObservationsTool::call_tool"]
+            remove_all_obs_tool["RemoveAllObservationsTool::call_tool"]
             get_tool["GetEntityTool::call_tool"]
         end
         create_handler --> create_tool
+        create_handler --> create_rel_tool
+        create_handler --> set_obs_tool
+        create_handler --> add_obs_tool
+        create_handler --> remove_obs_tool
+        create_handler --> remove_all_obs_tool
         create_handler --> get_tool
     end
 
     %% mm-core details
     subgraph "mm-core"
         create_op["create_entity"]
+        create_rel_op["create_relationship"]
+        set_obs_op["set_observations"]
+        add_obs_op["add_observations"]
+        remove_obs_op["remove_observations"]
+        remove_all_obs_op["remove_all_observations"]
         get_op["get_entity"]
         create_op --> memory_service["MemoryService Struct"]
+        create_rel_op --> memory_service
+        set_obs_op --> memory_service
+        add_obs_op --> memory_service
+        remove_obs_op --> memory_service
+        remove_all_obs_op --> memory_service
         get_op --> memory_service
     end
 
@@ -61,14 +101,23 @@ graph TD
 
     %% Flow connections
     create_tool --> create_op
+    create_rel_tool --> create_rel_op
+    set_obs_tool --> set_obs_op
+    add_obs_tool --> add_obs_op
+    remove_obs_tool --> remove_obs_op
+    remove_all_obs_tool --> remove_all_obs_op
     get_tool --> get_op
 ```
 
 ## Features
 
-- **MCP Server**: Implements the Model Context Protocol for AI assistant integration
-- **Memory Graph**: Stores and retrieves knowledge from a Neo4j graph database
-- **Entity Management**: Create and retrieve entities with labels, observations, and properties
+### Memory
+
+- Stores and retrieves knowledge from a Neo4j graph database
+- Entity management: create and retrieve entities with labels, observations, and properties
+- Observation management: set, add, remove, or clear observations for an entity
+- Relationship management: create relationships between entities
+
 - **Configurable Logging**: Control log level and file output
 
 ## Building
