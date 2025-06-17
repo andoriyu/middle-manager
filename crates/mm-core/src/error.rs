@@ -10,7 +10,7 @@ where
     #[error("Memory error")]
     Memory(#[from] mm_memory::MemoryError<E>),
 
-    #[error("Serialization error")]
+    #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
     #[error("Validation error")]

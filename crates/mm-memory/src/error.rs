@@ -34,7 +34,7 @@ where
     },
 
     /// Error serializing or deserializing data
-    #[error("Serialization error")]
+    #[error("Serialization error: {0}")]
     SerializationError(#[from] serde_json::Error),
 
     /// Domain validation error
