@@ -71,16 +71,6 @@ impl MemoryRepository for Neo4jRepository {
 
         let mut batch: Vec<HashMap<String, neo4rs::BoltType>> = Vec::new();
         for entity in entities {
-            if entity.name.is_empty() {
-                return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
-            }
-            if entity.labels.is_empty() {
-                return Err(ValidationError::from(ValidationErrorKind::NoLabels(
-                    entity.name.clone(),
-                ))
-                .into());
-            }
-
             let mut props: HashMap<String, neo4rs::BoltType> = HashMap::new();
             props.insert("name".to_string(), entity.name.clone().into());
             let observations_json = serde_json::to_string(&entity.observations)?;
