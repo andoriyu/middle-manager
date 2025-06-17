@@ -3,6 +3,9 @@ use thiserror::Error;
 /// Validation errors for memory operations
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum ValidationError {
+    /// Multiple validation errors
+    #[error("Multiple validation errors: {0:?}")]
+    Multiple(Vec<ValidationError>),
     /// Error when an entity name is empty
     #[error("Entity name cannot be empty")]
     EmptyEntityName,
