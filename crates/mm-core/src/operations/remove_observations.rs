@@ -3,16 +3,13 @@ use crate::ports::Ports;
 use mm_memory::{MemoryRepository, ValidationError};
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct RemoveObservationsCommand {
     pub name: String,
     pub observations: Vec<String>,
 }
 
-#[allow(dead_code)]
 pub type RemoveObservationsResult<E> = CoreResult<(), E>;
 
-#[allow(dead_code)]
 pub async fn remove_observations<R>(
     ports: &Ports<R>,
     command: RemoveObservationsCommand,

@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 pub mod add_observations;
 pub mod create_entity;
 pub mod create_relationship;
