@@ -1,7 +1,7 @@
 use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryRepository, ValidationError};
+use mm_memory::{MemoryRepository, ValidationError, ValidationErrorKind};
 use std::collections::HashMap;
 
 /// Command to create a new entity
@@ -36,13 +36,15 @@ where
 {
     // Validate command
     if command.name.is_empty() {
-        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
+        return Err(CoreError::Validation(ValidationError(vec![
+            ValidationErrorKind::EmptyEntityName,
+        ])));
     }
 
     if command.labels.is_empty() {
-        return Err(CoreError::Validation(ValidationError::NoLabels(
-            command.name.clone(),
-        )));
+        return Err(CoreError::Validation(ValidationError(vec![
+            ValidationErrorKind::NoLabels(command.name.clone()),
+        ])));
     }
 
     // Create entity using the memory service
@@ -106,7 +108,7 @@ mod tests {
         let result = create_entity(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CoreError::Validation(ValidationError::EmptyEntityName))
+            Err(CoreError::Validation(ref e)) if e.0.contains(&ValidationErrorKind::EmptyEntityName)
         ));
     }
 

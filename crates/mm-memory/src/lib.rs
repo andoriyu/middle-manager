@@ -15,4 +15,4 @@ pub use repository::MemoryRepository;
 #[cfg(any(test, feature = "mock"))]
 pub use repository::MockMemoryRepository;
 pub use service::MemoryService;
-pub use validation_error::ValidationError;
+pub use validation_error::{ValidationError, ValidationErrorKind};

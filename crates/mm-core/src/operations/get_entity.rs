@@ -1,7 +1,7 @@
 use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryRepository, ValidationError};
+use mm_memory::{MemoryRepository, ValidationError, ValidationErrorKind};
 
 /// Command to retrieve an entity by name
 #[derive(Debug, Clone)]
@@ -30,7 +30,9 @@ where
 {
     // Validate command
     if command.name.is_empty() {
-        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
+        return Err(CoreError::Validation(ValidationError(vec![
+            ValidationErrorKind::EmptyEntityName,
+        ])));
     }
 
     // Find entity using the memory service
@@ -89,7 +91,7 @@ mod tests {
         let result = get_entity(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CoreError::Validation(ValidationError::EmptyEntityName))
+            Err(CoreError::Validation(ref e)) if e.0.contains(&ValidationErrorKind::EmptyEntityName)
         ));
     }
 

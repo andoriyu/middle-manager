@@ -1,6 +1,6 @@
 use crate::{
     DEFAULT_RELATIONSHIPS, MemoryConfig, MemoryEntity, MemoryRelationship, MemoryRepository,
-    MemoryResult, ValidationError,
+    MemoryResult, ValidationError, ValidationErrorKind,
 };
 use mm_utils::is_snake_case;
 
@@ -41,8 +41,16 @@ where
             }
         }
 
+        let mut errors = Vec::new();
+        if tagged.name.is_empty() {
+            errors.push(ValidationErrorKind::EmptyEntityName);
+        }
         if tagged.labels.is_empty() {
-            return Err(ValidationError::NoLabels(tagged.name.clone()).into());
+            errors.push(ValidationErrorKind::NoLabels(tagged.name.clone()));
+        }
+
+        if !errors.is_empty() {
+            return Err(ValidationError(errors).into());
         }
 
         self.repository.create_entity(&tagged).await
@@ -95,14 +103,15 @@ where
         &self,
         relationship: &MemoryRelationship,
     ) -> MemoryResult<(), R::Error> {
+        let mut errors = Vec::new();
         if relationship.from.is_empty() || relationship.to.is_empty() {
-            return Err(ValidationError::EmptyEntityName.into());
+            errors.push(ValidationErrorKind::EmptyEntityName);
         }
 
         if !is_snake_case(&relationship.name) {
-            return Err(
-                ValidationError::InvalidRelationshipFormat(relationship.name.clone()).into(),
-            );
+            errors.push(ValidationErrorKind::InvalidRelationshipFormat(
+                relationship.name.clone(),
+            ));
         }
 
         if self.config.default_relationships
@@ -112,7 +121,13 @@ where
                 .additional_relationships
                 .contains(&relationship.name)
         {
-            return Err(ValidationError::UnknownRelationship(relationship.name.clone()).into());
+            errors.push(ValidationErrorKind::UnknownRelationship(
+                relationship.name.clone(),
+            ));
+        }
+
+        if !errors.is_empty() {
+            return Err(ValidationError(errors).into());
         }
 
         self.repository.create_relationship(relationship).await
@@ -123,6 +138,7 @@ where
 mod tests {
     use super::*;
     use crate::MockMemoryRepository;
+    use crate::ValidationErrorKind;
     use std::collections::{HashMap, HashSet};
 
     #[tokio::test]
@@ -226,9 +242,8 @@ mod tests {
         let result = service.create_entity(&entity).await;
         assert!(matches!(
             result,
-            Err(crate::MemoryError::ValidationError(
-                ValidationError::NoLabels(_)
-            ))
+            Err(crate::MemoryError::ValidationError(ref e))
+                if e.0.contains(&ValidationErrorKind::NoLabels("test:entity".to_string()))
         ));
     }
 
@@ -279,9 +294,8 @@ mod tests {
         let result = service.create_relationship(&rel).await;
         assert!(matches!(
             result,
-            Err(crate::MemoryError::ValidationError(
-                ValidationError::UnknownRelationship(_)
-            ))
+            Err(crate::MemoryError::ValidationError(ref e))
+                if e.0.contains(&ValidationErrorKind::UnknownRelationship("custom_rel".to_string()))
         ));
     }
 

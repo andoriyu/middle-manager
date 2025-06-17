@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use mm_memory::{
     MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository, MemoryResult, ValidationError,
+    ValidationErrorKind,
 };
 
 /// Configuration for connecting to Neo4j
@@ -66,11 +67,13 @@ impl MemoryRepository for Neo4jRepository {
     async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), Self::Error> {
         // Validate entity
         if entity.name.is_empty() {
-            return Err(ValidationError::EmptyEntityName.into());
+            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
         if entity.labels.is_empty() {
-            return Err(ValidationError::NoLabels(entity.name.clone()).into());
+            return Err(
+                ValidationError::from(ValidationErrorKind::NoLabels(entity.name.clone())).into(),
+            );
         }
 
         let labels = entity.labels.join(":");
@@ -108,7 +111,7 @@ impl MemoryRepository for Neo4jRepository {
     ) -> MemoryResult<Option<MemoryEntity>, Self::Error> {
         // Validate name
         if name.is_empty() {
-            return Err(ValidationError::EmptyEntityName.into());
+            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
         let query = Query::new("MATCH (n {name: $name}) RETURN n".to_string())
@@ -193,7 +196,7 @@ impl MemoryRepository for Neo4jRepository {
         observations: &[String],
     ) -> MemoryResult<(), Self::Error> {
         if name.is_empty() {
-            return Err(ValidationError::EmptyEntityName.into());
+            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
         let observations_json = serde_json::to_string(observations)?;

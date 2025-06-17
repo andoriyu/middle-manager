@@ -95,9 +95,8 @@ mod tests {
         let result = create_relationship(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(
-                mm_memory::ValidationError::InvalidRelationshipFormat(_)
-            )))
+            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(ref e)))
+                if e.0.contains(&mm_memory::ValidationErrorKind::InvalidRelationshipFormat("InvalidFormat".to_string()))
         ));
     }
 
@@ -118,9 +117,8 @@ mod tests {
         let result = create_relationship(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(
-                mm_memory::ValidationError::UnknownRelationship(_)
-            )))
+            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(ref e)))
+                if e.0.contains(&mm_memory::ValidationErrorKind::UnknownRelationship("custom_rel".to_string()))
         ));
     }
 }

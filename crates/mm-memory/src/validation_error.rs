@@ -1,8 +1,8 @@
 use thiserror::Error;
 
-/// Validation errors for memory operations
+/// Individual validation error types
 #[derive(Error, Debug, Clone, PartialEq)]
-pub enum ValidationError {
+pub enum ValidationErrorKind {
     /// Error when an entity name is empty
     #[error("Entity name cannot be empty")]
     EmptyEntityName,
@@ -18,4 +18,23 @@ pub enum ValidationError {
     /// Error when a relationship type is not allowed
     #[error("Relationship type '{0}' is not allowed")]
     UnknownRelationship(String),
+}
+
+/// Collection of validation errors
+#[derive(Debug, Clone, PartialEq)]
+pub struct ValidationError(pub Vec<ValidationErrorKind>);
+
+impl std::fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msgs: Vec<String> = self.0.iter().map(|e| e.to_string()).collect();
+        write!(f, "{}", msgs.join("; "))
+    }
+}
+
+impl std::error::Error for ValidationError {}
+
+impl From<ValidationErrorKind> for ValidationError {
+    fn from(kind: ValidationErrorKind) -> Self {
+        Self(vec![kind])
+    }
 }
