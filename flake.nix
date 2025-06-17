@@ -14,7 +14,8 @@
       packages = forAllSystems (system:
         let
           pkgs = import nixpkgs { inherit system; overlays = [ rust-overlay.overlays.default ]; };
-          naersk-lib = pkgs.callPackage naersk { };
+          rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+          naersk-lib = pkgs.callPackage naersk { cargo = rustToolchain; rustc = rustToolchain; };
         in
         rec {
           middle_manager = naersk-lib.buildPackage {
@@ -44,11 +45,14 @@
       );
 
       devShells = forAllSystems (system:
-        let pkgs = import nixpkgs { inherit system; overlays = [ rust-overlay.overlays.default ]; }; in
+        let
+          pkgs = import nixpkgs { inherit system; overlays = [ rust-overlay.overlays.default ]; };
+          rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+        in
         {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              rust-bin.stable.latest.default
+              rustToolchain
               rust-analyzer
               clippy
               rustfmt

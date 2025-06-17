@@ -124,7 +124,9 @@ graph TD
 
 Run `cargo build` from the repository root to compile all crates.
 
-The workspace requires the **Rust 2024 edition**, so ensure your toolchain is up to date.
+The workspace requires the **Rust 2024 edition**. CI pins the toolchain in
+[`rust-toolchain.toml`](./rust-toolchain.toml), so ensure your local setup
+matches that file.
 
 ### Using Nix
 
