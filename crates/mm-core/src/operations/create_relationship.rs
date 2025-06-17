@@ -19,9 +19,6 @@ where
 {
     #[error("Repository error: {0}")]
     Repository(#[from] CoreError<E>),
-
-    #[error("Validation error: {0}")]
-    Validation(String),
 }
 
 pub type CreateRelationshipResult<E> = Result<(), CreateRelationshipError<E>>;
@@ -34,18 +31,6 @@ where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
-    if command.from.is_empty() || command.to.is_empty() {
-        return Err(CreateRelationshipError::Validation(
-            "Entity names cannot be empty".to_string(),
-        ));
-    }
-
-    if command.name.is_empty() {
-        return Err(CreateRelationshipError::Validation(
-            "Relationship name cannot be empty".to_string(),
-        ));
-    }
-
     let rel = MemoryRelationship {
         from: command.from,
         to: command.to,
@@ -101,7 +86,7 @@ mod tests {
         let result = create_relationship(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CreateRelationshipError::Validation(_))
+            Err(CreateRelationshipError::Repository(CoreError::Memory(_)))
         ));
     }
 }
