@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 use clap::{Parser, ValueEnum};
 use std::fs::{File, OpenOptions};
 use std::io;

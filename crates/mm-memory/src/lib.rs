@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 pub mod config;
 pub mod entity;
 pub mod error;
