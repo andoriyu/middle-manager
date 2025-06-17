@@ -1,8 +1,7 @@
 use crate::MemoryEntity;
-use crate::error::CoreError;
+use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::MemoryRepository;
-use thiserror::Error;
+use mm_memory::{MemoryRepository, ValidationError};
 
 /// Command to retrieve an entity by name
 #[derive(Debug, Clone)]
@@ -10,21 +9,8 @@ pub struct GetEntityCommand {
     pub name: String,
 }
 
-/// Error types that can occur when getting an entity
-#[derive(Debug, Error)]
-pub enum GetEntityError<E>
-where
-    E: std::error::Error + Send + Sync + 'static,
-{
-    #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<E>),
-
-    #[error("Validation error: {0}")]
-    Validation(String),
-}
-
 /// Result type for the get_entity operation
-pub type GetEntityResult<E> = Result<Option<MemoryEntity>, GetEntityError<E>>;
+pub type GetEntityResult<E> = CoreResult<Option<MemoryEntity>, E>;
 
 /// Get an entity by name
 ///
@@ -43,9 +29,7 @@ where
 {
     // Validate command
     if command.name.is_empty() {
-        return Err(GetEntityError::Validation(
-            "Entity name cannot be empty".to_string(),
-        ));
+        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
     }
 
     // Find entity using the memory service
@@ -55,7 +39,7 @@ where
         .await
     {
         Ok(entity) => Ok(entity),
-        Err(e) => Err(GetEntityError::Repository(CoreError::from(e))),
+        Err(e) => Err(CoreError::from(e)),
     }
 }
 
@@ -105,7 +89,7 @@ mod tests {
         };
 
         let result = get_entity(&ports, command).await;
-        assert!(matches!(result, Err(GetEntityError::Validation(_))));
+        assert!(matches!(result, Err(CoreError::Validation(_))));
     }
 
     #[tokio::test]
@@ -127,9 +111,6 @@ mod tests {
 
         let result = get_entity(&ports, command).await;
 
-        assert!(matches!(
-            result,
-            Err(GetEntityError::Repository(CoreError::Memory(_)))
-        ));
+        assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 }

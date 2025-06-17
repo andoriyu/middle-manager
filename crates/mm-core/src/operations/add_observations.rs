@@ -1,44 +1,23 @@
-use crate::error::CoreError;
+use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::MemoryRepository;
-use thiserror::Error;
+use mm_memory::{MemoryRepository, ValidationError};
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct AddObservationsCommand {
     pub name: String,
     pub observations: Vec<String>,
 }
 
-#[derive(Debug, Error)]
-#[allow(dead_code)]
-pub enum AddObservationsError<E>
-where
-    E: std::error::Error + Send + Sync + 'static,
-{
-    #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<E>),
-
-    #[error("Validation error: {0}")]
-    Validation(String),
-}
-
-#[allow(dead_code)]
-pub type AddObservationsResult<E> = Result<(), AddObservationsError<E>>;
-
-#[allow(dead_code)]
 pub async fn add_observations<R>(
     ports: &Ports<R>,
     command: AddObservationsCommand,
-) -> AddObservationsResult<R::Error>
+) -> CoreResult<(), R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
     if command.name.is_empty() {
-        return Err(AddObservationsError::Validation(
-            "Entity name cannot be empty".to_string(),
-        ));
+        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
     }
 
     match ports
@@ -47,7 +26,7 @@ where
         .await
     {
         Ok(_) => Ok(()),
-        Err(e) => Err(AddObservationsError::Repository(CoreError::from(e))),
+        Err(e) => Err(CoreError::from(e)),
     }
 }
 
@@ -84,7 +63,7 @@ mod tests {
             observations: vec![],
         };
         let result = add_observations(&ports, command).await;
-        assert!(matches!(result, Err(AddObservationsError::Validation(_))));
+        assert!(matches!(result, Err(CoreError::Validation(_))));
     }
 
     #[tokio::test]
@@ -100,9 +79,6 @@ mod tests {
             observations: vec!["obs".to_string()],
         };
         let result = add_observations(&ports, command).await;
-        assert!(matches!(
-            result,
-            Err(AddObservationsError::Repository(CoreError::Memory(_)))
-        ));
+        assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 }
