@@ -12,6 +12,7 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 async-trait = { workspace = true }
 mockall = { workspace = true, optional = true }
+mm-utils = { path = "../mm-utils" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }

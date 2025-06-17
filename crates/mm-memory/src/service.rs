@@ -1,6 +1,8 @@
-use std::marker::PhantomData;
-
-use crate::{MemoryConfig, MemoryEntity, MemoryRepository, MemoryResult, ValidationError};
+use crate::{
+    DEFAULT_RELATIONSHIPS, MemoryConfig, MemoryEntity, MemoryRelationship, MemoryRepository,
+    MemoryResult, ValidationError,
+};
+use mm_utils::is_snake_case;
 
 /// Service for memory operations
 ///
@@ -19,9 +21,6 @@ where
 
     /// Configuration for the service
     config: MemoryConfig,
-
-    /// Phantom data to track the error type
-    _error_type: PhantomData<R::Error>,
 }
 
 impl<R> MemoryService<R>
@@ -30,11 +29,7 @@ where
 {
     /// Create a new memory service with the given repository
     pub fn new(repository: R, config: MemoryConfig) -> Self {
-        Self {
-            repository,
-            config,
-            _error_type: PhantomData,
-        }
+        Self { repository, config }
     }
 
     /// Create a new entity in the memory graph
@@ -94,12 +89,41 @@ where
             .remove_observations(name, observations)
             .await
     }
+
+    /// Create a relationship between two entities
+    pub async fn create_relationship(
+        &self,
+        relationship: &MemoryRelationship,
+    ) -> MemoryResult<(), R::Error> {
+        if relationship.from.is_empty() || relationship.to.is_empty() {
+            return Err(ValidationError::EmptyEntityName.into());
+        }
+
+        if !is_snake_case(&relationship.name) {
+            return Err(
+                ValidationError::InvalidRelationshipFormat(relationship.name.clone()).into(),
+            );
+        }
+
+        if self.config.default_relationships
+            && !DEFAULT_RELATIONSHIPS.contains(&relationship.name.as_str())
+            && !self
+                .config
+                .additional_relationships
+                .contains(&relationship.name)
+        {
+            return Err(ValidationError::UnknownRelationship(relationship.name.clone()).into());
+        }
+
+        self.repository.create_relationship(relationship).await
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::MockMemoryRepository;
+    use std::collections::{HashMap, HashSet};
 
     #[tokio::test]
     async fn test_default_tag_added() {
@@ -113,6 +137,8 @@ mod tests {
             mock,
             MemoryConfig {
                 default_tag: Some("Memory".to_string()),
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
             },
         );
         let entity = MemoryEntity {
@@ -133,7 +159,14 @@ mod tests {
             .returning(|_| Ok(()));
         mock.expect_find_entity_by_name().returning(|_| Ok(None));
 
-        let service = MemoryService::new(mock, MemoryConfig { default_tag: None });
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+            },
+        );
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
@@ -156,6 +189,8 @@ mod tests {
             mock,
             MemoryConfig {
                 default_tag: Some("Memory".to_string()),
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
             },
         );
 
@@ -176,7 +211,14 @@ mod tests {
         mock.expect_create_entity().never();
         mock.expect_find_entity_by_name().returning(|_| Ok(None));
 
-        let service = MemoryService::new(mock, MemoryConfig { default_tag: None });
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+            },
+        );
 
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
@@ -190,6 +232,59 @@ mod tests {
             result,
             Err(crate::MemoryError::ValidationError(
                 ValidationError::NoLabels(_)
+            ))
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_create_relationship_allowed() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_relationship().returning(|_| Ok(()));
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+            },
+        );
+
+        let rel = MemoryRelationship {
+            from: "a".to_string(),
+            to: "b".to_string(),
+            name: "related_to".to_string(),
+            properties: HashMap::new(),
+        };
+
+        let result = service.create_relationship(&rel).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_create_relationship_unknown() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_relationship().never();
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+            },
+        );
+
+        let rel = MemoryRelationship {
+            from: "a".to_string(),
+            to: "b".to_string(),
+            name: "custom_rel".to_string(),
+            properties: HashMap::new(),
+        };
+
+        let result = service.create_relationship(&rel).await;
+        assert!(matches!(
+            result,
+            Err(crate::MemoryError::ValidationError(
+                ValidationError::UnknownRelationship(_)
             ))
         ));
     }

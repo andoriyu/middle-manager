@@ -3,7 +3,9 @@ use neo4rs::{self, Graph, Node, Query};
 use serde_json;
 use std::collections::HashMap;
 
-use mm_memory::{MemoryEntity, MemoryError, MemoryRepository, MemoryResult, ValidationError};
+use mm_memory::{
+    MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository, MemoryResult, ValidationError,
+};
 
 /// Configuration for connecting to Neo4j
 ///
@@ -238,5 +240,43 @@ impl MemoryRepository for Neo4jRepository {
         };
         current.retain(|o| !observations.contains(o));
         self.set_observations(name, &current).await
+    }
+
+    async fn create_relationship(
+        &self,
+        relationship: &MemoryRelationship,
+    ) -> MemoryResult<(), Self::Error> {
+        let mut params = HashMap::new();
+        params.insert("from".to_string(), relationship.from.clone());
+        params.insert("to".to_string(), relationship.to.clone());
+
+        for (k, v) in &relationship.properties {
+            params.insert(k.clone(), v.clone());
+        }
+
+        let props = if relationship.properties.is_empty() {
+            String::new()
+        } else {
+            let pairs: Vec<String> = relationship
+                .properties
+                .keys()
+                .map(|k| format!("{}: ${}", k, k))
+                .collect();
+            format!(" {{{}}}", pairs.join(", "))
+        };
+
+        let query_str = format!(
+            "MATCH (a {{name: $from}}), (b {{name: $to}}) CREATE (a)-[:{}{}]->(b)",
+            relationship.name, props
+        );
+        let query = Query::new(query_str).params(params);
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source(
+                format!("Failed to create relationship {}", relationship.name),
+                e,
+            )
+        })?;
+
+        Ok(())
     }
 }

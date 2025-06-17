@@ -111,6 +111,11 @@ where
                                 RpcError::internal_error().with_message(err.to_string())
                             })?
                         }
+                        MemoryTools::CreateRelationshipTool(tool) => {
+                            tool.call_tool(&ports).await.map_err(|err| {
+                                RpcError::internal_error().with_message(err.to_string())
+                            })?
+                        }
                         MemoryTools::GetEntityTool(get_entity_tool) => {
                             get_entity_tool.call_tool(&ports).await.map_err(|err| {
                                 RpcError::internal_error().with_message(err.to_string())

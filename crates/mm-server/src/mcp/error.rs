@@ -1,7 +1,7 @@
 use mm_core::CoreError;
 use mm_core::{
-    AddObservationsError, CreateEntityError, GetEntityError, RemoveAllObservationsError,
-    RemoveObservationsError, SetObservationsError,
+    AddObservationsError, CreateEntityError, CreateRelationshipError, GetEntityError,
+    RemoveAllObservationsError, RemoveObservationsError, SetObservationsError,
 };
 use std::error::Error as StdError;
 use std::fmt;
@@ -104,6 +104,15 @@ where
 {
     fn from(error: RemoveObservationsError<E>) -> Self {
         Self::with_source(format!("Remove observations error: {:#?}", error), error)
+    }
+}
+
+impl<E> From<CreateRelationshipError<E>> for ToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: CreateRelationshipError<E>) -> Self {
+        Self::with_source(format!("Create relationship error: {:#?}", error), error)
     }
 }
 
