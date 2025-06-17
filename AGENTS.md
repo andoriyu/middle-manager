@@ -197,9 +197,9 @@ To validate code before committing, run:
 ```bash
 just validate
 ```
-This command runs clippy, formats the code, and executes unit tests without integration tests. Ensure it passes. If `just` is missing, install it with:
+This command runs clippy, formats the code, and executes unit tests without integration tests. Ensure it passes. If `just` is missing, install it using the official installer script:
 ```bash
-cargo install just
+curl -sL https://just.systems/install.sh | bash -s -- --to ~/.cargo/bin
 ```
 
 
