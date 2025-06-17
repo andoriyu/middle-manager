@@ -63,9 +63,13 @@ mod tests {
             .withf(|e| e.name == "test:entity")
             .returning(|_| Ok(()));
 
-        let mut config = MemoryConfig::default();
-        config.default_tag = None;
-        let service = MemoryService::new(mock_repo, config);
+        let service = MemoryService::new(
+            mock_repo,
+            MemoryConfig {
+                default_tag: None,
+                ..MemoryConfig::default()
+            },
+        );
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
@@ -86,9 +90,13 @@ mod tests {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo.expect_create_entity().never();
 
-        let mut config = MemoryConfig::default();
-        config.default_tag = None;
-        let service = MemoryService::new(mock_repo, config);
+        let service = MemoryService::new(
+            mock_repo,
+            MemoryConfig {
+                default_tag: None,
+                ..MemoryConfig::default()
+            },
+        );
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
@@ -117,9 +125,13 @@ mod tests {
             .withf(|e| e.name == "test:entity")
             .returning(|_| Err(MemoryError::runtime_error("db error")));
 
-        let mut config = MemoryConfig::default();
-        config.default_tag = None;
-        let service = MemoryService::new(mock_repo, config);
+        let service = MemoryService::new(
+            mock_repo,
+            MemoryConfig {
+                default_tag: None,
+                ..MemoryConfig::default()
+            },
+        );
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
@@ -141,9 +153,13 @@ mod tests {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo.expect_create_entity().never();
 
-        let mut config = MemoryConfig::default();
-        config.default_tag = None;
-        let service = MemoryService::new(mock_repo, config);
+        let service = MemoryService::new(
+            mock_repo,
+            MemoryConfig {
+                default_tag: None,
+                ..MemoryConfig::default()
+            },
+        );
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {

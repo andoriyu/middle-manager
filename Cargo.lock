@@ -1336,6 +1336,7 @@ dependencies = [
  "async-trait",
  "mm-utils",
  "mockall",
+ "rust-mcp-sdk",
  "serde",
  "serde_json",
  "thiserror 1.0.69",

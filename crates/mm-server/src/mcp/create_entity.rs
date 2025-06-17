@@ -1,28 +1,6 @@
 use mm_core::{CreateEntityCommand, MemoryEntity, create_entity};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-
-/// MCP tool for creating entities
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-pub struct EntityInput {
-    pub name: String,
-    pub labels: Vec<String>,
-    pub observations: Vec<String>,
-    #[serde(default)]
-    pub properties: Option<HashMap<String, String>>,
-}
-
-impl EntityInput {
-    fn to_memory_entity(&self) -> MemoryEntity {
-        MemoryEntity {
-            name: self.name.clone(),
-            labels: self.labels.clone(),
-            observations: self.observations.clone(),
-            properties: self.properties.clone().unwrap_or_default(),
-        }
-    }
-}
 
 #[mcp_tool(
     name = "create_entity",
@@ -31,24 +9,24 @@ impl EntityInput {
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct CreateEntityTool {
     /// Entities to create
-    pub entities: Vec<EntityInput>,
+    pub entities: Vec<MemoryEntity>,
 }
 
 impl CreateEntityTool {
     generate_call_tool!(
         self,
         CreateEntityCommand {
-            entities => self
-                .entities
-                .iter()
-                .map(EntityInput::to_memory_entity)
-                .collect(),
+            entities => self.entities.clone()
         },
         create_entity,
         |command, _result| {
             serde_json::to_value(command.entities)
                 .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
-                .map_err(|e| rust_mcp_sdk::schema::schema_utils::CallToolError::new(crate::mcp::error::ToolError::from(e)))
+                .map_err(|e| {
+                    rust_mcp_sdk::schema::schema_utils::CallToolError::new(
+                        crate::mcp::error::ToolError::from(e),
+                    )
+                })
         }
     );
 }
@@ -58,6 +36,7 @@ mod tests {
     use super::*;
     use mm_core::Ports;
     use mm_memory::{MemoryConfig, MemoryError, MemoryService, MockMemoryRepository};
+    use std::collections::HashMap;
     use std::sync::Arc;
 
     #[tokio::test]
@@ -71,11 +50,11 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let tool = CreateEntityTool {
-            entities: vec![EntityInput {
+            entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
                 observations: vec![],
-                properties: Some(HashMap::new()),
+                properties: HashMap::new(),
             }],
         };
 
@@ -102,11 +81,11 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let tool = CreateEntityTool {
-            entities: vec![EntityInput {
+            entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
                 observations: vec![],
-                properties: Some(HashMap::new()),
+                properties: HashMap::new(),
             }],
         };
 
