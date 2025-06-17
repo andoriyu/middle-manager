@@ -1,14 +1,10 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryRelationship, MemoryRepository};
-use std::collections::HashMap;
+use mm_memory::{MemoryError, MemoryRelationship, MemoryRepository};
 
 #[derive(Debug, Clone)]
 pub struct CreateRelationshipCommand {
-    pub from: String,
-    pub to: String,
-    pub name: String,
-    pub properties: HashMap<String, String>,
+    pub relationships: Vec<MemoryRelationship>,
 }
 
 pub type CreateRelationshipResult<E> = CoreResult<(), E>;
@@ -21,24 +17,30 @@ where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
-    let rel = MemoryRelationship {
-        from: command.from,
-        to: command.to,
-        name: command.name,
-        properties: command.properties,
-    };
+    let mut errors = Vec::new();
+    for rel in &command.relationships {
+        match ports.memory_service.create_relationship(rel).await {
+            Ok(_) => {}
+            Err(MemoryError::ValidationError(e)) => {
+                errors.push((rel.name.clone(), e));
+            }
+            Err(e) => return Err(CoreError::from(e)),
+        }
+    }
 
-    ports
-        .memory_service
-        .create_relationship(&rel)
-        .await
-        .map_err(CoreError::from)
+    if !errors.is_empty() {
+        return Err(CoreError::BatchValidation(errors));
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mm_memory::ValidationErrorKind;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
+    use std::collections::HashMap;
     use std::sync::Arc;
 
     #[tokio::test]
@@ -50,10 +52,12 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateRelationshipCommand {
-            from: "a".to_string(),
-            to: "b".to_string(),
-            name: "related_to".to_string(),
-            properties: HashMap::new(),
+            relationships: vec![MemoryRelationship {
+                from: "a".to_string(),
+                to: "b".to_string(),
+                name: "related_to".to_string(),
+                properties: HashMap::new(),
+            }],
         };
 
         let result = create_relationship(&ports, command).await;
@@ -68,14 +72,19 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateRelationshipCommand {
-            from: "a".to_string(),
-            to: "b".to_string(),
-            name: "".to_string(),
-            properties: HashMap::new(),
+            relationships: vec![MemoryRelationship {
+                from: "a".to_string(),
+                to: "b".to_string(),
+                name: "".to_string(),
+                properties: HashMap::new(),
+            }],
         };
 
         let result = create_relationship(&ports, command).await;
-        assert!(matches!(result, Err(CoreError::Memory(_))));
+        assert!(matches!(
+            result,
+            Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n.is_empty() && e.0.contains(&ValidationErrorKind::UnknownRelationship("".to_string())))
+        ));
     }
 
     #[tokio::test]
@@ -86,17 +95,18 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateRelationshipCommand {
-            from: "a".to_string(),
-            to: "b".to_string(),
-            name: "InvalidFormat".to_string(),
-            properties: HashMap::new(),
+            relationships: vec![MemoryRelationship {
+                from: "a".to_string(),
+                to: "b".to_string(),
+                name: "InvalidFormat".to_string(),
+                properties: HashMap::new(),
+            }],
         };
 
         let result = create_relationship(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(ref e)))
-                if e.0.contains(&mm_memory::ValidationErrorKind::InvalidRelationshipFormat("InvalidFormat".to_string()))
+            Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n == "InvalidFormat" && e.0.contains(&ValidationErrorKind::InvalidRelationshipFormat("InvalidFormat".to_string())))
         ));
     }
 
@@ -108,17 +118,18 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateRelationshipCommand {
-            from: "a".to_string(),
-            to: "b".to_string(),
-            name: "custom_rel".to_string(),
-            properties: HashMap::new(),
+            relationships: vec![MemoryRelationship {
+                from: "a".to_string(),
+                to: "b".to_string(),
+                name: "custom_rel".to_string(),
+                properties: HashMap::new(),
+            }],
         };
 
         let result = create_relationship(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(ref e)))
-                if e.0.contains(&mm_memory::ValidationErrorKind::UnknownRelationship("custom_rel".to_string()))
+            Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n == "custom_rel" && e.0.contains(&ValidationErrorKind::UnknownRelationship("custom_rel".to_string())))
         ));
     }
 }
