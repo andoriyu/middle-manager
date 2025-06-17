@@ -45,7 +45,12 @@ where
     E: StdError + Send + Sync + 'static,
 {
     fn from(error: CoreError<E>) -> Self {
-        Self::with_source(format!("{:#?}", error), error)
+        let message = match &error {
+            CoreError::Memory(e) => e.to_string(),
+            CoreError::Serialization(e) => e.to_string(),
+            CoreError::Validation(e) => e.to_string(),
+        };
+        Self::with_source(message, error)
     }
 }
 
