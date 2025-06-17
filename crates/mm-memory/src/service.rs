@@ -131,7 +131,6 @@ mod tests {
         mock.expect_create_entity()
             .withf(|e| e.labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
-        mock.expect_find_entity_by_name().returning(|_| Ok(None));
 
         let service = MemoryService::new(
             mock,
@@ -157,7 +156,6 @@ mod tests {
         mock.expect_create_entity()
             .withf(|e| !e.labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
-        mock.expect_find_entity_by_name().returning(|_| Ok(None));
 
         let service = MemoryService::new(
             mock,
@@ -183,7 +181,6 @@ mod tests {
         mock.expect_create_entity()
             .withf(|e| e.labels.len() == 1 && e.labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
-        mock.expect_find_entity_by_name().returning(|_| Ok(None));
 
         let service = MemoryService::new(
             mock,
@@ -209,7 +206,6 @@ mod tests {
     async fn test_empty_labels_without_default_tag_fails() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entity().never();
-        mock.expect_find_entity_by_name().returning(|_| Ok(None));
 
         let service = MemoryService::new(
             mock,
