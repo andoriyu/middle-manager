@@ -1,3 +1,29 @@
+/// Generate the `call_tool` method for a MCP tool implementation.
+///
+/// The macro constructs a command from the tool's fields, invokes a core
+/// operation, and converts the result into a `CallToolResult`.
+///
+/// ### Parameters
+/// * `$self_ident` - identifier for the tool instance (usually `self`).
+/// * `$command` - command type to instantiate.
+/// * `{ $( $field $(=> $value )? ),* }` - mapping of the tool fields to the
+///   command fields; optionally override a field with an expression using
+///   `field => expr`.
+/// * `$operation` - path to the async core operation to call.
+/// * success block `|$cmd_ident, $res_ident| { ... }` - code executed after the
+///   operation, expected to return `Result<CallToolResult, CallToolError>`.
+///
+/// ### Example
+/// ```rust
+/// impl ExampleTool {
+///     generate_call_tool!(
+///         self,
+///         ExampleCommand { field1, field2 => transform(&self.field2) },
+///         example_operation,
+///         |command, result| { Ok(CallToolResult::text_content("ok", None)) }
+///     );
+/// }
+/// ```
 macro_rules! generate_call_tool {
     (@value $self_field:expr $(, $value:expr)? ) => {
         generate_call_tool!(@inner $self_field $(, $value)? )
