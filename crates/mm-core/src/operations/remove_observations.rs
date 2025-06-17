@@ -1,6 +1,6 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryRepository, ValidationError};
+use mm_memory::{MemoryRepository, ValidationError, ValidationErrorKind};
 
 #[derive(Debug, Clone)]
 pub struct RemoveObservationsCommand {
@@ -19,7 +19,9 @@ where
     R::Error: std::error::Error + Send + Sync + 'static,
 {
     if command.name.is_empty() {
-        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
+        return Err(CoreError::Validation(ValidationError(vec![
+            ValidationErrorKind::EmptyEntityName,
+        ])));
     }
 
     ports
@@ -64,7 +66,7 @@ mod tests {
         let result = remove_observations(&ports, command).await;
         assert!(matches!(
             result,
-            Err(CoreError::Validation(ValidationError::EmptyEntityName))
+            Err(CoreError::Validation(ref e)) if e.0.contains(&ValidationErrorKind::EmptyEntityName)
         ));
     }
 
