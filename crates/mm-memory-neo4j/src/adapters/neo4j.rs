@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use neo4rs::{self, Graph, Node, Query};
 use serde_json;
 use std::collections::HashMap;
+use tracing::instrument;
 
 use mm_memory::{
     MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository, MemoryResult, ValidationError,
@@ -47,6 +48,7 @@ impl Neo4jRepository {
     /// # Errors
     ///
     /// Returns a `MemoryError` if the connection to Neo4j fails
+    #[instrument(skip(config), fields(uri = %config.uri))]
     pub async fn new(config: Neo4jConfig) -> Result<Self, MemoryError<neo4rs::Error>> {
         let graph = Graph::new(&config.uri, &config.username, &config.password)
             .await
@@ -64,6 +66,7 @@ impl Neo4jRepository {
 #[async_trait]
 impl MemoryRepository for Neo4jRepository {
     type Error = neo4rs::Error;
+    #[instrument(skip(self, entities), fields(count = entities.len()))]
     async fn create_entities(&self, entities: &[MemoryEntity]) -> MemoryResult<(), Self::Error> {
         if entities.is_empty() {
             return Ok(());
@@ -98,6 +101,7 @@ impl MemoryRepository for Neo4jRepository {
         Ok(())
     }
 
+    #[instrument(skip(self), fields(name = %name))]
     async fn find_entity_by_name(
         &self,
         name: &str,
@@ -183,6 +187,7 @@ impl MemoryRepository for Neo4jRepository {
         }
     }
 
+    #[instrument(skip(self, observations), fields(name = %name))]
     async fn set_observations(
         &self,
         name: &str,
@@ -208,6 +213,7 @@ impl MemoryRepository for Neo4jRepository {
         Ok(())
     }
 
+    #[instrument(skip(self, observations), fields(name = %name))]
     async fn add_observations(
         &self,
         name: &str,
@@ -221,10 +227,12 @@ impl MemoryRepository for Neo4jRepository {
         self.set_observations(name, &current).await
     }
 
+    #[instrument(skip(self), fields(name = %name))]
     async fn remove_all_observations(&self, name: &str) -> MemoryResult<(), Self::Error> {
         self.set_observations(name, &[]).await
     }
 
+    #[instrument(skip(self, observations), fields(name = %name))]
     async fn remove_observations(
         &self,
         name: &str,
@@ -238,6 +246,7 @@ impl MemoryRepository for Neo4jRepository {
         self.set_observations(name, &current).await
     }
 
+    #[instrument(skip(self, relationships), fields(count = relationships.len()))]
     async fn create_relationships(
         &self,
         relationships: &[MemoryRelationship],

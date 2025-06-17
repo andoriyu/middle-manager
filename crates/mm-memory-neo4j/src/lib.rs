@@ -33,6 +33,8 @@ All relationships in the knowledge graph follow snake_case naming convention:
 */
 #![warn(clippy::all)]
 
+use tracing::instrument;
+
 pub mod adapters;
 
 // Re-export main types for convenience
@@ -82,6 +84,7 @@ pub type Error = neo4rs::Error;
 ///     Ok(())
 /// }
 /// ```
+#[instrument(fields(uri = %config.uri))]
 pub async fn create_neo4j_service(
     config: Neo4jConfig,
     memory_config: MemoryConfig,
