@@ -1,9 +1,8 @@
 use crate::MemoryEntity;
-use crate::error::CoreError;
+use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::MemoryRepository;
+use mm_memory::{MemoryRepository, ValidationError};
 use std::collections::HashMap;
-use thiserror::Error;
 
 /// Command to create a new entity
 #[derive(Debug, Clone)]
@@ -14,21 +13,8 @@ pub struct CreateEntityCommand {
     pub properties: HashMap<String, String>,
 }
 
-/// Error types that can occur when creating an entity
-#[derive(Debug, Error)]
-pub enum CreateEntityError<E>
-where
-    E: std::error::Error + Send + Sync + 'static,
-{
-    #[error("Repository error: {0}")]
-    Repository(#[from] CoreError<E>),
-
-    #[error("Validation error: {0}")]
-    Validation(String),
-}
-
 /// Result type for the create_entity operation
-pub type CreateEntityResult<E> = Result<(), CreateEntityError<E>>;
+pub type CreateEntityResult<E> = CoreResult<(), E>;
 
 /// Create a new entity
 ///
@@ -50,15 +36,13 @@ where
 {
     // Validate command
     if command.name.is_empty() {
-        return Err(CreateEntityError::Validation(
-            "Entity name cannot be empty".to_string(),
-        ));
+        return Err(CoreError::Validation(ValidationError::EmptyEntityName));
     }
 
     if command.labels.is_empty() {
-        return Err(CreateEntityError::Validation(
-            "Entity must have at least one label".to_string(),
-        ));
+        return Err(CoreError::Validation(ValidationError::NoLabels(
+            command.name.clone(),
+        )));
     }
 
     // Create entity using the memory service
@@ -71,7 +55,7 @@ where
 
     match ports.memory_service.create_entity(&entity).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(CreateEntityError::Repository(CoreError::from(e))),
+        Err(e) => Err(CoreError::from(e)),
     }
 }
 
@@ -119,7 +103,10 @@ mod tests {
         };
 
         let result = create_entity(&ports, command).await;
-        assert!(matches!(result, Err(CreateEntityError::Validation(_))));
+        assert!(matches!(
+            result,
+            Err(CoreError::Validation(ValidationError::EmptyEntityName))
+        ));
     }
 
     #[tokio::test]
@@ -144,9 +131,6 @@ mod tests {
 
         let result = create_entity(&ports, command).await;
 
-        assert!(matches!(
-            result,
-            Err(CreateEntityError::Repository(CoreError::Memory(_)))
-        ));
+        assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 }
