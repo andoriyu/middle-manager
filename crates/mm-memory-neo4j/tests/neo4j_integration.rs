@@ -4,8 +4,9 @@ use std::collections::HashMap;
 
 #[tokio::test]
 async fn test_connection_error() {
+    // Use an invalid scheme so repository creation fails immediately
     let config = Neo4jConfig {
-        uri: "neo4j://localhost:9999".to_string(),
+        uri: "invalid://localhost:7687".to_string(),
         username: "neo4j".to_string(),
         password: "wrong".to_string(),
     };
