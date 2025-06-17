@@ -21,14 +21,11 @@ where
         return Err(CoreError::Validation(ValidationError::EmptyEntityName));
     }
 
-    match ports
+    ports
         .memory_service
         .remove_all_observations(&command.name)
         .await
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(CoreError::from(e)),
-    }
+        .map_err(CoreError::from)
 }
 
 #[cfg(test)]

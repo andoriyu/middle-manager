@@ -53,10 +53,11 @@ where
         properties: command.properties,
     };
 
-    match ports.memory_service.create_entity(&entity).await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(CoreError::from(e)),
-    }
+    ports
+        .memory_service
+        .create_entity(&entity)
+        .await
+        .map_err(CoreError::from)
 }
 
 #[cfg(test)]

@@ -28,10 +28,11 @@ where
         properties: command.properties,
     };
 
-    match ports.memory_service.create_relationship(&rel).await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(CoreError::from(e)),
-    }
+    ports
+        .memory_service
+        .create_relationship(&rel)
+        .await
+        .map_err(CoreError::from)
 }
 
 #[cfg(test)]
