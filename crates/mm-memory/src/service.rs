@@ -25,7 +25,7 @@ where
 
 impl<R> MemoryService<R>
 where
-    R: MemoryRepository,
+    R: MemoryRepository + Sync,
 {
     /// Create a new memory service with the given repository
     pub fn new(repository: R, config: MemoryConfig) -> Self {
@@ -54,6 +54,44 @@ where
         }
 
         self.repository.create_entity(&tagged).await
+    }
+
+    /// Create multiple entities in a batch
+    pub async fn create_entities(
+        &self,
+        entities: &[MemoryEntity],
+    ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
+        let mut errors = Vec::new();
+        let mut valid = Vec::new();
+
+        for entity in entities {
+            let mut tagged = entity.clone();
+            if let Some(tag) = &self.config.default_tag {
+                if !tagged.labels.contains(tag) {
+                    tagged.labels.push(tag.clone());
+                }
+            }
+
+            let mut errs = Vec::new();
+            if tagged.name.is_empty() {
+                errs.push(ValidationErrorKind::EmptyEntityName);
+            }
+            if tagged.labels.is_empty() {
+                errs.push(ValidationErrorKind::NoLabels(tagged.name.clone()));
+            }
+
+            if errs.is_empty() {
+                valid.push(tagged);
+            } else {
+                errors.push((entity.name.clone(), ValidationError(errs)));
+            }
+        }
+
+        if !valid.is_empty() {
+            self.repository.create_entities(&valid).await?;
+        }
+
+        Ok(errors)
     }
 
     /// Find an entity by name
@@ -131,6 +169,45 @@ where
         }
 
         self.repository.create_relationship(relationship).await
+    }
+
+    /// Create multiple relationships in a batch
+    pub async fn create_relationships(
+        &self,
+        relationships: &[MemoryRelationship],
+    ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
+        let mut errors = Vec::new();
+        let mut valid = Vec::new();
+
+        for rel in relationships {
+            let mut errs = Vec::new();
+            if rel.from.is_empty() || rel.to.is_empty() {
+                errs.push(ValidationErrorKind::EmptyEntityName);
+            }
+            if !is_snake_case(&rel.name) {
+                errs.push(ValidationErrorKind::InvalidRelationshipFormat(
+                    rel.name.clone(),
+                ));
+            }
+            if self.config.default_relationships
+                && !DEFAULT_RELATIONSHIPS.contains(&rel.name.as_str())
+                && !self.config.additional_relationships.contains(&rel.name)
+            {
+                errs.push(ValidationErrorKind::UnknownRelationship(rel.name.clone()));
+            }
+
+            if errs.is_empty() {
+                valid.push(rel.clone());
+            } else {
+                errors.push((rel.name.clone(), ValidationError(errs)));
+            }
+        }
+
+        if !valid.is_empty() {
+            self.repository.create_relationships(&valid).await?;
+        }
+
+        Ok(errors)
     }
 }
 

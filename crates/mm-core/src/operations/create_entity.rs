@@ -1,7 +1,7 @@
 use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryError, MemoryRepository};
+use mm_memory::MemoryRepository;
 
 /// Command to create a new entity
 #[derive(Debug, Clone)]
@@ -30,20 +30,16 @@ where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
-    let mut errors = Vec::new();
-    for entity in &command.entities {
-        match ports.memory_service.create_entity(entity).await {
-            Ok(_) => {}
-            Err(MemoryError::ValidationError(e)) => {
-                errors.push((entity.name.clone(), e));
-            }
-            Err(e) => return Err(CoreError::from(e)),
-        }
-    }
+    let errors = ports
+        .memory_service
+        .create_entities(&command.entities)
+        .await
+        .map_err(CoreError::from)?;
 
     if !errors.is_empty() {
         return Err(CoreError::BatchValidation(errors));
     }
+
     Ok(())
 }
 
@@ -59,8 +55,8 @@ mod tests {
     async fn test_create_entity_success() {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo
-            .expect_create_entity()
-            .withf(|e| e.name == "test:entity")
+            .expect_create_entities()
+            .withf(|entities| entities.len() == 1 && entities[0].name == "test:entity")
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(
@@ -88,7 +84,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_entity_empty_name() {
         let mut mock_repo = MockMemoryRepository::new();
-        mock_repo.expect_create_entity().never();
+        mock_repo.expect_create_entities().never();
 
         let service = MemoryService::new(
             mock_repo,
@@ -121,8 +117,8 @@ mod tests {
 
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo
-            .expect_create_entity()
-            .withf(|e| e.name == "test:entity")
+            .expect_create_entities()
+            .withf(|entities| entities.len() == 1 && entities[0].name == "test:entity")
             .returning(|_| Err(MemoryError::runtime_error("db error")));
 
         let service = MemoryService::new(
@@ -151,7 +147,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_entity_multiple_errors() {
         let mut mock_repo = MockMemoryRepository::new();
-        mock_repo.expect_create_entity().never();
+        mock_repo.expect_create_entities().never();
 
         let service = MemoryService::new(
             mock_repo,
