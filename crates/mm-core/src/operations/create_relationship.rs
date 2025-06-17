@@ -77,4 +77,50 @@ mod tests {
         let result = create_relationship(&ports, command).await;
         assert!(matches!(result, Err(CoreError::Memory(_))));
     }
+
+    #[tokio::test]
+    async fn test_create_relationship_invalid_format() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_relationship().never();
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let command = CreateRelationshipCommand {
+            from: "a".to_string(),
+            to: "b".to_string(),
+            name: "InvalidFormat".to_string(),
+            properties: HashMap::new(),
+        };
+
+        let result = create_relationship(&ports, command).await;
+        assert!(matches!(
+            result,
+            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(
+                mm_memory::ValidationError::InvalidRelationshipFormat(_)
+            )))
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_create_relationship_unknown_relationship() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_relationship().never();
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let command = CreateRelationshipCommand {
+            from: "a".to_string(),
+            to: "b".to_string(),
+            name: "custom_rel".to_string(),
+            properties: HashMap::new(),
+        };
+
+        let result = create_relationship(&ports, command).await;
+        assert!(matches!(
+            result,
+            Err(CoreError::Memory(mm_memory::MemoryError::ValidationError(
+                mm_memory::ValidationError::UnknownRelationship(_)
+            )))
+        ));
+    }
 }

@@ -284,4 +284,56 @@ mod tests {
             ))
         ));
     }
+
+    #[tokio::test]
+    async fn test_create_entity_repository_error() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_entity()
+            .returning(|_| Err(crate::MemoryError::query_error("fail")));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: Some("Memory".to_string()),
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+            },
+        );
+
+        let entity = MemoryEntity {
+            name: "test:entity".to_string(),
+            labels: vec!["Test".to_string()],
+            observations: vec![],
+            properties: HashMap::new(),
+        };
+
+        let result = service.create_entity(&entity).await;
+        assert!(matches!(result, Err(crate::MemoryError::QueryError { .. })));
+    }
+
+    #[tokio::test]
+    async fn test_create_relationship_repository_error() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_relationship()
+            .returning(|_| Err(crate::MemoryError::query_error("fail")));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+            },
+        );
+
+        let rel = MemoryRelationship {
+            from: "a".to_string(),
+            to: "b".to_string(),
+            name: "related_to".to_string(),
+            properties: HashMap::new(),
+        };
+
+        let result = service.create_relationship(&rel).await;
+        assert!(matches!(result, Err(crate::MemoryError::QueryError { .. })));
+    }
 }

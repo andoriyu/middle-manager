@@ -1,6 +1,19 @@
 use mm_memory::MemoryRelationship;
-use mm_memory_neo4j::{MemoryConfig, MemoryEntity, Neo4jConfig, create_neo4j_service};
+use mm_memory_neo4j::{MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, create_neo4j_service};
 use std::collections::HashMap;
+
+#[tokio::test]
+async fn test_connection_error() {
+    // Use an invalid scheme so repository creation fails immediately
+    let config = Neo4jConfig {
+        uri: "invalid://localhost:7687".to_string(),
+        username: "neo4j".to_string(),
+        password: "wrong".to_string(),
+    };
+
+    let result = create_neo4j_service(config, MemoryConfig::default()).await;
+    assert!(matches!(result, Err(MemoryError::ConnectionError { .. })));
+}
 
 #[tokio::test]
 async fn test_find_nonexistent_entity() {
