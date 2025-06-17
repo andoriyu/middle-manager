@@ -32,30 +32,6 @@ where
         Self { repository, config }
     }
 
-    /// Create a new entity in the memory graph
-    pub async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), R::Error> {
-        let mut tagged = entity.clone();
-        if let Some(tag) = &self.config.default_tag {
-            if !tagged.labels.contains(tag) {
-                tagged.labels.push(tag.clone());
-            }
-        }
-
-        let mut errors = Vec::new();
-        if tagged.name.is_empty() {
-            errors.push(ValidationErrorKind::EmptyEntityName);
-        }
-        if tagged.labels.is_empty() {
-            errors.push(ValidationErrorKind::NoLabels(tagged.name.clone()));
-        }
-
-        if !errors.is_empty() {
-            return Err(ValidationError(errors).into());
-        }
-
-        self.repository.create_entity(&tagged).await
-    }
-
     /// Create multiple entities in a batch
     pub async fn create_entities(
         &self,
@@ -136,41 +112,6 @@ where
             .await
     }
 
-    /// Create a relationship between two entities
-    pub async fn create_relationship(
-        &self,
-        relationship: &MemoryRelationship,
-    ) -> MemoryResult<(), R::Error> {
-        let mut errors = Vec::new();
-        if relationship.from.is_empty() || relationship.to.is_empty() {
-            errors.push(ValidationErrorKind::EmptyEntityName);
-        }
-
-        if !is_snake_case(&relationship.name) {
-            errors.push(ValidationErrorKind::InvalidRelationshipFormat(
-                relationship.name.clone(),
-            ));
-        }
-
-        if self.config.default_relationships
-            && !DEFAULT_RELATIONSHIPS.contains(&relationship.name.as_str())
-            && !self
-                .config
-                .additional_relationships
-                .contains(&relationship.name)
-        {
-            errors.push(ValidationErrorKind::UnknownRelationship(
-                relationship.name.clone(),
-            ));
-        }
-
-        if !errors.is_empty() {
-            return Err(ValidationError(errors).into());
-        }
-
-        self.repository.create_relationship(relationship).await
-    }
-
     /// Create multiple relationships in a batch
     pub async fn create_relationships(
         &self,
@@ -221,8 +162,8 @@ mod tests {
     #[tokio::test]
     async fn test_default_tag_added() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_entity()
-            .withf(|e| e.labels.contains(&"Memory".to_string()))
+        mock.expect_create_entities()
+            .withf(|e| e.len() == 1 && e[0].labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(
@@ -240,14 +181,18 @@ mod tests {
             properties: std::collections::HashMap::new(),
         };
 
-        service.create_entity(&entity).await.unwrap();
+        let result = service
+            .create_entities(std::slice::from_ref(&entity))
+            .await
+            .unwrap();
+        assert!(result.is_empty());
     }
 
     #[tokio::test]
     async fn test_no_default_tag() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_entity()
-            .withf(|e| !e.labels.contains(&"Memory".to_string()))
+        mock.expect_create_entities()
+            .withf(|e| e.len() == 1 && !e[0].labels.contains(&"Memory".to_string()))
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(
@@ -265,14 +210,22 @@ mod tests {
             properties: std::collections::HashMap::new(),
         };
 
-        service.create_entity(&entity).await.unwrap();
+        let result = service
+            .create_entities(std::slice::from_ref(&entity))
+            .await
+            .unwrap();
+        assert!(result.is_empty());
     }
 
     #[tokio::test]
     async fn test_empty_labels_adds_default_tag() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_entity()
-            .withf(|e| e.labels.len() == 1 && e.labels.contains(&"Memory".to_string()))
+        mock.expect_create_entities()
+            .withf(|e| {
+                e.len() == 1
+                    && e[0].labels.len() == 1
+                    && e[0].labels.contains(&"Memory".to_string())
+            })
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(
@@ -291,14 +244,17 @@ mod tests {
             properties: std::collections::HashMap::new(),
         };
 
-        let result = service.create_entity(&entity).await;
-        assert!(result.is_ok());
+        let errors = service
+            .create_entities(std::slice::from_ref(&entity))
+            .await
+            .unwrap();
+        assert!(errors.is_empty());
     }
 
     #[tokio::test]
     async fn test_empty_labels_without_default_tag_fails() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_entity().never();
+        mock.expect_create_entities().never();
 
         let service = MemoryService::new(
             mock,
@@ -316,18 +272,21 @@ mod tests {
             properties: std::collections::HashMap::new(),
         };
 
-        let result = service.create_entity(&entity).await;
-        assert!(matches!(
-            result,
-            Err(crate::MemoryError::ValidationError(ref e))
-                if e.0.contains(&ValidationErrorKind::NoLabels("test:entity".to_string()))
-        ));
+        let result = service
+            .create_entities(std::slice::from_ref(&entity))
+            .await
+            .unwrap();
+        assert!(result.iter().any(|(n, e)| {
+            n == "test:entity"
+                && e.0
+                    .contains(&ValidationErrorKind::NoLabels("test:entity".to_string()))
+        }));
     }
 
     #[tokio::test]
     async fn test_create_relationship_allowed() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().returning(|_| Ok(()));
+        mock.expect_create_relationships().returning(|_| Ok(()));
         let service = MemoryService::new(
             mock,
             MemoryConfig {
@@ -344,14 +303,17 @@ mod tests {
             properties: HashMap::new(),
         };
 
-        let result = service.create_relationship(&rel).await;
-        assert!(result.is_ok());
+        let errors = service
+            .create_relationships(std::slice::from_ref(&rel))
+            .await
+            .unwrap();
+        assert!(errors.is_empty());
     }
 
     #[tokio::test]
     async fn test_create_relationship_unknown() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().never();
+        mock.expect_create_relationships().never();
         let service = MemoryService::new(
             mock,
             MemoryConfig {
@@ -368,18 +330,22 @@ mod tests {
             properties: HashMap::new(),
         };
 
-        let result = service.create_relationship(&rel).await;
-        assert!(matches!(
-            result,
-            Err(crate::MemoryError::ValidationError(ref e))
-                if e.0.contains(&ValidationErrorKind::UnknownRelationship("custom_rel".to_string()))
-        ));
+        let result = service
+            .create_relationships(std::slice::from_ref(&rel))
+            .await
+            .unwrap();
+        assert!(result.iter().any(|(n, e)| {
+            n == "custom_rel"
+                && e.0.contains(&ValidationErrorKind::UnknownRelationship(
+                    "custom_rel".to_string(),
+                ))
+        }));
     }
 
     #[tokio::test]
     async fn test_create_entity_repository_error() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_entity()
+        mock.expect_create_entities()
             .returning(|_| Err(crate::MemoryError::query_error("fail")));
 
         let service = MemoryService::new(
@@ -398,14 +364,14 @@ mod tests {
             properties: HashMap::new(),
         };
 
-        let result = service.create_entity(&entity).await;
+        let result = service.create_entities(std::slice::from_ref(&entity)).await;
         assert!(matches!(result, Err(crate::MemoryError::QueryError { .. })));
     }
 
     #[tokio::test]
     async fn test_create_relationship_repository_error() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship()
+        mock.expect_create_relationships()
             .returning(|_| Err(crate::MemoryError::query_error("fail")));
 
         let service = MemoryService::new(
@@ -424,7 +390,9 @@ mod tests {
             properties: HashMap::new(),
         };
 
-        let result = service.create_relationship(&rel).await;
+        let result = service
+            .create_relationships(std::slice::from_ref(&rel))
+            .await;
         assert!(matches!(result, Err(crate::MemoryError::QueryError { .. })));
     }
 }
