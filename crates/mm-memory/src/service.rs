@@ -41,8 +41,23 @@ where
             }
         }
 
+        let mut errors = Vec::new();
+
+        if tagged.name.is_empty() {
+            errors.push(ValidationError::EmptyEntityName);
+        }
+
         if tagged.labels.is_empty() {
-            return Err(ValidationError::NoLabels(tagged.name.clone()).into());
+            errors.push(ValidationError::NoLabels(tagged.name.clone()));
+        }
+
+        if !errors.is_empty() {
+            return Err(if errors.len() == 1 {
+                errors.pop().unwrap()
+            } else {
+                ValidationError::Multiple(errors)
+            }
+            .into());
         }
 
         self.repository.create_entity(&tagged).await
@@ -53,6 +68,10 @@ where
         &self,
         name: &str,
     ) -> MemoryResult<Option<MemoryEntity>, R::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::EmptyEntityName.into());
+        }
+
         self.repository.find_entity_by_name(name).await
     }
 
@@ -62,6 +81,10 @@ where
         name: &str,
         observations: &[String],
     ) -> MemoryResult<(), R::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::EmptyEntityName.into());
+        }
+
         self.repository.set_observations(name, observations).await
     }
 
@@ -71,11 +94,19 @@ where
         name: &str,
         observations: &[String],
     ) -> MemoryResult<(), R::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::EmptyEntityName.into());
+        }
+
         self.repository.add_observations(name, observations).await
     }
 
     /// Remove all observations from an entity
     pub async fn remove_all_observations(&self, name: &str) -> MemoryResult<(), R::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::EmptyEntityName.into());
+        }
+
         self.repository.remove_all_observations(name).await
     }
 
@@ -85,6 +116,10 @@ where
         name: &str,
         observations: &[String],
     ) -> MemoryResult<(), R::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::EmptyEntityName.into());
+        }
+
         self.repository
             .remove_observations(name, observations)
             .await
@@ -95,14 +130,16 @@ where
         &self,
         relationship: &MemoryRelationship,
     ) -> MemoryResult<(), R::Error> {
+        let mut errors = Vec::new();
+
         if relationship.from.is_empty() || relationship.to.is_empty() {
-            return Err(ValidationError::EmptyEntityName.into());
+            errors.push(ValidationError::EmptyEntityName);
         }
 
         if !is_snake_case(&relationship.name) {
-            return Err(
-                ValidationError::InvalidRelationshipFormat(relationship.name.clone()).into(),
-            );
+            errors.push(ValidationError::InvalidRelationshipFormat(
+                relationship.name.clone(),
+            ));
         }
 
         if self.config.default_relationships
@@ -112,7 +149,18 @@ where
                 .additional_relationships
                 .contains(&relationship.name)
         {
-            return Err(ValidationError::UnknownRelationship(relationship.name.clone()).into());
+            errors.push(ValidationError::UnknownRelationship(
+                relationship.name.clone(),
+            ));
+        }
+
+        if !errors.is_empty() {
+            return Err(if errors.len() == 1 {
+                errors.pop().unwrap()
+            } else {
+                ValidationError::Multiple(errors)
+            }
+            .into());
         }
 
         self.repository.create_relationship(relationship).await
@@ -283,5 +331,42 @@ mod tests {
                 ValidationError::UnknownRelationship(_)
             ))
         ));
+    }
+
+    #[tokio::test]
+    async fn test_create_relationship_multiple_errors() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_relationship().never();
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+            },
+        );
+
+        let rel = MemoryRelationship {
+            from: "".to_string(),
+            to: "".to_string(),
+            name: "NotSnake".to_string(),
+            properties: HashMap::new(),
+        };
+
+        let result = service.create_relationship(&rel).await;
+        if let Err(crate::MemoryError::ValidationError(ValidationError::Multiple(errors))) = result
+        {
+            assert_eq!(errors.len(), 3);
+            assert!(errors.contains(&ValidationError::EmptyEntityName));
+            assert!(errors.contains(&ValidationError::InvalidRelationshipFormat(
+                "NotSnake".to_string()
+            )));
+            assert!(errors.contains(&ValidationError::UnknownRelationship(
+                "NotSnake".to_string()
+            )));
+        } else {
+            panic!("expected multiple validation errors");
+        }
     }
 }

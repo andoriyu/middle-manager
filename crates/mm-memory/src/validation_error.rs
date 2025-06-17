@@ -18,4 +18,8 @@ pub enum ValidationError {
     /// Error when a relationship type is not allowed
     #[error("Relationship type '{0}' is not allowed")]
     UnknownRelationship(String),
+
+    /// Multiple validation errors occurred
+    #[error("Multiple validation errors")]
+    Multiple(Vec<ValidationError>),
 }
