@@ -132,4 +132,50 @@ mod tests {
             Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n == "custom_rel" && e.0.contains(&ValidationErrorKind::UnknownRelationship("custom_rel".to_string())))
         ));
     }
+
+    #[tokio::test]
+    async fn test_create_relationship_multiple_errors() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_relationship().never();
+
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let ports = Ports::new(Arc::new(service));
+
+        let command = CreateRelationshipCommand {
+            relationships: vec![
+                MemoryRelationship {
+                    from: "a".to_string(),
+                    to: "b".to_string(),
+                    name: "Invalid".to_string(),
+                    properties: HashMap::new(),
+                },
+                MemoryRelationship {
+                    from: "c".to_string(),
+                    to: "d".to_string(),
+                    name: "".to_string(),
+                    properties: HashMap::new(),
+                },
+            ],
+        };
+
+        let result = create_relationship(&ports, command).await;
+
+        if let Err(CoreError::BatchValidation(errs)) = result {
+            assert_eq!(errs.len(), 2);
+            assert!(errs.iter().any(|(n, e)| {
+                n == "Invalid"
+                    && e.0
+                        .contains(&ValidationErrorKind::InvalidRelationshipFormat(
+                            "Invalid".to_string(),
+                        ))
+            }));
+            assert!(errs.iter().any(|(n, e)| {
+                n.is_empty()
+                    && e.0
+                        .contains(&ValidationErrorKind::UnknownRelationship("".to_string()))
+            }));
+        } else {
+            panic!("Expected batch validation error");
+        }
+    }
 }

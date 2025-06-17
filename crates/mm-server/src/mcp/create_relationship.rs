@@ -12,6 +12,17 @@ pub struct RelationshipInput {
     pub properties: Option<HashMap<String, String>>,
 }
 
+impl RelationshipInput {
+    fn to_memory_relationship(&self) -> MemoryRelationship {
+        MemoryRelationship {
+            from: self.from.clone(),
+            to: self.to.clone(),
+            name: self.name.clone(),
+            properties: self.properties.clone().unwrap_or_default(),
+        }
+    }
+}
+
 #[mcp_tool(
     name = "create_relationship",
     description = "Create a relationship between two entities"
@@ -28,12 +39,7 @@ impl CreateRelationshipTool {
             relationships => self
                 .relationships
                 .iter()
-                .map(|r| MemoryRelationship {
-                    from: r.from.clone(),
-                    to: r.to.clone(),
-                    name: r.name.clone(),
-                    properties: r.properties.clone().unwrap_or_default(),
-                })
+                .map(RelationshipInput::to_memory_relationship)
                 .collect(),
         },
         create_relationship,

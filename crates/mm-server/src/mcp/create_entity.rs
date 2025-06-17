@@ -13,6 +13,17 @@ pub struct EntityInput {
     pub properties: Option<HashMap<String, String>>,
 }
 
+impl EntityInput {
+    fn to_memory_entity(&self) -> MemoryEntity {
+        MemoryEntity {
+            name: self.name.clone(),
+            labels: self.labels.clone(),
+            observations: self.observations.clone(),
+            properties: self.properties.clone().unwrap_or_default(),
+        }
+    }
+}
+
 #[mcp_tool(
     name = "create_entity",
     description = "Create a new entity in the memory graph"
@@ -30,12 +41,7 @@ impl CreateEntityTool {
             entities => self
                 .entities
                 .iter()
-                .map(|e| MemoryEntity {
-                    name: e.name.clone(),
-                    labels: e.labels.clone(),
-                    observations: e.observations.clone(),
-                    properties: e.properties.clone().unwrap_or_default(),
-                })
+                .map(EntityInput::to_memory_entity)
                 .collect(),
         },
         create_entity,

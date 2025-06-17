@@ -63,7 +63,9 @@ mod tests {
             .withf(|e| e.name == "test:entity")
             .returning(|_| Ok(()));
 
-        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let mut config = MemoryConfig::default();
+        config.default_tag = None;
+        let service = MemoryService::new(mock_repo, config);
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
@@ -84,7 +86,9 @@ mod tests {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo.expect_create_entity().never();
 
-        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let mut config = MemoryConfig::default();
+        config.default_tag = None;
+        let service = MemoryService::new(mock_repo, config);
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
@@ -113,7 +117,9 @@ mod tests {
             .withf(|e| e.name == "test:entity")
             .returning(|_| Err(MemoryError::runtime_error("db error")));
 
-        let service = MemoryService::new(mock_repo, MemoryConfig::default());
+        let mut config = MemoryConfig::default();
+        config.default_tag = None;
+        let service = MemoryService::new(mock_repo, config);
         let ports = Ports::new(Arc::new(service));
 
         let command = CreateEntityCommand {
@@ -128,5 +134,51 @@ mod tests {
         let result = create_entity(&ports, command).await;
 
         assert!(matches!(result, Err(CoreError::Memory(_))));
+    }
+
+    #[tokio::test]
+    async fn test_create_entity_multiple_errors() {
+        let mut mock_repo = MockMemoryRepository::new();
+        mock_repo.expect_create_entity().never();
+
+        let mut config = MemoryConfig::default();
+        config.default_tag = None;
+        let service = MemoryService::new(mock_repo, config);
+        let ports = Ports::new(Arc::new(service));
+
+        let command = CreateEntityCommand {
+            entities: vec![
+                MemoryEntity {
+                    name: "".to_string(),
+                    labels: vec![],
+                    observations: vec![],
+                    properties: HashMap::new(),
+                },
+                MemoryEntity {
+                    name: "valid:entity".to_string(),
+                    labels: vec![],
+                    observations: vec![],
+                    properties: HashMap::new(),
+                },
+            ],
+        };
+
+        let result = create_entity(&ports, command).await;
+
+        if let Err(CoreError::BatchValidation(errs)) = result {
+            assert_eq!(errs.len(), 2);
+            assert!(errs.iter().any(|(n, e)| {
+                n.is_empty()
+                    && e.0.contains(&ValidationErrorKind::EmptyEntityName)
+                    && e.0.contains(&ValidationErrorKind::NoLabels("".to_string()))
+            }));
+            assert!(errs.iter().any(|(n, e)| {
+                n == "valid:entity"
+                    && e.0
+                        .contains(&ValidationErrorKind::NoLabels("valid:entity".to_string()))
+            }));
+        } else {
+            panic!("Expected batch validation error");
+        }
     }
 }
