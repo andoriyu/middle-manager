@@ -13,6 +13,8 @@ async fn test_find_nonexistent_entity() {
         config,
         MemoryConfig {
             default_tag: Some("TestFindNone".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::new(),
         },
     )
     .await
@@ -38,6 +40,8 @@ async fn test_create_and_find_entity() {
         config,
         MemoryConfig {
             default_tag: Some("TestCreate".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::new(),
         },
     )
     .await
@@ -81,6 +85,8 @@ async fn test_validation_errors() {
         config,
         MemoryConfig {
             default_tag: Some("TestValidation".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::new(),
         },
     )
     .await
@@ -122,6 +128,8 @@ async fn test_set_observations() {
         config,
         MemoryConfig {
             default_tag: Some("TestSet".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::new(),
         },
     )
     .await
@@ -162,6 +170,8 @@ async fn test_add_and_remove_observations() {
         config,
         MemoryConfig {
             default_tag: Some("TestAddRemove".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::new(),
         },
     )
     .await
@@ -209,4 +219,49 @@ async fn test_add_and_remove_observations() {
         .unwrap()
         .unwrap();
     assert!(cleared.observations.is_empty());
+}
+
+#[tokio::test]
+async fn test_create_relationship() {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_tag: Some("RelationshipTest".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::new(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let a = MemoryEntity {
+        name: "rel:a".to_string(),
+        labels: vec!["Example".to_string()],
+        observations: vec![],
+        properties: HashMap::new(),
+    };
+    let b = MemoryEntity {
+        name: "rel:b".to_string(),
+        labels: vec!["Example".to_string()],
+        observations: vec![],
+        properties: HashMap::new(),
+    };
+
+    service.create_entity(&a).await.unwrap();
+    service.create_entity(&b).await.unwrap();
+
+    let rel = MemoryRelationship {
+        from: a.name.clone(),
+        to: b.name.clone(),
+        name: "related_to".to_string(),
+        properties: HashMap::new(),
+    };
+
+    service.create_relationship(&rel).await.unwrap();
 }

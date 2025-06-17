@@ -86,6 +86,7 @@ password = "test_password"
         assert_eq!(config.neo4j.username, "test_user");
         assert_eq!(config.neo4j.password, "test_password");
         assert_eq!(config.memory.default_tag, Some("TestTag".to_string()));
+        assert!(config.memory.default_relationships);
     }
 
     #[test]
@@ -96,7 +97,11 @@ password = "test_password"
                 username: "test_conversion_user".to_string(),
                 password: "test_conversion_password".to_string(),
             },
-            memory: MemoryConfig { default_tag: None },
+            memory: MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: std::collections::HashSet::new(),
+            },
         };
 
         assert_eq!(config.neo4j.uri, "neo4j://testconversion:7687");

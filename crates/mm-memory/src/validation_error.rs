@@ -14,4 +14,8 @@ pub enum ValidationError {
     /// Error when a relationship type is not in snake_case format
     #[error("Relationship type '{0}' is not in snake_case format")]
     InvalidRelationshipFormat(String),
+
+    /// Error when a relationship type is not allowed
+    #[error("Relationship type '{0}' is not allowed")]
+    UnknownRelationship(String),
 }

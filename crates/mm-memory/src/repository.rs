@@ -3,6 +3,7 @@ use std::error::Error as StdError;
 
 use crate::entity::MemoryEntity;
 use crate::error::MemoryResult;
+use crate::relationship::MemoryRelationship;
 
 #[cfg_attr(any(test, feature = "mock"), mockall::automock(type Error = std::convert::Infallible;))]
 #[async_trait]
@@ -33,5 +34,10 @@ pub trait MemoryRepository {
         &self,
         name: &str,
         observations: &[String],
+    ) -> MemoryResult<(), Self::Error>;
+
+    async fn create_relationship(
+        &self,
+        relationship: &MemoryRelationship,
     ) -> MemoryResult<(), Self::Error>;
 }

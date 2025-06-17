@@ -1,13 +1,16 @@
 pub mod config;
 pub mod entity;
 pub mod error;
+pub mod relationship;
 pub mod repository;
 pub mod service;
 pub mod validation_error;
 
+pub use config::DEFAULT_RELATIONSHIPS;
 pub use config::{DEFAULT_MEMORY_TAG, MemoryConfig};
 pub use entity::MemoryEntity;
 pub use error::{MemoryError, MemoryResult};
+pub use relationship::MemoryRelationship;
 pub use repository::MemoryRepository;
 #[cfg(any(test, feature = "mock"))]
 pub use repository::MockMemoryRepository;

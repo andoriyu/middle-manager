@@ -4,6 +4,8 @@
 [memory]
 # Tag added to every new entity
 default_tag = "Memory"
+default_relationships = true
+additional_relationships = []
 
 [neo4j]
 uri = "neo4j://localhost:7687"
