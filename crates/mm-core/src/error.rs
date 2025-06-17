@@ -15,6 +15,10 @@ where
 
     #[error("Validation error")]
     Validation(#[from] mm_memory::ValidationError),
+
+    /// Multiple validation errors grouped by name
+    #[error("Batch validation error")]
+    BatchValidation(Vec<(String, mm_memory::ValidationError)>),
 }
 
 /// Result type for mm-core

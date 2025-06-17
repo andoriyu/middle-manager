@@ -49,6 +49,11 @@ where
             CoreError::Memory(e) => e.to_string(),
             CoreError::Serialization(e) => e.to_string(),
             CoreError::Validation(e) => e.to_string(),
+            CoreError::BatchValidation(v) => v
+                .iter()
+                .map(|(name, err)| format!("{}: {}", name, err))
+                .collect::<Vec<_>>()
+                .join("; "),
         };
         Self::with_source(message, error)
     }

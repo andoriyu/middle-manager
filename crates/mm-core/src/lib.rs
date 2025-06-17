@@ -16,4 +16,4 @@ pub use operations::{
 pub use ports::Ports;
 
 // Re-export types from mm-memory
-pub use mm_memory::MemoryEntity;
+pub use mm_memory::{MemoryEntity, MemoryRelationship};

@@ -1,14 +1,10 @@
-use mm_core::{CreateRelationshipCommand, create_relationship};
+use mm_core::{CreateRelationshipCommand, MemoryRelationship, create_relationship};
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[mcp_tool(
-    name = "create_relationship",
-    description = "Create a relationship between two entities"
-)]
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
-pub struct CreateRelationshipTool {
+pub struct RelationshipInput {
     pub from: String,
     pub to: String,
     pub name: String,
@@ -16,17 +12,43 @@ pub struct CreateRelationshipTool {
     pub properties: Option<HashMap<String, String>>,
 }
 
+impl RelationshipInput {
+    fn to_memory_relationship(&self) -> MemoryRelationship {
+        MemoryRelationship {
+            from: self.from.clone(),
+            to: self.to.clone(),
+            name: self.name.clone(),
+            properties: self.properties.clone().unwrap_or_default(),
+        }
+    }
+}
+
+#[mcp_tool(
+    name = "create_relationship",
+    description = "Create a relationship between two entities"
+)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct CreateRelationshipTool {
+    pub relationships: Vec<RelationshipInput>,
+}
+
 impl CreateRelationshipTool {
     generate_call_tool!(
         self,
         CreateRelationshipCommand {
-            from,
-            to,
-            name,
-            properties => self.properties.clone().unwrap_or_default()
+            relationships => self
+                .relationships
+                .iter()
+                .map(RelationshipInput::to_memory_relationship)
+                .collect(),
         },
-        "Relationship '{}' created",
-        create_relationship
+        create_relationship,
+        |_cmd, _res| {
+            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
+                "Relationships created".to_string(),
+                None,
+            ))
+        }
     );
 }
 
@@ -46,15 +68,17 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let tool = CreateRelationshipTool {
-            from: "a".to_string(),
-            to: "b".to_string(),
-            name: "related_to".to_string(),
-            properties: None,
+            relationships: vec![RelationshipInput {
+                from: "a".to_string(),
+                to: "b".to_string(),
+                name: "related_to".to_string(),
+                properties: Some(HashMap::new()),
+            }],
         };
 
         let result = tool.call_tool(&ports).await.expect("tool should succeed");
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        assert_eq!(text, "Relationship 'related_to' created");
+        assert_eq!(text, "Relationships created");
     }
 
     #[tokio::test]
@@ -67,10 +91,12 @@ mod tests {
         let ports = Ports::new(Arc::new(service));
 
         let tool = CreateRelationshipTool {
-            from: "a".to_string(),
-            to: "b".to_string(),
-            name: "related_to".to_string(),
-            properties: None,
+            relationships: vec![RelationshipInput {
+                from: "a".to_string(),
+                to: "b".to_string(),
+                name: "related_to".to_string(),
+                properties: Some(HashMap::new()),
+            }],
         };
 
         let result = tool.call_tool(&ports).await;
