@@ -1,6 +1,7 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryRepository, ValidationError, ValidationErrorKind};
+use crate::validate_name;
+use mm_memory::MemoryRepository;
 
 #[derive(Debug, Clone)]
 pub struct SetObservationsCommand {
@@ -18,11 +19,7 @@ where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
-    if command.name.is_empty() {
-        return Err(CoreError::Validation(ValidationError(vec![
-            ValidationErrorKind::EmptyEntityName,
-        ])));
-    }
+    validate_name!(command.name);
 
     ports
         .memory_service
@@ -34,7 +31,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_memory::{MemoryConfig, MemoryError, MemoryService, MockMemoryRepository};
+    use mm_memory::{
+        MemoryConfig, MemoryError, MemoryService, MockMemoryRepository, ValidationErrorKind,
+    };
     use std::sync::Arc;
 
     #[tokio::test]
