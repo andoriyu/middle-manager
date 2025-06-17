@@ -3,8 +3,10 @@ use mm_core::{
     AddObservationsError, CreateEntityError, CreateRelationshipError, GetEntityError,
     RemoveAllObservationsError, RemoveObservationsError, SetObservationsError,
 };
+use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use std::error::Error as StdError;
 use std::fmt;
+use tracing::error;
 
 /// Error type for MCP tools
 #[derive(Debug)]
@@ -120,4 +122,20 @@ impl From<serde_json::Error> for ToolError {
     fn from(error: serde_json::Error) -> Self {
         Self::with_source(format!("Serialization error: {:#?}", error), error)
     }
+}
+
+/// Map a core result into a MCP tool result by converting any error into a
+/// [`CallToolError`].
+///
+/// The caller is expected to map the successful result into a
+/// [`CallToolResult`] before invoking this helper.
+pub fn map_result<R, E>(res: Result<R, E>) -> Result<R, CallToolError>
+where
+    E: Into<ToolError> + StdError + Send + Sync + 'static,
+{
+    res.map_err(|e| {
+        error!("Tool call failed: {:#?}", e);
+        let tool_error: ToolError = e.into();
+        CallToolError::new(tool_error)
+    })
 }

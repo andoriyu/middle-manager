@@ -1,3 +1,4 @@
+use crate::mcp::error::map_result;
 use mm_core::{CreateRelationshipCommand, Ports, create_relationship};
 use mm_memory::MemoryRepository;
 use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
@@ -5,9 +6,6 @@ use rust_mcp_sdk::schema::CallToolResult;
 use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::error;
-
-use crate::mcp::error::ToolError;
 
 #[mcp_tool(
     name = "create_relationship",
@@ -35,17 +33,9 @@ impl CreateRelationshipTool {
             properties: self.properties.clone().unwrap_or_default(),
         };
 
-        match create_relationship(ports, command).await {
-            Ok(_) => Ok(CallToolResult::text_content(
-                format!("Relationship '{}' created", self.name),
-                None,
-            )),
-            Err(e) => {
-                error!("Failed to create relationship: {:#?}", e);
-                let tool_error = ToolError::from(e);
-                Err(CallToolError::new(tool_error))
-            }
-        }
+        map_result(create_relationship(ports, command).await).map(|_| {
+            CallToolResult::text_content(format!("Relationship '{}' created", self.name), None)
+        })
     }
 }
 
