@@ -3,7 +3,7 @@ use clap::{Parser, ValueEnum};
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::path::PathBuf;
-use tracing::Level;
+use tracing::{Level, instrument};
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt, prelude::*};
 
@@ -62,6 +62,7 @@ impl From<LogLevel> for Level {
 }
 
 /// Create a file writer for logging
+#[instrument(fields(path = ?path, rotate))]
 fn create_file_writer(path: &PathBuf, rotate: bool) -> io::Result<File> {
     if rotate {
         // Create or truncate the file
@@ -72,10 +73,8 @@ fn create_file_writer(path: &PathBuf, rotate: bool) -> io::Result<File> {
     }
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let args = Args::parse();
-
+#[instrument(skip(args))]
+async fn run(args: Args) -> anyhow::Result<()> {
     // Initialize tracing
     let level: Level = args.log_level.into();
     let filter = EnvFilter::from_default_env().add_directive(level.into());
@@ -112,4 +111,10 @@ async fn main() -> anyhow::Result<()> {
     mm_server_lib::run_server(&config_paths).await?;
 
     Ok(())
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let args = Args::parse();
+    run(args).await
 }
