@@ -242,3 +242,7 @@ The project follows a hexagonal architecture (ports and adapters) pattern:
 - **MCP Protocol**: External interface for AI assistants
 
 This architecture ensures that the core domain logic is isolated from external concerns, making it more maintainable and testable.
+
+## License
+
+This project is licensed under the [Mozilla Public License 2.0](LICENSE).

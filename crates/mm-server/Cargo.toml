@@ -2,6 +2,7 @@
 name = "mm-server"
 version = "0.1.0"
 edition = "2024"
+license = "MPL-2.0"
 
 # Specify this is a library crate only
 [lib]

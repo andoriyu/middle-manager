@@ -2,6 +2,7 @@
 name = "mm-memory-neo4j"
 version = "0.1.0"
 edition = "2024"
+license = "MPL-2.0"
 
 [dependencies]
 neo4rs = "0.7.1"
