@@ -13,29 +13,12 @@ pub struct RemoveObservationsTool {
 }
 
 impl RemoveObservationsTool {
-    #[tracing::instrument(skip(self, ports), fields(observations_count = self.observations.len()))]
-    pub async fn call_tool<R>(
-        &self,
-        ports: &mm_core::Ports<R>,
-    ) -> Result<
-        rust_mcp_sdk::schema::CallToolResult,
-        rust_mcp_sdk::schema::schema_utils::CallToolError,
-    >
-    where
-        R: mm_memory::MemoryRepository + Send + Sync,
-        R::Error: std::error::Error + Send + Sync + 'static,
-    {
-        let command = RemoveObservationsCommand {
-            name: self.name.clone(),
-            observations: self.observations.clone(),
-        };
-
-        crate::mcp::error::map_result(remove_observations(ports, command.clone()).await)?;
-        Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-            format!("Observations removed from '{}'", self.name),
-            None,
-        ))
-    }
+    generate_call_tool!(
+        self,
+        RemoveObservationsCommand { name, observations },
+        "Observations removed from '{}'",
+        remove_observations
+    );
 }
 
 #[cfg(test)]
