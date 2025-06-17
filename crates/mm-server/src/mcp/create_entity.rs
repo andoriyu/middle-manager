@@ -35,7 +35,7 @@ impl CreateEntityTool {
             properties => self.properties.clone().unwrap_or_default()
         },
         create_entity,
-        |command| {
+        |command, _result| {
             let entity = mm_core::MemoryEntity {
                 name: command.name,
                 labels: command.labels,
