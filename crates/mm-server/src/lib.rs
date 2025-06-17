@@ -1,3 +1,10 @@
+//! MCP server adapter for the Middle Manager project.
+//!
+//! This crate is an outer adapter in the hexagonal architecture. It
+//! exposes the memory graph operations defined in `mm-core` through the
+//! Model Context Protocol (MCP) so external clients can interact with
+//! the system. The server orchestrates requests, translating protocol
+//! calls into core domain operations.
 #![warn(clippy::all)]
 use async_trait::async_trait;
 use std::path::Path;

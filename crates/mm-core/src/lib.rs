@@ -1,3 +1,10 @@
+//! Core domain logic for the Middle Manager project.
+//!
+//! This crate represents the application "core" in the hexagonal
+//! architecture. It defines operations on the memory graph and the
+//! ports (interfaces) that adapters must implement. The code here is
+//! completely independent of external protocols or infrastructure and
+//! focuses purely on business rules.
 #![warn(clippy::all)]
 pub mod error;
 mod operations;
