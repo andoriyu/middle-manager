@@ -1,6 +1,6 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use mm_memory::{MemoryError, MemoryRelationship, MemoryRepository};
+use mm_memory::{MemoryRelationship, MemoryRepository};
 
 #[derive(Debug, Clone)]
 pub struct CreateRelationshipCommand {
@@ -17,16 +17,11 @@ where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
-    let mut errors = Vec::new();
-    for rel in &command.relationships {
-        match ports.memory_service.create_relationship(rel).await {
-            Ok(_) => {}
-            Err(MemoryError::ValidationError(e)) => {
-                errors.push((rel.name.clone(), e));
-            }
-            Err(e) => return Err(CoreError::from(e)),
-        }
-    }
+    let errors = ports
+        .memory_service
+        .create_relationships(&command.relationships)
+        .await
+        .map_err(CoreError::from)?;
 
     if !errors.is_empty() {
         return Err(CoreError::BatchValidation(errors));
@@ -46,7 +41,9 @@ mod tests {
     #[tokio::test]
     async fn test_create_relationship_success() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().returning(|_| Ok(()));
+        mock.expect_create_relationships()
+            .withf(|rels| rels.len() == 1 && rels[0].name == "related_to")
+            .returning(|_| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
@@ -67,7 +64,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_relationship_empty_name() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().never();
+        mock.expect_create_relationships().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
@@ -90,7 +87,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_relationship_invalid_format() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().never();
+        mock.expect_create_relationships().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
@@ -113,7 +110,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_relationship_unknown_relationship() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().never();
+        mock.expect_create_relationships().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
@@ -136,7 +133,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_relationship_multiple_errors() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().never();
+        mock.expect_create_relationships().never();
 
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));

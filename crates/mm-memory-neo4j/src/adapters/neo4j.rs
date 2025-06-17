@@ -64,45 +64,51 @@ impl Neo4jRepository {
 #[async_trait]
 impl MemoryRepository for Neo4jRepository {
     type Error = neo4rs::Error;
-    async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), Self::Error> {
-        // Validate entity
-        if entity.name.is_empty() {
-            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
+    async fn create_entities(&self, entities: &[MemoryEntity]) -> MemoryResult<(), Self::Error> {
+        if entities.is_empty() {
+            return Ok(());
         }
 
-        if entity.labels.is_empty() {
-            return Err(
-                ValidationError::from(ValidationErrorKind::NoLabels(entity.name.clone())).into(),
-            );
+        let mut batch: Vec<HashMap<String, neo4rs::BoltType>> = Vec::new();
+        for entity in entities {
+            if entity.name.is_empty() {
+                return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
+            }
+            if entity.labels.is_empty() {
+                return Err(ValidationError::from(ValidationErrorKind::NoLabels(
+                    entity.name.clone(),
+                ))
+                .into());
+            }
+
+            let mut props: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            props.insert("name".to_string(), entity.name.clone().into());
+            let observations_json = serde_json::to_string(&entity.observations)?;
+            props.insert("observations".to_string(), observations_json.into());
+            for (k, v) in &entity.properties {
+                props.insert(k.clone(), v.clone().into());
+            }
+
+            let mut row: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            row.insert("labels".to_string(), entity.labels.clone().into());
+            row.insert("props".to_string(), props.into());
+            batch.push(row);
         }
 
-        let labels = entity.labels.join(":");
-        let mut params = HashMap::new();
-        params.insert("name".to_string(), entity.name.clone());
+        let query = Query::new(
+            "UNWIND $rows AS row CALL apoc.create.node(row.labels, row.props) YIELD node RETURN count(node)"
+                .to_string(),
+        )
+        .param("rows", batch);
 
-        // Serialize observations
-        let observations_json = serde_json::to_string(&entity.observations)?;
-        params.insert("observations".to_string(), observations_json);
-
-        // Add all custom properties
-        for (key, value) in &entity.properties {
-            params.insert(key.clone(), value.clone());
-        }
-
-        let query_str = format!(
-            "CREATE (n:{} {{name: $name, observations: $observations}})",
-            labels
-        );
-
-        let query = Query::new(query_str).params(params);
         self.graph.run(query).await.map_err(|e| {
-            MemoryError::query_error_with_source(
-                format!("Failed to create entity {}", entity.name),
-                e,
-            )
+            MemoryError::query_error_with_source("Failed to create entities".to_string(), e)
         })?;
 
         Ok(())
+    }
+    async fn create_entity(&self, entity: &MemoryEntity) -> MemoryResult<(), Self::Error> {
+        self.create_entities(std::slice::from_ref(entity)).await
     }
 
     async fn find_entity_by_name(
@@ -245,41 +251,47 @@ impl MemoryRepository for Neo4jRepository {
         self.set_observations(name, &current).await
     }
 
+    async fn create_relationships(
+        &self,
+        relationships: &[MemoryRelationship],
+    ) -> MemoryResult<(), Self::Error> {
+        if relationships.is_empty() {
+            return Ok(());
+        }
+
+        let mut rows: Vec<HashMap<String, neo4rs::BoltType>> = Vec::new();
+        for rel in relationships {
+            let mut props: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            for (k, v) in &rel.properties {
+                props.insert(k.clone(), v.clone().into());
+            }
+
+            let mut row: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            row.insert("from".to_string(), rel.from.clone().into());
+            row.insert("to".to_string(), rel.to.clone().into());
+            row.insert("name".to_string(), rel.name.clone().into());
+            row.insert("props".to_string(), props.into());
+            rows.push(row);
+        }
+
+        let query = Query::new(
+            "UNWIND $rows AS row MATCH (a {name: row.from}), (b {name: row.to}) CALL apoc.create.relationship(a, row.name, row.props, b) YIELD rel RETURN count(rel)"
+                .to_string(),
+        )
+        .param("rows", rows);
+
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to create relationships".to_string(), e)
+        })?;
+
+        Ok(())
+    }
+
     async fn create_relationship(
         &self,
         relationship: &MemoryRelationship,
     ) -> MemoryResult<(), Self::Error> {
-        let mut params = HashMap::new();
-        params.insert("from".to_string(), relationship.from.clone());
-        params.insert("to".to_string(), relationship.to.clone());
-
-        for (k, v) in &relationship.properties {
-            params.insert(k.clone(), v.clone());
-        }
-
-        let props = if relationship.properties.is_empty() {
-            String::new()
-        } else {
-            let pairs: Vec<String> = relationship
-                .properties
-                .keys()
-                .map(|k| format!("{}: ${}", k, k))
-                .collect();
-            format!(" {{{}}}", pairs.join(", "))
-        };
-
-        let query_str = format!(
-            "MATCH (a {{name: $from}}), (b {{name: $to}}) CREATE (a)-[:{}{}]->(b)",
-            relationship.name, props
-        );
-        let query = Query::new(query_str).params(params);
-        self.graph.run(query).await.map_err(|e| {
-            MemoryError::query_error_with_source(
-                format!("Failed to create relationship {}", relationship.name),
-                e,
-            )
-        })?;
-
-        Ok(())
+        self.create_relationships(std::slice::from_ref(relationship))
+            .await
     }
 }

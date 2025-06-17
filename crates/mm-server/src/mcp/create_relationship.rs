@@ -62,7 +62,9 @@ mod tests {
     #[tokio::test]
     async fn test_call_tool_success() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship().returning(|_| Ok(()));
+        mock.expect_create_relationships()
+            .withf(|rels| rels.len() == 1 && rels[0].name == "related_to")
+            .returning(|_| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
@@ -84,7 +86,7 @@ mod tests {
     #[tokio::test]
     async fn test_call_tool_repository_error() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_create_relationship()
+        mock.expect_create_relationships()
             .returning(|_| Err(MemoryError::runtime_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
