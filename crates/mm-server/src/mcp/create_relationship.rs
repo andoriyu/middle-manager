@@ -75,7 +75,7 @@ mod tests {
                 from: "a".to_string(),
                 to: "b".to_string(),
                 name: "relates_to".to_string(),
-                properties: Some(HashMap::new()),
+                properties: Some(HashMap::default()),
             }],
         };
 
