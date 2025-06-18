@@ -1334,6 +1334,8 @@ dependencies = [
 name = "mm-core"
 version = "0.1.0"
 dependencies = [
+ "arbitrary",
+ "arbtest",
  "async-trait",
  "mm-memory",
  "mockall",

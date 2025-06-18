@@ -82,4 +82,41 @@ mod tests {
         let result = remove_all_observations(&ports, command).await;
         assert!(matches!(result, Err(CoreError::Memory(_))));
     }
+
+    use crate::test_utils::prop::{NonEmptyName, async_arbtest};
+    use arbitrary::Arbitrary;
+
+    #[test]
+    fn prop_remove_all_observations_success() {
+        async_arbtest(|rt, u| {
+            let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+            let mut mock = MockMemoryRepository::new();
+            let name_clone = name.clone();
+            mock.expect_remove_all_observations()
+                .withf(move |n| n == &name_clone)
+                .returning(|_| Ok(()));
+            let service = MemoryService::new(mock, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let command = RemoveAllObservationsCommand { name };
+            let result = rt.block_on(remove_all_observations(&ports, command));
+            assert!(result.is_ok());
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn prop_remove_all_observations_empty_name() {
+        async_arbtest(|rt, _| {
+            let mut mock = MockMemoryRepository::new();
+            mock.expect_remove_all_observations().never();
+            let service = MemoryService::new(mock, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let command = RemoveAllObservationsCommand {
+                name: String::new(),
+            };
+            let result = rt.block_on(remove_all_observations(&ports, command));
+            assert!(matches!(result, Err(CoreError::Validation(_))));
+            Ok(())
+        });
+    }
 }
