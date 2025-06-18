@@ -1,3 +1,15 @@
+//! Additional property helpers for generating memory data live in
+//! `mm_memory::test_helpers`.
+//!
+//! ```
+//! use arbitrary::Unstructured;
+//! use mm_memory::test_helpers::{prop_random_entity, prop_random_relationship};
+//!
+//! let mut u = Unstructured::new(&[1, 2, 3, 4]);
+//! let _e = prop_random_entity(&mut u, None).unwrap();
+//! let _r = prop_random_relationship(&mut u, None).unwrap();
+//! ```
+
 use arbitrary::{Arbitrary, Unstructured};
 use arbtest::arbtest;
 use std::collections::HashMap;

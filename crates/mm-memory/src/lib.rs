@@ -17,3 +17,6 @@ pub use repository::MemoryRepository;
 pub use repository::MockMemoryRepository;
 pub use service::MemoryService;
 pub use validation_error::{ValidationError, ValidationErrorKind};
+
+#[cfg(test)]
+pub mod test_helpers;
