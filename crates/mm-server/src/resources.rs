@@ -125,3 +125,57 @@ mod tests {
         assert_eq!(err.message, "Unsupported URI");
     }
 }
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use arbitrary::{Arbitrary, Unstructured};
+    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
+    use mm_utils::prop::{NonEmptyName, async_arbtest};
+    use std::sync::Arc;
+
+    #[test]
+    fn prop_read_resource_not_found() {
+        async_arbtest(|rt, u| {
+            let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+            let uri = format!("memory://{}", name);
+            let mut mock = MockMemoryRepository::new();
+            let name_clone = name.clone();
+            mock.expect_find_entity_by_name()
+                .withf(move |n| n == name_clone)
+                .returning(|_| Ok(None));
+            let service = MemoryService::new(mock, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let err = rt.block_on(read_resource(&ports, &uri)).unwrap_err();
+            assert_eq!(err.message, format!("Entity '{}' not found", name));
+            Ok(())
+        });
+    }
+
+    #[derive(Debug)]
+    struct InvalidUri(String);
+
+    impl<'a> Arbitrary<'a> for InvalidUri {
+        fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+            let mut s: String = Arbitrary::arbitrary(u)?;
+            if s.starts_with("memory://") {
+                s.insert(0, 'x');
+            }
+            Ok(InvalidUri(s))
+        }
+    }
+
+    #[test]
+    fn prop_read_resource_invalid_prefix() {
+        async_arbtest(|rt, u| {
+            let InvalidUri(uri) = InvalidUri::arbitrary(u)?;
+            let mut mock = MockMemoryRepository::new();
+            mock.expect_find_entity_by_name().never();
+            let service = MemoryService::new(mock, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let err = rt.block_on(read_resource(&ports, &uri)).unwrap_err();
+            assert_eq!(err.message, "Unsupported URI");
+            Ok(())
+        });
+    }
+}
