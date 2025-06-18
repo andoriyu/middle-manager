@@ -56,7 +56,7 @@ mod tests {
     impl<'a> Arbitrary<'a> for NonSnakeCaseString {
         fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
             let len = u.int_in_range::<usize>(1..=20)?;
-            let invalid_pos = u.int_in_range::<usize>(0..=len - 1)?;
+            let invalid_pos = u.int_in_range::<usize>(0..len)?;
             let mut s = String::new();
             for i in 0..len {
                 let c = if i == invalid_pos {
