@@ -24,3 +24,17 @@ where
         f(&rt, u)
     });
 }
+
+/// Generate a short lowercase ASCII string.
+///
+/// This helper limits the produced string to eight characters so tests remain
+/// efficient even with arbitrarily large inputs.
+pub fn small_string(u: &mut Unstructured<'_>) -> arbitrary::Result<String> {
+    let len = usize::min(u.len(), 8);
+    let mut s = String::with_capacity(len);
+    for _ in 0..len {
+        let b = u.arbitrary::<u8>()?;
+        s.push((b % 26 + b'a') as char);
+    }
+    Ok(s)
+}
