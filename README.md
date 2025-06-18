@@ -10,6 +10,11 @@ Middle Manager is a Model Context Protocol (MCP) server that provides tools for 
 | --- | ----------- | ------- |
 | `memory://{name}` | Read a memory entity by name | `memory://tech:language:rust` |
 
+The `memory://` scheme represents **dynamic** resources: any entity name can be
+requested even though `list_resources` returns an empty list. The server
+advertises this capability through a single resource template returned by
+`list_resource_templates`.
+
 #### Tools
 
 | Name | Purpose |
@@ -59,6 +64,11 @@ graph TD
             remove_all_obs_tool["RemoveAllObservationsTool::call_tool"]
             get_tool["GetEntityTool::call_tool"]
         end
+        subgraph "resources"
+            list_res["list_resources()"]
+            list_tmpl["list_resource_templates()"]
+            read_res["read_resource()"]
+        end
         create_handler --> create_tool
         create_handler --> create_rel_tool
         create_handler --> set_obs_tool
@@ -66,6 +76,9 @@ graph TD
         create_handler --> remove_obs_tool
         create_handler --> remove_all_obs_tool
         create_handler --> get_tool
+        create_handler --> list_res
+        create_handler --> list_tmpl
+        create_handler --> read_res
     end
 
     %% mm-core details
@@ -107,6 +120,7 @@ graph TD
     remove_obs_tool --> remove_obs_op
     remove_all_obs_tool --> remove_all_obs_op
     get_tool --> get_op
+    read_res --> get_op
 ```
 
 ## Features
@@ -117,6 +131,9 @@ graph TD
 - Entity management: create and retrieve entities with labels, observations, and properties
 - Observation management: set, add, remove, or clear observations for an entity
 - Relationship management: create relationships between entities
+
+- Dynamic resources: any entity can be fetched via `memory://{name}` URIs and is
+  advertised through `list_resource_templates`
 
 - **Configurable Logging**: Control log level and file output
 
