@@ -35,7 +35,7 @@ inspect:
 # Run the MCP inspector with mm-cli in debug mode using local config
 inspect-debug:
     npx @modelcontextprotocol/inspector cargo run -p mm-cli -- --config config/local.toml --log-level debug
-    
+
 # Delete Neo4j data and logs volumes
 clean-neo4j:
     docker compose down
@@ -43,6 +43,8 @@ clean-neo4j:
 
 # Validate code with lints, formatting, and unit tests
 validate:
-    just clippy
     just fmt
+    cargo clean
+    just clippy
     cargo test --workspace --lib
+    cargo check --workspace --tests
