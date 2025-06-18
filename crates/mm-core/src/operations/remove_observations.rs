@@ -99,7 +99,7 @@ mod tests {
             let name_clone = name.clone();
             let obs_clone = observations.clone();
             mock.expect_remove_observations()
-                .withf(move |n, o| n == &name_clone && o == &obs_clone)
+                .withf(move |n, o| n == name_clone && o == obs_clone.as_slice())
                 .returning(|_, _| Ok(()));
             let service = MemoryService::new(mock, MemoryConfig::default());
             let ports = Ports::new(Arc::new(service));

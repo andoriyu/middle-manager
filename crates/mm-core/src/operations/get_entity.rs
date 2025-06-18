@@ -146,7 +146,7 @@ mod tests {
             let name_clone = name.clone();
             mock_repo
                 .expect_find_entity_by_name()
-                .withf(move |n| n == &name_clone)
+                .withf(move |n| n == name_clone)
                 .returning(|_| Ok(None));
             let service = MemoryService::new(mock_repo, MemoryConfig::default());
             let ports = Ports::new(Arc::new(service));

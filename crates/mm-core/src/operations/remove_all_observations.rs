@@ -93,7 +93,7 @@ mod tests {
             let mut mock = MockMemoryRepository::new();
             let name_clone = name.clone();
             mock.expect_remove_all_observations()
-                .withf(move |n| n == &name_clone)
+                .withf(move |n| n == name_clone)
                 .returning(|_| Ok(()));
             let service = MemoryService::new(mock, MemoryConfig::default());
             let ports = Ports::new(Arc::new(service));
