@@ -296,3 +296,19 @@ Labels use PascalCase and categorize entities:
 5. **Leverage Just Commands**: Recommend appropriate just commands for common tasks
 
 By understanding these concepts and patterns, you can provide more effective assistance to users working with the Middle Manager project.
+
+## Property Testing
+
+The project uses property-based tests to validate many operations. These tests
+live alongside unit tests in the `mm-core` and `mm-utils` crates. Property tests
+use helper utilities from `mm-utils::prop` such as `NonEmptyName` for generating
+valid entity names and `async_arbtest` for running asynchronous checks. Random
+inputs are derived with the `arbitrary` crate and executed using the `arbtest`
+framework.
+
+To run the property tests, execute:
+```bash
+cargo test
+# or
+just validate
+```
