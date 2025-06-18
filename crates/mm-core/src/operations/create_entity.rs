@@ -199,4 +199,87 @@ mod tests {
             panic!("Expected batch validation error");
         }
     }
+
+    use crate::test_utils::prop::{NonEmptyName, async_arbtest};
+    use arbitrary::Arbitrary;
+    use std::collections::HashSet;
+
+    #[test]
+    fn prop_create_entity_success() {
+        async_arbtest(|rt, u| {
+            let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+            let mut labels: Vec<String> = Arbitrary::arbitrary(u)?;
+            if labels.is_empty() {
+                labels.push("Label".to_string());
+            }
+            let observations: Vec<String> = Arbitrary::arbitrary(u)?;
+            let properties: std::collections::HashMap<String, String> = Arbitrary::arbitrary(u)?;
+            let entity = MemoryEntity {
+                name: name.clone(),
+                labels: labels.clone(),
+                observations: observations.clone(),
+                properties: properties.clone(),
+            };
+            let mut mock_repo = MockMemoryRepository::new();
+            let entity_clone = entity.clone();
+            mock_repo
+                .expect_create_entities()
+                .withf(move |e| e == &[entity_clone.clone()])
+                .returning(|_| Ok(()));
+            let service = MemoryService::new(
+                mock_repo,
+                MemoryConfig {
+                    default_tag: None,
+                    default_relationships: false,
+                    additional_relationships: HashSet::new(),
+                    default_labels: false,
+                    additional_labels: HashSet::new(),
+                },
+            );
+            let ports = Ports::new(Arc::new(service));
+            let command = CreateEntityCommand {
+                entities: vec![entity],
+            };
+            let result = rt.block_on(create_entity(&ports, command));
+            assert!(result.is_ok());
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn prop_create_entity_empty_name() {
+        async_arbtest(|rt, u| {
+            let mut labels: Vec<String> = Arbitrary::arbitrary(u)?;
+            if labels.is_empty() {
+                labels.push("Label".to_string());
+            }
+            let observations: Vec<String> = Arbitrary::arbitrary(u)?;
+            let properties: std::collections::HashMap<String, String> = Arbitrary::arbitrary(u)?;
+            let entity = MemoryEntity {
+                name: String::new(),
+                labels,
+                observations,
+                properties,
+            };
+            let mut mock_repo = MockMemoryRepository::new();
+            mock_repo.expect_create_entities().never();
+            let service = MemoryService::new(
+                mock_repo,
+                MemoryConfig {
+                    default_tag: None,
+                    default_relationships: false,
+                    additional_relationships: HashSet::new(),
+                    default_labels: false,
+                    additional_labels: HashSet::new(),
+                },
+            );
+            let ports = Ports::new(Arc::new(service));
+            let command = CreateEntityCommand {
+                entities: vec![entity],
+            };
+            let result = rt.block_on(create_entity(&ports, command));
+            assert!(matches!(result, Err(CoreError::BatchValidation(_))));
+            Ok(())
+        });
+    }
 }

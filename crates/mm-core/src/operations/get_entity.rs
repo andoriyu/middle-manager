@@ -134,4 +134,42 @@ mod tests {
         let result = get_entity(&ports, command).await.unwrap();
         assert!(result.is_none());
     }
+
+    use crate::test_utils::prop::{NonEmptyName, async_arbtest};
+    use arbitrary::Arbitrary;
+
+    #[test]
+    fn prop_get_entity_success() {
+        async_arbtest(|rt, u| {
+            let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+            let mut mock_repo = MockMemoryRepository::new();
+            let name_clone = name.clone();
+            mock_repo
+                .expect_find_entity_by_name()
+                .withf(move |n| n == &name_clone)
+                .returning(|_| Ok(None));
+            let service = MemoryService::new(mock_repo, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let command = GetEntityCommand { name };
+            let result = rt.block_on(get_entity(&ports, command));
+            assert!(result.is_ok());
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn prop_get_entity_empty_name() {
+        async_arbtest(|rt, _| {
+            let mut mock_repo = MockMemoryRepository::new();
+            mock_repo.expect_find_entity_by_name().never();
+            let service = MemoryService::new(mock_repo, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let command = GetEntityCommand {
+                name: String::new(),
+            };
+            let result = rt.block_on(get_entity(&ports, command));
+            assert!(matches!(result, Err(CoreError::Validation(_))));
+            Ok(())
+        });
+    }
 }

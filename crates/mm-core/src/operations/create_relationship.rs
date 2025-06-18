@@ -177,4 +177,80 @@ mod tests {
             panic!("Expected batch validation error");
         }
     }
+
+    use crate::test_utils::prop::{NonEmptyName, NonEmptySnakeCase, async_arbtest};
+    use arbitrary::Arbitrary;
+    use std::collections::HashSet;
+
+    #[test]
+    fn prop_create_relationship_success() {
+        async_arbtest(|rt, u| {
+            let NonEmptyName(from) = NonEmptyName::arbitrary(u)?;
+            let NonEmptyName(to) = NonEmptyName::arbitrary(u)?;
+            let NonEmptySnakeCase(name) = NonEmptySnakeCase::arbitrary(u)?;
+            let properties: std::collections::HashMap<String, String> = Arbitrary::arbitrary(u)?;
+            let rel = MemoryRelationship {
+                from: from.clone(),
+                to: to.clone(),
+                name: name.clone(),
+                properties: properties.clone(),
+            };
+            let mut mock = MockMemoryRepository::new();
+            let rel_clone = rel.clone();
+            mock.expect_create_relationships()
+                .withf(move |r| r == &[rel_clone.clone()])
+                .returning(|_| Ok(()));
+            let service = MemoryService::new(
+                mock,
+                MemoryConfig {
+                    default_tag: None,
+                    default_relationships: false,
+                    additional_relationships: HashSet::new(),
+                    default_labels: false,
+                    additional_labels: HashSet::new(),
+                },
+            );
+            let ports = Ports::new(Arc::new(service));
+            let command = CreateRelationshipCommand {
+                relationships: vec![rel],
+            };
+            let result = rt.block_on(create_relationship(&ports, command));
+            assert!(result.is_ok());
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn prop_create_relationship_empty_from() {
+        async_arbtest(|rt, u| {
+            let NonEmptyName(to) = NonEmptyName::arbitrary(u)?;
+            let NonEmptySnakeCase(name) = NonEmptySnakeCase::arbitrary(u)?;
+            let properties: std::collections::HashMap<String, String> = Arbitrary::arbitrary(u)?;
+            let rel = MemoryRelationship {
+                from: String::new(),
+                to,
+                name,
+                properties,
+            };
+            let mut mock = MockMemoryRepository::new();
+            mock.expect_create_relationships().never();
+            let service = MemoryService::new(
+                mock,
+                MemoryConfig {
+                    default_tag: None,
+                    default_relationships: false,
+                    additional_relationships: HashSet::new(),
+                    default_labels: false,
+                    additional_labels: HashSet::new(),
+                },
+            );
+            let ports = Ports::new(Arc::new(service));
+            let command = CreateRelationshipCommand {
+                relationships: vec![rel],
+            };
+            let result = rt.block_on(create_relationship(&ports, command));
+            assert!(matches!(result, Err(CoreError::BatchValidation(_))));
+            Ok(())
+        });
+    }
 }
