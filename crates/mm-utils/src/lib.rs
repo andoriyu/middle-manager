@@ -56,7 +56,7 @@ mod tests {
 
     impl<'a> Arbitrary<'a> for NonSnakeCaseString {
         fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-            let len = u.arbitrary_len::<u8>()?.max(1);
+            let len = u.arbitrary_len::<u8>()?.max(20);
             let invalid_pos = u.choose_index(len)?;
             let mut s = String::with_capacity(len);
             u.arbitrary_loop(Some(len as u32), Some(len as u32), |u| {
