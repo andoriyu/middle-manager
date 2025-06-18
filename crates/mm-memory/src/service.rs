@@ -39,8 +39,8 @@ where
         &self,
         entities: &[MemoryEntity],
     ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
-        let mut errors = Vec::new();
-        let mut valid = Vec::new();
+        let mut errors = Vec::default();
+        let mut valid = Vec::default();
 
         for entity in entities {
             let mut tagged = entity.clone();
@@ -50,7 +50,7 @@ where
                 }
             }
 
-            let mut errs = Vec::new();
+            let mut errs = Vec::default();
             if tagged.name.is_empty() {
                 errs.push(ValidationErrorKind::EmptyEntityName);
             }
@@ -137,11 +137,11 @@ where
         &self,
         relationships: &[MemoryRelationship],
     ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
-        let mut errors = Vec::new();
-        let mut valid = Vec::new();
+        let mut errors = Vec::default();
+        let mut valid = Vec::default();
 
         for rel in relationships {
-            let mut errs = Vec::new();
+            let mut errs = Vec::default();
             if rel.from.is_empty() || rel.to.is_empty() {
                 errs.push(ValidationErrorKind::EmptyEntityName);
             }
@@ -191,16 +191,16 @@ mod tests {
             MemoryConfig {
                 default_tag: Some("Memory".to_string()),
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: false,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
             observations: vec![],
-            properties: std::collections::HashMap::new(),
+            properties: std::collections::HashMap::default(),
         };
 
         let result = service
@@ -222,16 +222,16 @@ mod tests {
             MemoryConfig {
                 default_tag: None,
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: false,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
             observations: vec![],
-            properties: std::collections::HashMap::new(),
+            properties: std::collections::HashMap::default(),
         };
 
         let result = service
@@ -257,9 +257,9 @@ mod tests {
             MemoryConfig {
                 default_tag: Some("Memory".to_string()),
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: false,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -267,7 +267,7 @@ mod tests {
             name: "test:entity".to_string(),
             labels: vec![],
             observations: vec![],
-            properties: std::collections::HashMap::new(),
+            properties: std::collections::HashMap::default(),
         };
 
         let errors = service
@@ -287,9 +287,9 @@ mod tests {
             MemoryConfig {
                 default_tag: None,
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: false,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -297,7 +297,7 @@ mod tests {
             name: "test:entity".to_string(),
             labels: vec![],
             observations: vec![],
-            properties: std::collections::HashMap::new(),
+            properties: std::collections::HashMap::default(),
         };
 
         let result = service
@@ -323,9 +323,9 @@ mod tests {
             MemoryConfig {
                 default_tag: Some("Custom".to_string()),
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: true,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -333,7 +333,7 @@ mod tests {
             name: "test:entity".to_string(),
             labels: vec![],
             observations: vec![],
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         let result = service
@@ -353,9 +353,9 @@ mod tests {
             MemoryConfig {
                 default_tag: None,
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: true,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -363,7 +363,7 @@ mod tests {
             name: "test:entity".to_string(),
             labels: vec!["Unknown".to_string()],
             observations: vec![],
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         let result = service
@@ -386,9 +386,9 @@ mod tests {
             MemoryConfig {
                 default_tag: None,
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: true,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -396,7 +396,7 @@ mod tests {
             from: "a".to_string(),
             to: "b".to_string(),
             name: "relates_to".to_string(),
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         let errors = service
@@ -415,9 +415,9 @@ mod tests {
             MemoryConfig {
                 default_tag: None,
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: true,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -425,7 +425,7 @@ mod tests {
             from: "a".to_string(),
             to: "b".to_string(),
             name: "custom_rel".to_string(),
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         let result = service
@@ -451,9 +451,9 @@ mod tests {
             MemoryConfig {
                 default_tag: Some("Memory".to_string()),
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: false,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -461,7 +461,7 @@ mod tests {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
             observations: vec![],
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         let result = service.create_entities(std::slice::from_ref(&entity)).await;
@@ -479,9 +479,9 @@ mod tests {
             MemoryConfig {
                 default_tag: None,
                 default_relationships: true,
-                additional_relationships: HashSet::new(),
+                additional_relationships: HashSet::default(),
                 default_labels: true,
-                additional_labels: HashSet::new(),
+                additional_labels: HashSet::default(),
             },
         );
 
@@ -489,7 +489,7 @@ mod tests {
             from: "a".to_string(),
             to: "b".to_string(),
             name: "relates_to".to_string(),
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         let result = service
@@ -533,7 +533,7 @@ mod tests {
                 let idx = u.int_in_range::<usize>(0..=DEFAULT_LABELS.len() - 1)?;
                 let label = DEFAULT_LABELS[idx].to_string();
                 let mut entity = prop_random_entity(u, Some(label))?;
-                entity.name = String::new();
+                entity.name = String::default();
 
                 let mut mock = MockMemoryRepository::new();
                 mock.expect_create_entities().never();

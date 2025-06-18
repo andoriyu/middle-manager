@@ -119,7 +119,7 @@ mod tests {
             let service = MemoryService::new(mock, MemoryConfig::default());
             let ports = Ports::new(Arc::new(service));
             let command = SetObservationsCommand {
-                name: String::new(),
+                name: String::default(),
                 observations,
             };
             let result = rt.block_on(set_observations(&ports, command));

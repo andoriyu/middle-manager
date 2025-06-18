@@ -72,9 +72,9 @@ impl MemoryRepository for Neo4jRepository {
             return Ok(());
         }
 
-        let mut batch: Vec<HashMap<String, neo4rs::BoltType>> = Vec::new();
+        let mut batch: Vec<HashMap<String, neo4rs::BoltType>> = Vec::default();
         for entity in entities {
-            let mut props: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            let mut props: HashMap<String, neo4rs::BoltType> = HashMap::default();
             props.insert("name".to_string(), entity.name.clone().into());
             let observations_json = serde_json::to_string(&entity.observations)?;
             props.insert("observations".to_string(), observations_json.into());
@@ -82,7 +82,7 @@ impl MemoryRepository for Neo4jRepository {
                 props.insert(k.clone(), v.clone().into());
             }
 
-            let mut row: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            let mut row: HashMap<String, neo4rs::BoltType> = HashMap::default();
             row.insert("labels".to_string(), entity.labels.clone().into());
             row.insert("props".to_string(), props.into());
             batch.push(row);
@@ -167,7 +167,7 @@ impl MemoryRepository for Neo4jRepository {
             let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
             // Extract all other properties
-            let mut properties = HashMap::new();
+            let mut properties = HashMap::default();
             for key in node.keys() {
                 if key != "name" && key != "observations" {
                     if let Ok(value) = node.get::<String>(key) {
@@ -221,7 +221,7 @@ impl MemoryRepository for Neo4jRepository {
     ) -> MemoryResult<(), Self::Error> {
         let mut current = match self.find_entity_by_name(name).await? {
             Some(e) => e.observations,
-            None => Vec::new(),
+            None => Vec::default(),
         };
         current.extend_from_slice(observations);
         self.set_observations(name, &current).await
@@ -240,7 +240,7 @@ impl MemoryRepository for Neo4jRepository {
     ) -> MemoryResult<(), Self::Error> {
         let mut current = match self.find_entity_by_name(name).await? {
             Some(e) => e.observations,
-            None => Vec::new(),
+            None => Vec::default(),
         };
         current.retain(|o| !observations.contains(o));
         self.set_observations(name, &current).await
@@ -255,14 +255,14 @@ impl MemoryRepository for Neo4jRepository {
             return Ok(());
         }
 
-        let mut rows: Vec<HashMap<String, neo4rs::BoltType>> = Vec::new();
+        let mut rows: Vec<HashMap<String, neo4rs::BoltType>> = Vec::default();
         for rel in relationships {
-            let mut props: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            let mut props: HashMap<String, neo4rs::BoltType> = HashMap::default();
             for (k, v) in &rel.properties {
                 props.insert(k.clone(), v.clone().into());
             }
 
-            let mut row: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            let mut row: HashMap<String, neo4rs::BoltType> = HashMap::default();
             row.insert("from".to_string(), rel.from.clone().into());
             row.insert("to".to_string(), rel.to.clone().into());
             row.insert("name".to_string(), rel.name.clone().into());
