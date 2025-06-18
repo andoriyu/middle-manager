@@ -511,7 +511,7 @@ mod tests {
                 let idx = u.int_in_range::<usize>(0..=DEFAULT_LABELS.len() - 1)?;
                 let label = DEFAULT_LABELS[idx].to_string();
                 let mut entity = prop_random_entity(u, Some(label))?;
-                entity.name = name.clone();
+                entity.name.clone_from(&name);
 
                 let mut mock = MockMemoryRepository::new();
                 let name_clone = name.clone();
@@ -569,7 +569,7 @@ mod tests {
                     Ok(e) => e,
                     Err(_) => return Ok(()),
                 };
-                entity.name = name.clone();
+                entity.name.clone_from(&name);
 
                 let mut mock = MockMemoryRepository::new();
                 mock.expect_create_entities().never();
@@ -606,8 +606,8 @@ mod tests {
                     Ok(r) => r,
                     Err(_) => return Ok(()),
                 };
-                rel.from = from.clone();
-                rel.to = to.clone();
+                rel.from.clone_from(&from);
+                rel.to.clone_from(&to);
 
                 let mut mock = MockMemoryRepository::new();
                 let from_clone = from.clone();
@@ -692,8 +692,8 @@ mod tests {
                     Ok(r) => r,
                     Err(_) => return Ok(()),
                 };
-                rel.from = from.clone();
-                rel.to = to.clone();
+                rel.from.clone_from(&from);
+                rel.to.clone_from(&to);
 
                 let mut mock = MockMemoryRepository::new();
                 mock.expect_create_relationships().never();
