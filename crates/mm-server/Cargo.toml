@@ -26,3 +26,5 @@ config = "0.15.11"
 mm-memory = { path = "../mm-memory", features = ["mock"] }
 tokio = { workspace = true, features = ["full", "test-util"] }
 mockall = { workspace = true }
+mm-utils = { path = "../mm-utils" }
+arbitrary = { workspace = true }
