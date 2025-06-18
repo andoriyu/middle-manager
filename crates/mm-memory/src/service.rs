@@ -505,7 +505,7 @@ mod tests {
 
         impl<'a> Arbitrary<'a> for MemoryEntity {
             fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-                if u.len() == 0 {
+                if u.is_empty() {
                     return Ok(Self {
                         name: String::new(),
                         labels: Vec::new(),
@@ -540,7 +540,7 @@ mod tests {
 
         impl<'a> Arbitrary<'a> for MemoryRelationship {
             fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-                if u.len() == 0 {
+                if u.is_empty() {
                     return Ok(Self {
                         from: String::new(),
                         to: String::new(),
