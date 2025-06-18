@@ -135,8 +135,8 @@ mod tests {
         assert!(result.is_none());
     }
 
-    use crate::test_utils::prop::{NonEmptyName, async_arbtest};
     use arbitrary::Arbitrary;
+    use mm_utils::prop::{NonEmptyName, async_arbtest};
 
     #[test]
     fn prop_get_entity_success() {

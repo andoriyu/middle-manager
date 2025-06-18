@@ -83,8 +83,8 @@ mod tests {
         assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 
-    use crate::test_utils::prop::{NonEmptyName, async_arbtest};
     use arbitrary::Arbitrary;
+    use mm_utils::prop::{NonEmptyName, async_arbtest};
 
     #[test]
     fn prop_remove_all_observations_success() {

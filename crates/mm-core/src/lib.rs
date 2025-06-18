@@ -10,9 +10,6 @@ pub mod error;
 mod operations;
 mod ports;
 
-#[cfg(test)]
-mod test_utils;
-
 pub use error::{CoreError, CoreResult};
 pub use mm_memory::MemoryService;
 pub use operations::{
