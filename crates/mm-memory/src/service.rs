@@ -307,7 +307,7 @@ mod tests {
         let rel = MemoryRelationship {
             from: "a".to_string(),
             to: "b".to_string(),
-            name: "related_to".to_string(),
+            name: "relates_to".to_string(),
             properties: HashMap::new(),
         };
 
@@ -394,7 +394,7 @@ mod tests {
         let rel = MemoryRelationship {
             from: "a".to_string(),
             to: "b".to_string(),
-            name: "related_to".to_string(),
+            name: "relates_to".to_string(),
             properties: HashMap::new(),
         };
 

@@ -288,7 +288,7 @@ async fn test_create_relationship() {
     let rel = MemoryRelationship {
         from: a.name.clone(),
         to: b.name.clone(),
-        name: "related_to".to_string(),
+        name: "relates_to".to_string(),
         properties: HashMap::new(),
     };
 

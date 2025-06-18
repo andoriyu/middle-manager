@@ -63,7 +63,7 @@ mod tests {
     async fn test_call_tool_success() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_relationships()
-            .withf(|rels| rels.len() == 1 && rels[0].name == "related_to")
+            .withf(|rels| rels.len() == 1 && rels[0].name == "relates_to")
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
@@ -73,7 +73,7 @@ mod tests {
             relationships: vec![RelationshipInput {
                 from: "a".to_string(),
                 to: "b".to_string(),
-                name: "related_to".to_string(),
+                name: "relates_to".to_string(),
                 properties: Some(HashMap::new()),
             }],
         };
@@ -96,7 +96,7 @@ mod tests {
             relationships: vec![RelationshipInput {
                 from: "a".to_string(),
                 to: "b".to_string(),
-                name: "related_to".to_string(),
+                name: "relates_to".to_string(),
                 properties: Some(HashMap::new()),
             }],
         };
