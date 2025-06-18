@@ -59,7 +59,10 @@ where
             }
             if self.config.default_labels {
                 for label in &tagged.labels {
-                    if !DEFAULT_LABELS.contains(&label.as_str())
+                    let allowed_default_tag =
+                        self.config.default_tag.as_deref() == Some(label.as_str());
+                    if !allowed_default_tag
+                        && !DEFAULT_LABELS.contains(&label.as_str())
                         && !self.config.additional_labels.contains(label)
                     {
                         errs.push(ValidationErrorKind::UnknownLabel(label.clone()));
@@ -306,6 +309,38 @@ mod tests {
                 && e.0
                     .contains(&ValidationErrorKind::NoLabels("test:entity".to_string()))
         }));
+    }
+
+    #[tokio::test]
+    async fn test_default_tag_allowed_with_label_validation() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_entities()
+            .withf(|e| e.len() == 1 && e[0].labels == ["Custom".to_string()])
+            .returning(|_| Ok(()));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: Some("Custom".to_string()),
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+                default_labels: true,
+                additional_labels: HashSet::new(),
+            },
+        );
+
+        let entity = MemoryEntity {
+            name: "test:entity".to_string(),
+            labels: vec![],
+            observations: vec![],
+            properties: HashMap::new(),
+        };
+
+        let result = service
+            .create_entities(std::slice::from_ref(&entity))
+            .await
+            .unwrap();
+        assert!(result.is_empty());
     }
 
     #[tokio::test]
