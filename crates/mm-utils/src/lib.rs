@@ -29,14 +29,15 @@ mod tests {
     use super::is_snake_case;
     use arbitrary::{Arbitrary, Unstructured};
     use arbtest::arbtest;
+    use std::ops::ControlFlow;
 
     #[derive(Debug)]
     struct SnakeCaseString(String);
 
     impl<'a> Arbitrary<'a> for SnakeCaseString {
         fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-            let len = u.int_in_range::<usize>(0..=20)?;
-            let mut s = String::default();
+            let len = u.arbitrary_len::<u8>()?;
+            let mut s = String::with_capacity(len);
             for _ in 0..len {
                 let choice = u.int_in_range::<u8>(0..=36)?;
                 let c = match choice {
@@ -55,28 +56,37 @@ mod tests {
 
     impl<'a> Arbitrary<'a> for NonSnakeCaseString {
         fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-            let len = u.int_in_range::<usize>(1..=20)?;
-            let invalid_pos = u.int_in_range::<usize>(0..=len - 1)?;
-            let mut s = String::default();
-            for i in 0..len {
-                let c = if i == invalid_pos {
-                    let choice = u.int_in_range::<u8>(0..=26)?;
-                    match choice {
-                        0..=25 => (b'A' + choice) as char,
-                        _ => '-',
-                    }
+            let len = u.arbitrary_len::<u8>()?.max(20);
+            let invalid_pos = u.choose_index(len)?;
+            let mut s = String::with_capacity(len);
+            u.arbitrary_loop(Some(len as u32), Some(len as u32), |u| {
+                let c = if s.len() == invalid_pos {
+                    generate_invalid_char(u)?
                 } else {
-                    let choice = u.int_in_range::<u8>(0..=36)?;
-                    match choice {
-                        0..=25 => (b'a' + choice) as char,
-                        26 => '_',
-                        _ => (b'0' + (choice - 27)) as char,
-                    }
+                    generate_valid_char(u)?
                 };
                 s.push(c);
-            }
+                Ok(ControlFlow::Continue(()))
+            })?;
             Ok(NonSnakeCaseString(s))
         }
+    }
+
+    fn generate_invalid_char(u: &mut Unstructured<'_>) -> arbitrary::Result<char> {
+        let choice = u.int_in_range::<u8>(0..=26)?;
+        Ok(match choice {
+            0..=25 => (b'A' + choice) as char,
+            _ => '-',
+        })
+    }
+
+    fn generate_valid_char(u: &mut Unstructured<'_>) -> arbitrary::Result<char> {
+        let choice = u.int_in_range::<u8>(0..=36)?;
+        Ok(match choice {
+            0..=25 => (b'a' + choice) as char,
+            26 => '_',
+            _ => (b'0' + (choice - 27)) as char,
+        })
     }
 
     #[test]
