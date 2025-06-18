@@ -498,7 +498,7 @@ mod tests {
         assert!(matches!(result, Err(crate::MemoryError::QueryError { .. })));
     }
 
-    mod prop {
+    mod prop_tests {
         use super::*;
         use arbitrary::{Arbitrary, Unstructured};
         use mm_utils::prop::{self, NonEmptyName, async_arbtest};
@@ -514,21 +514,9 @@ mod tests {
                     });
                 }
                 let name = prop::small_string(u)?;
-                let label_count = u.int_in_range::<usize>(0..=3)?;
-                let mut labels = Vec::new();
-                for _ in 0..label_count {
-                    labels.push(prop::small_string(u)?);
-                }
-                let obs_count = u.int_in_range::<usize>(0..=3)?;
-                let mut observations = Vec::new();
-                for _ in 0..obs_count {
-                    observations.push(prop::small_string(u)?);
-                }
-                let prop_count = u.int_in_range::<usize>(0..=3)?;
-                let mut properties = std::collections::HashMap::new();
-                for _ in 0..prop_count {
-                    properties.insert(prop::small_string(u)?, prop::small_string(u)?);
-                }
+                let labels = prop::small_string_vec(u, 3)?;
+                let observations = prop::small_string_vec(u, 3)?;
+                let properties = prop::small_string_map(u, 3)?;
                 Ok(Self {
                     name,
                     labels,
@@ -551,11 +539,7 @@ mod tests {
                 let from = prop::small_string(u)?;
                 let to = prop::small_string(u)?;
                 let name = prop::small_string(u)?;
-                let prop_count = u.int_in_range::<usize>(0..=3)?;
-                let mut properties = std::collections::HashMap::new();
-                for _ in 0..prop_count {
-                    properties.insert(prop::small_string(u)?, prop::small_string(u)?);
-                }
+                let properties = prop::small_string_map(u, 3)?;
                 Ok(Self {
                     from,
                     to,
