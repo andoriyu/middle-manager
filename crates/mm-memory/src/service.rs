@@ -500,54 +500,9 @@ mod tests {
 
     mod prop_tests {
         use super::*;
-        use arbitrary::{Arbitrary, Unstructured};
-        use mm_utils::prop::{self, NonEmptyName, async_arbtest};
-
-        impl<'a> Arbitrary<'a> for MemoryEntity {
-            fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-                if u.is_empty() {
-                    return Ok(Self {
-                        name: String::new(),
-                        labels: Vec::new(),
-                        observations: Vec::new(),
-                        properties: std::collections::HashMap::new(),
-                    });
-                }
-                let name = prop::small_string(u)?;
-                let labels = prop::small_string_vec(u, 3)?;
-                let observations = prop::small_string_vec(u, 3)?;
-                let properties = prop::small_string_map(u, 3)?;
-                Ok(Self {
-                    name,
-                    labels,
-                    observations,
-                    properties,
-                })
-            }
-        }
-
-        impl<'a> Arbitrary<'a> for MemoryRelationship {
-            fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-                if u.is_empty() {
-                    return Ok(Self {
-                        from: String::new(),
-                        to: String::new(),
-                        name: String::new(),
-                        properties: std::collections::HashMap::new(),
-                    });
-                }
-                let from = prop::small_string(u)?;
-                let to = prop::small_string(u)?;
-                let name = prop::small_string(u)?;
-                let properties = prop::small_string_map(u, 3)?;
-                Ok(Self {
-                    from,
-                    to,
-                    name,
-                    properties,
-                })
-            }
-        }
+        use crate::test_helpers::{prop_random_entity, prop_random_relationship};
+        use arbitrary::Arbitrary;
+        use mm_utils::prop::{NonEmptyName, async_arbtest};
 
         #[test]
         fn prop_create_entities_success() {
@@ -555,9 +510,8 @@ mod tests {
                 let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
                 let idx = u.int_in_range::<usize>(0..=DEFAULT_LABELS.len() - 1)?;
                 let label = DEFAULT_LABELS[idx].to_string();
-                let mut entity = MemoryEntity::arbitrary(u)?;
+                let mut entity = prop_random_entity(u, Some(label))?;
                 entity.name = name.clone();
-                entity.labels = vec![label];
 
                 let mut mock = MockMemoryRepository::new();
                 let name_clone = name.clone();
@@ -578,9 +532,8 @@ mod tests {
             async_arbtest(|rt, u| {
                 let idx = u.int_in_range::<usize>(0..=DEFAULT_LABELS.len() - 1)?;
                 let label = DEFAULT_LABELS[idx].to_string();
-                let mut entity = MemoryEntity::arbitrary(u)?;
+                let mut entity = prop_random_entity(u, Some(label))?;
                 entity.name = String::new();
-                entity.labels = vec![label];
 
                 let mut mock = MockMemoryRepository::new();
                 mock.expect_create_entities().never();
@@ -612,12 +565,11 @@ mod tests {
                 {
                     label.push_str("_x");
                 }
-                let mut entity = match MemoryEntity::arbitrary(u) {
+                let mut entity = match prop_random_entity(u, Some(label.clone())) {
                     Ok(e) => e,
                     Err(_) => return Ok(()),
                 };
                 entity.name = name.clone();
-                entity.labels = vec![label.clone()];
 
                 let mut mock = MockMemoryRepository::new();
                 mock.expect_create_entities().never();
@@ -650,13 +602,12 @@ mod tests {
                     Err(_) => return Ok(()),
                 };
                 let name = DEFAULT_RELATIONSHIPS[idx].to_string();
-                let mut rel = match MemoryRelationship::arbitrary(u) {
+                let mut rel = match prop_random_relationship(u, Some(name.clone())) {
                     Ok(r) => r,
                     Err(_) => return Ok(()),
                 };
                 rel.from = from.clone();
                 rel.to = to.clone();
-                rel.name = name.clone();
 
                 let mut mock = MockMemoryRepository::new();
                 let from_clone = from.clone();
@@ -696,13 +647,12 @@ mod tests {
                 };
                 let mut name = DEFAULT_RELATIONSHIPS[idx].to_string();
                 name.push('A');
-                let mut rel = match MemoryRelationship::arbitrary(u) {
+                let mut rel = match prop_random_relationship(u, Some(name.clone())) {
                     Ok(r) => r,
                     Err(_) => return Ok(()),
                 };
                 rel.from = from;
                 rel.to = to;
-                rel.name = name.clone();
 
                 let mut mock = MockMemoryRepository::new();
                 mock.expect_create_relationships().never();
@@ -738,13 +688,12 @@ mod tests {
                 };
                 let mut name = DEFAULT_RELATIONSHIPS[idx].to_string();
                 name.push_str("_extra");
-                let mut rel = match MemoryRelationship::arbitrary(u) {
+                let mut rel = match prop_random_relationship(u, Some(name.clone())) {
                     Ok(r) => r,
                     Err(_) => return Ok(()),
                 };
                 rel.from = from.clone();
                 rel.to = to.clone();
-                rel.name = name.clone();
 
                 let mut mock = MockMemoryRepository::new();
                 mock.expect_create_relationships().never();
