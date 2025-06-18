@@ -28,7 +28,7 @@ async fn test_find_nonexistent_entity() {
         MemoryConfig {
             default_tag: Some("TestFindNone".to_string()),
             default_relationships: true,
-            additional_relationships: std::collections::HashSet::new(),
+            additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
         },
@@ -57,7 +57,7 @@ async fn test_create_and_find_entity() {
         MemoryConfig {
             default_tag: Some("TestCreate".to_string()),
             default_relationships: true,
-            additional_relationships: std::collections::HashSet::new(),
+            additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
         },
@@ -69,7 +69,7 @@ async fn test_create_and_find_entity() {
         name: "test:entity:create".to_string(),
         labels: vec!["Example".to_string()],
         observations: vec!["This is a test entity for creation".to_string()],
-        properties: HashMap::new(),
+        properties: HashMap::default(),
     };
 
     // Test that entity creation doesn't error
@@ -107,7 +107,7 @@ async fn test_validation_errors() {
         MemoryConfig {
             default_tag: Some("TestValidation".to_string()),
             default_relationships: true,
-            additional_relationships: std::collections::HashSet::new(),
+            additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
         },
@@ -124,7 +124,7 @@ async fn test_validation_errors() {
         name: "test:entity:no_labels".to_string(),
         labels: vec![],
         observations: vec!["This entity has no labels".to_string()],
-        properties: HashMap::new(),
+        properties: HashMap::default(),
     };
 
     let result = service.create_entities(std::slice::from_ref(&entity)).await;
@@ -152,7 +152,7 @@ async fn test_set_observations() {
         MemoryConfig {
             default_tag: Some("TestSet".to_string()),
             default_relationships: true,
-            additional_relationships: std::collections::HashSet::new(),
+            additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
         },
@@ -165,7 +165,7 @@ async fn test_set_observations() {
         name: entity_name.to_string(),
         labels: vec!["Example".to_string()],
         observations: vec!["initial".to_string()],
-        properties: HashMap::new(),
+        properties: HashMap::default(),
     };
 
     service
@@ -199,7 +199,7 @@ async fn test_add_and_remove_observations() {
         MemoryConfig {
             default_tag: Some("TestAddRemove".to_string()),
             default_relationships: true,
-            additional_relationships: std::collections::HashSet::new(),
+            additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
         },
@@ -212,7 +212,7 @@ async fn test_add_and_remove_observations() {
         name: entity_name.to_string(),
         labels: vec!["Example".to_string()],
         observations: vec!["obs1".to_string(), "obs2".to_string()],
-        properties: HashMap::new(),
+        properties: HashMap::default(),
     };
 
     service
@@ -267,7 +267,7 @@ async fn test_create_relationship() {
         MemoryConfig {
             default_tag: Some("RelationshipTest".to_string()),
             default_relationships: true,
-            additional_relationships: std::collections::HashSet::new(),
+            additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
         },
@@ -279,13 +279,13 @@ async fn test_create_relationship() {
         name: "rel:a".to_string(),
         labels: vec!["Example".to_string()],
         observations: vec![],
-        properties: HashMap::new(),
+        properties: HashMap::default(),
     };
     let b = MemoryEntity {
         name: "rel:b".to_string(),
         labels: vec!["Example".to_string()],
         observations: vec![],
-        properties: HashMap::new(),
+        properties: HashMap::default(),
     };
 
     service
@@ -301,7 +301,7 @@ async fn test_create_relationship() {
         from: a.name.clone(),
         to: b.name.clone(),
         name: "relates_to".to_string(),
-        properties: HashMap::new(),
+        properties: HashMap::default(),
     };
 
     service

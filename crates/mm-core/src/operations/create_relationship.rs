@@ -55,7 +55,7 @@ mod tests {
                 from: "a".to_string(),
                 to: "b".to_string(),
                 name: "relates_to".to_string(),
-                properties: HashMap::new(),
+                properties: HashMap::default(),
             }],
         };
 
@@ -75,7 +75,7 @@ mod tests {
                 from: "a".to_string(),
                 to: "b".to_string(),
                 name: "".to_string(),
-                properties: HashMap::new(),
+                properties: HashMap::default(),
             }],
         };
 
@@ -98,7 +98,7 @@ mod tests {
                 from: "a".to_string(),
                 to: "b".to_string(),
                 name: "InvalidFormat".to_string(),
-                properties: HashMap::new(),
+                properties: HashMap::default(),
             }],
         };
 
@@ -121,7 +121,7 @@ mod tests {
                 from: "a".to_string(),
                 to: "b".to_string(),
                 name: "custom_rel".to_string(),
-                properties: HashMap::new(),
+                properties: HashMap::default(),
             }],
         };
 
@@ -146,13 +146,13 @@ mod tests {
                     from: "a".to_string(),
                     to: "b".to_string(),
                     name: "Invalid".to_string(),
-                    properties: HashMap::new(),
+                    properties: HashMap::default(),
                 },
                 MemoryRelationship {
                     from: "c".to_string(),
                     to: "d".to_string(),
                     name: "".to_string(),
-                    properties: HashMap::new(),
+                    properties: HashMap::default(),
                 },
             ],
         };

@@ -36,7 +36,7 @@ mod tests {
     impl<'a> Arbitrary<'a> for SnakeCaseString {
         fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
             let len = u.int_in_range::<usize>(0..=20)?;
-            let mut s = String::new();
+            let mut s = String::default();
             for _ in 0..len {
                 let choice = u.int_in_range::<u8>(0..=36)?;
                 let c = match choice {
@@ -57,7 +57,7 @@ mod tests {
         fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
             let len = u.int_in_range::<usize>(1..=20)?;
             let invalid_pos = u.int_in_range::<usize>(0..=len - 1)?;
-            let mut s = String::new();
+            let mut s = String::default();
             for i in 0..len {
                 let c = if i == invalid_pos {
                     let choice = u.int_in_range::<u8>(0..=26)?;

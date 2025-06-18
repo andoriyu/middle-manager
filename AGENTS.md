@@ -196,7 +196,7 @@ async fn test_get_entity_success() {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
             observations: vec!["Test observation".to_string()],
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         })));
     
     let ports = Ports::new(Arc::new(mock));

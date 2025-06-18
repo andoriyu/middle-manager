@@ -122,9 +122,9 @@ impl Default for MemoryConfig {
         Self {
             default_tag: Some(DEFAULT_MEMORY_TAG.to_string()),
             default_relationships: true,
-            additional_relationships: HashSet::new(),
+            additional_relationships: HashSet::default(),
             default_labels: true,
-            additional_labels: HashSet::new(),
+            additional_labels: HashSet::default(),
         }
     }
 }

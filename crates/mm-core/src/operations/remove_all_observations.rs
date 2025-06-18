@@ -112,7 +112,7 @@ mod tests {
             let service = MemoryService::new(mock, MemoryConfig::default());
             let ports = Ports::new(Arc::new(service));
             let command = RemoveAllObservationsCommand {
-                name: String::new(),
+                name: String::default(),
             };
             let result = rt.block_on(remove_all_observations(&ports, command));
             assert!(matches!(result, Err(CoreError::Validation(_))));

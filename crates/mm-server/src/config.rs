@@ -100,9 +100,9 @@ password = "test_password"
             memory: MemoryConfig {
                 default_tag: None,
                 default_relationships: true,
-                additional_relationships: std::collections::HashSet::new(),
+                additional_relationships: std::collections::HashSet::default(),
                 default_labels: true,
-                additional_labels: std::collections::HashSet::new(),
+                additional_labels: std::collections::HashSet::default(),
             },
         };
 

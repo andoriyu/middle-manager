@@ -57,7 +57,7 @@ mod tests {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
             observations: vec![],
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         mock_repo
@@ -165,7 +165,7 @@ mod tests {
             let service = MemoryService::new(mock_repo, MemoryConfig::default());
             let ports = Ports::new(Arc::new(service));
             let command = GetEntityCommand {
-                name: String::new(),
+                name: String::default(),
             };
             let result = rt.block_on(get_entity(&ports, command));
             assert!(matches!(result, Err(CoreError::Validation(_))));

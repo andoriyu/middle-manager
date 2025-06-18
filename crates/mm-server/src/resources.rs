@@ -84,7 +84,7 @@ mod tests {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
             observations: vec![],
-            properties: HashMap::new(),
+            properties: HashMap::default(),
         };
 
         let mut mock = MockMemoryRepository::new();
