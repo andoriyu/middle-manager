@@ -21,8 +21,13 @@ tracing = { workspace = true }
 anyhow = "1.0"
 async-trait = { workspace = true }
 config = "0.15.11"
+arbitrary = { workspace = true }
+mm-utils = { path = "../mm-utils" }
 
 [dev-dependencies]
 mm-memory = { path = "../mm-memory", features = ["mock"] }
 tokio = { workspace = true, features = ["full", "test-util"] }
 mockall = { workspace = true }
+arbitrary = { workspace = true }
+arbtest = { workspace = true }
+mm-utils = { path = "../mm-utils" }

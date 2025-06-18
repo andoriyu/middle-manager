@@ -1382,11 +1382,14 @@ name = "mm-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arbitrary",
+ "arbtest",
  "async-trait",
  "config",
  "mm-core",
  "mm-memory",
  "mm-memory-neo4j",
+ "mm-utils",
  "mockall",
  "rust-mcp-sdk",
  "serde",

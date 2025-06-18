@@ -11,6 +11,16 @@ pub struct RemoveAllObservationsTool {
     pub name: String,
 }
 
+use arbitrary::{Arbitrary, Unstructured};
+use mm_utils::prop::NonEmptyName;
+
+impl<'a> Arbitrary<'a> for RemoveAllObservationsTool {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+        Ok(Self { name })
+    }
+}
+
 impl RemoveAllObservationsTool {
     generate_call_tool!(
         self,

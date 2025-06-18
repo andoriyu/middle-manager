@@ -12,6 +12,32 @@ pub struct CreateEntityTool {
     pub entities: Vec<MemoryEntity>,
 }
 
+use arbitrary::{Arbitrary, Unstructured};
+use mm_memory::DEFAULT_LABELS;
+use mm_utils::prop::NonEmptyName;
+use std::collections::HashMap;
+
+impl<'a> Arbitrary<'a> for CreateEntityTool {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let len = u.int_in_range::<usize>(1..=3)?;
+        let mut entities = Vec::with_capacity(len);
+        for _ in 0..len {
+            let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+            let label_idx = u.int_in_range::<usize>(0..=DEFAULT_LABELS.len() - 1)?;
+            let labels = vec![DEFAULT_LABELS[label_idx].to_string()];
+            let observations = <Vec<String>>::arbitrary(u)?;
+            let properties = <HashMap<String, String>>::arbitrary(u)?;
+            entities.push(MemoryEntity {
+                name,
+                labels,
+                observations,
+                properties,
+            });
+        }
+        Ok(Self { entities })
+    }
+}
+
 impl CreateEntityTool {
     generate_call_tool!(
         self,

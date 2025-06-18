@@ -12,6 +12,17 @@ pub struct SetObservationsTool {
     pub observations: Vec<String>,
 }
 
+use arbitrary::{Arbitrary, Unstructured};
+use mm_utils::prop::NonEmptyName;
+
+impl<'a> Arbitrary<'a> for SetObservationsTool {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+        let observations = <Vec<String>>::arbitrary(u)?;
+        Ok(Self { name, observations })
+    }
+}
+
 impl SetObservationsTool {
     generate_call_tool!(
         self,

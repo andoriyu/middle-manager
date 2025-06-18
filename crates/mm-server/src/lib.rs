@@ -35,6 +35,11 @@ use tracing::debug;
 
 mod mcp;
 use mcp::MemoryTools;
+pub use mcp::create_relationship::RelationshipInput;
+pub use mcp::{
+    AddObservationsTool, CreateEntityTool, CreateRelationshipTool, GetEntityTool,
+    RemoveAllObservationsTool, RemoveObservationsTool, SetObservationsTool,
+};
 mod resources;
 
 /// Middle Manager MCP server handler

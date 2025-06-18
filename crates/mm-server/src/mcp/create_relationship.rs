@@ -12,6 +12,26 @@ pub struct RelationshipInput {
     pub properties: Option<HashMap<String, String>>,
 }
 
+use arbitrary::{Arbitrary, Unstructured};
+use mm_memory::DEFAULT_RELATIONSHIPS;
+use mm_utils::prop::NonEmptyName;
+
+impl<'a> Arbitrary<'a> for RelationshipInput {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let NonEmptyName(from) = NonEmptyName::arbitrary(u)?;
+        let NonEmptyName(to) = NonEmptyName::arbitrary(u)?;
+        let idx = u.int_in_range::<usize>(0..=DEFAULT_RELATIONSHIPS.len() - 1)?;
+        let name = DEFAULT_RELATIONSHIPS[idx].to_string();
+        let properties = <Option<HashMap<String, String>>>::arbitrary(u)?;
+        Ok(Self {
+            from,
+            to,
+            name,
+            properties,
+        })
+    }
+}
+
 impl RelationshipInput {
     fn to_memory_relationship(&self) -> MemoryRelationship {
         MemoryRelationship {
@@ -30,6 +50,17 @@ impl RelationshipInput {
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct CreateRelationshipTool {
     pub relationships: Vec<RelationshipInput>,
+}
+
+impl<'a> Arbitrary<'a> for CreateRelationshipTool {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let len = u.int_in_range::<usize>(1..=3)?;
+        let mut relationships = Vec::with_capacity(len);
+        for _ in 0..len {
+            relationships.push(RelationshipInput::arbitrary(u)?);
+        }
+        Ok(Self { relationships })
+    }
 }
 
 impl CreateRelationshipTool {

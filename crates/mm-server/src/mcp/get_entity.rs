@@ -13,6 +13,16 @@ pub struct GetEntityTool {
     pub name: String,
 }
 
+use arbitrary::{Arbitrary, Unstructured};
+use mm_utils::prop::NonEmptyName;
+
+impl<'a> Arbitrary<'a> for GetEntityTool {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+        Ok(Self { name })
+    }
+}
+
 impl GetEntityTool {
     generate_call_tool!(
         self,
