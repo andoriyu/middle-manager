@@ -21,7 +21,24 @@ pub struct MemoryConfig {
 pub const DEFAULT_MEMORY_TAG: &str = "Memory";
 
 /// Default set of allowed relationship names
-pub const DEFAULT_RELATIONSHIPS: &[&str] = &["related_to", "parent_of", "child_of"];
+pub const DEFAULT_RELATIONSHIPS: &[&str] = &[
+    "relates_to",
+    "owns",
+    "makes",
+    "uses",
+    "uses_when_needed",
+    "contains",
+    "includes",
+    "runs",
+    "works_on",
+    "performs",
+    "branch_of",
+    "follows",
+    "implements",
+    "references",
+    "tagged_with",
+    "example_of",
+];
 
 impl MemoryConfig {
     /// Helper for serde default of boolean true
