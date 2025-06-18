@@ -42,12 +42,16 @@ middle-manager/
 │   │   ├── src/
 │   │   │   ├── mcp/        # MCP tool implementations
 │   │   │   ├── lib.rs      # Server handler implementation
+│   ├── mm-memory/      # Memory domain types and schema
 │   ├── mm-memory-neo4j/      # Memory graph repository and service
 ├── config/
 │   ├── default.toml    # Default configuration
 │   ├── local.toml      # Local overrides (gitignored)
 ├── justfile            # Common development tasks
 ```
+
+The `mm-memory` crate defines the memory data model. Its schema is stored in
+`crates/mm-memory/schema.json`.
 
 ## Available MCP Resources
 
