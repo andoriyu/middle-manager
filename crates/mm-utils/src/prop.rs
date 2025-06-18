@@ -20,7 +20,7 @@ where
     F: for<'a> FnMut(&tokio::runtime::Runtime, &mut Unstructured<'a>) -> arbitrary::Result<()>,
 {
     arbtest(|u| {
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().expect("Failed to initialize Tokio runtime");
         f(&rt, u)
     });
 }
