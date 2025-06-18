@@ -72,7 +72,7 @@ impl TryFrom<serde_json::Value> for MemoryValue {
             }
             serde_json::Value::Array(arr) => MemoryValue::List(
                 arr.into_iter()
-                    .map(|v| MemoryValue::try_from(v))
+                    .map(MemoryValue::try_from)
                     .collect::<Result<_, _>>()?,
             ),
             serde_json::Value::Object(_) | serde_json::Value::Null => {
