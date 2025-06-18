@@ -27,7 +27,6 @@ pub fn is_snake_case(s: &str) -> bool {
 mod tests {
     use super::is_snake_case;
     use arbitrary::{Arbitrary, Unstructured};
-    use fastrand;
 
     #[test]
     fn valid_snake_case_strings() {
