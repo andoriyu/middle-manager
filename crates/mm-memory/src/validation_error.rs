@@ -18,6 +18,10 @@ pub enum ValidationErrorKind {
     /// Error when a relationship type is not allowed
     #[error("Relationship type '{0}' is not allowed")]
     UnknownRelationship(String),
+
+    /// Error when a label is not allowed
+    #[error("Label '{0}' is not allowed")]
+    UnknownLabel(String),
 }
 
 /// Collection of validation errors

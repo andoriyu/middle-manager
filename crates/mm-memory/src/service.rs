@@ -1,6 +1,6 @@
 use crate::{
-    DEFAULT_RELATIONSHIPS, MemoryConfig, MemoryEntity, MemoryRelationship, MemoryRepository,
-    MemoryResult, ValidationError, ValidationErrorKind,
+    DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, MemoryConfig, MemoryEntity, MemoryRelationship,
+    MemoryRepository, MemoryResult, ValidationError, ValidationErrorKind,
 };
 use mm_utils::is_snake_case;
 use tracing::instrument;
@@ -56,6 +56,15 @@ where
             }
             if tagged.labels.is_empty() {
                 errs.push(ValidationErrorKind::NoLabels(tagged.name.clone()));
+            }
+            if self.config.default_labels {
+                for label in &tagged.labels {
+                    if !DEFAULT_LABELS.contains(&label.as_str())
+                        && !self.config.additional_labels.contains(label)
+                    {
+                        errs.push(ValidationErrorKind::UnknownLabel(label.clone()));
+                    }
+                }
             }
 
             if errs.is_empty() {
@@ -180,6 +189,8 @@ mod tests {
                 default_tag: Some("Memory".to_string()),
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: false,
+                additional_labels: HashSet::new(),
             },
         );
         let entity = MemoryEntity {
@@ -209,6 +220,8 @@ mod tests {
                 default_tag: None,
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: false,
+                additional_labels: HashSet::new(),
             },
         );
         let entity = MemoryEntity {
@@ -242,6 +255,8 @@ mod tests {
                 default_tag: Some("Memory".to_string()),
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: false,
+                additional_labels: HashSet::new(),
             },
         );
 
@@ -270,6 +285,8 @@ mod tests {
                 default_tag: None,
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: false,
+                additional_labels: HashSet::new(),
             },
         );
 
@@ -292,6 +309,40 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_create_entity_unknown_label() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_entities().never();
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_tag: None,
+                default_relationships: true,
+                additional_relationships: HashSet::new(),
+                default_labels: true,
+                additional_labels: HashSet::new(),
+            },
+        );
+
+        let entity = MemoryEntity {
+            name: "test:entity".to_string(),
+            labels: vec!["Unknown".to_string()],
+            observations: vec![],
+            properties: HashMap::new(),
+        };
+
+        let result = service
+            .create_entities(std::slice::from_ref(&entity))
+            .await
+            .unwrap();
+        assert!(result.iter().any(|(n, e)| {
+            n == "test:entity"
+                && e.0
+                    .contains(&ValidationErrorKind::UnknownLabel("Unknown".to_string()))
+        }));
+    }
+
+    #[tokio::test]
     async fn test_create_relationship_allowed() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_relationships().returning(|_| Ok(()));
@@ -301,6 +352,8 @@ mod tests {
                 default_tag: None,
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: true,
+                additional_labels: HashSet::new(),
             },
         );
 
@@ -328,6 +381,8 @@ mod tests {
                 default_tag: None,
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: true,
+                additional_labels: HashSet::new(),
             },
         );
 
@@ -362,6 +417,8 @@ mod tests {
                 default_tag: Some("Memory".to_string()),
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: false,
+                additional_labels: HashSet::new(),
             },
         );
 
@@ -388,6 +445,8 @@ mod tests {
                 default_tag: None,
                 default_relationships: true,
                 additional_relationships: HashSet::new(),
+                default_labels: true,
+                additional_labels: HashSet::new(),
             },
         );
 
