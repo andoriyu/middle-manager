@@ -1,0 +1,7592 @@
+{
+  "follows": {
+    "count": 4,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "User": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "owns": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "makes": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "ObservationCompaction": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "performs": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Service": {
+    "count": 5,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "runs": {
+        "count": 5,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "branch_of": {
+    "count": 1,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "Tool": {
+    "count": 11,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Tool",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Tool",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "uses_when_needed": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "UsefulQuery",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 40,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "UsefulQuery",
+          "GitConvention",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "works_on": {
+    "count": 2,
+    "properties": {
+      "started_at": {
+        "indexed": false,
+        "type": "DATE_TIME",
+        "existence": false,
+        "array": false
+      },
+      "approach": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "tools_used": {
+        "indexed": false,
+        "type": "LIST",
+        "existence": false,
+        "array": true
+      },
+      "notes": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "phase": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      }
+    },
+    "type": "relationship"
+  },
+  "Host": {
+    "count": 6,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "runs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Service",
+          "Domain",
+          "Backend",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 14,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "SystemType",
+          "SystemGroup",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "LabelTaxonomy": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "created_at": {
+        "unique": false,
+        "indexed": false,
+        "type": "DATE_TIME",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "LabelCategory"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Architecture": {
+    "count": 4,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Principle",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Library",
+          "Domain",
+          "Frontend",
+          "Framework",
+          "Specification",
+          "Memory",
+          "Project",
+          "Package",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "contains": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Utility",
+          "Data",
+          "Domain",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Specification": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Architecture",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "contains": {
+        "count": 73,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Utility",
+          "Data",
+          "Domain",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "contains": {
+    "count": 73,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "Development": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Configuration",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 40,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Configuration",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "NamespaceRegistry": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+
+    }
+  },
+  "relates_to": {
+    "count": 40,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "Feature": {
+    "count": 3,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Framework",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Utility",
+          "Memory",
+          "Component",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Framework",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "Data": {
+    "count": 7,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 5,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Data",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Utility",
+          "Specification",
+          "Memory",
+          "Project",
+          "Component",
+          "Architecture",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Concept",
+          "Temporal",
+          "Active",
+          "Utility",
+          "Data",
+          "Domain",
+          "Memory",
+          "Project",
+          "File",
+          "Data",
+          "Domain",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "references": {
+    "count": 4,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "Memory": {
+    "count": 186,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": true,
+        "type": "STRING",
+        "existence": false
+      },
+      "created_at": {
+        "unique": false,
+        "indexed": false,
+        "type": "DATE_TIME",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": true,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": true,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitConvention",
+          "Temporal",
+          "Active",
+          "Convention",
+          "Methodology",
+          "Process",
+          "Memory",
+          "Project",
+          "GitRepository",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "owns": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Platform",
+          "Memory",
+          "Project",
+          "User",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "branch_of": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitRepository",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Branch",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "works_on": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Task",
+          "Temporal",
+          "Planned",
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "started_at": {
+            "indexed": false,
+            "type": "DATE_TIME",
+            "existence": false,
+            "array": false
+          },
+          "approach": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "tools_used": {
+            "indexed": false,
+            "type": "LIST",
+            "existence": false,
+            "array": true
+          },
+          "notes": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "phase": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "makes": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation",
+          "Memory",
+          "User",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 25,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Data",
+          "Utility",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Specification",
+          "Package",
+          "Project",
+          "LabelCategory",
+          "Label",
+          "Process",
+          "Memory",
+          "Project",
+          "Component",
+          "Feature",
+          "Architecture",
+          "Utility",
+          "Process",
+          "GitRepository",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Documentation",
+          "LabelTaxonomy",
+          "LabelCategory"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "SystemType",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "SystemGroup",
+          "Host",
+          "Package",
+          "Component",
+          "Frontend",
+          "Memory",
+          "Project",
+          "SystemType",
+          "SystemGroup",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 8,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Process",
+          "Development",
+          "Tool",
+          "Project",
+          "Agent",
+          "Tag",
+          "GitConvention",
+          "Platform",
+          "Package",
+          "Testing",
+          "Language",
+          "Memory",
+          "Technology",
+          "Concept",
+          "Process",
+          "Configuration",
+          "Note",
+          "Tag",
+          "UsefulQuery",
+          "GitConvention",
+          "Pattern",
+          "Task",
+          "Platform",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Planned",
+          "Maintenance",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Language",
+          "Temporal",
+          "Active",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Framework",
+          "Project",
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      },
+      "references": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Concept",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Process",
+          "Testing",
+          "Documentation",
+          "Memory",
+          "Project",
+          "Note",
+          "Package",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "tagged_with": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tag",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 14,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "TechnologyGroup",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Tool",
+          "Branch",
+          "Project",
+          "Feature",
+          "Specification",
+          "Architecture",
+          "Documentation",
+          "File",
+          "Data",
+          "Domain",
+          "Principle",
+          "Process",
+          "Development",
+          "Configuration",
+          "Platform",
+          "DevOps",
+          "Agent",
+          "Library",
+          "Frontend",
+          "Framework",
+          "Language",
+          "Utility",
+          "Concept",
+          "Memory",
+          "Project",
+          "User",
+          "TechnologyGroup",
+          "Tool",
+          "Agent",
+          "Component",
+          "Feature",
+          "Architecture",
+          "File",
+          "Process",
+          "Configuration",
+          "Package",
+          "Methodology",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Development",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "runs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Service",
+          "Domain",
+          "Backend",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "performs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "RelationshipStandardization",
+          "Temporal",
+          "Active",
+          "OrphanNodeCleanup",
+          "ObservationCompaction",
+          "DuplicateRelationshipCleanup",
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses_when_needed": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "UsefulQuery",
+          "Temporal",
+          "Active",
+          "Tool",
+          "Memory",
+          "Tool",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Library": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Architecture",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "Tag": {
+    "count": 5,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "tagged_with": {
+        "count": 6,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tag",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Tag",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Process": {
+    "count": 8,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "GitRepository"
+        ],
+        "properties": {
+
+        }
+      },
+      "makes": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 6,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Package",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Process",
+          "Memory",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Configuration",
+          "Temporal",
+          "Active",
+          "Documentation",
+          "Memory",
+          "Project",
+          "Methodology",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Package",
+          "Temporal",
+          "Active",
+          "Process",
+          "Memory",
+          "Process",
+          "Configuration",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "RelationshipStandardization": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "performs": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Project": {
+    "count": 7,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitConvention",
+          "Temporal",
+          "Active",
+          "Convention",
+          "Methodology",
+          "Process"
+        ],
+        "properties": {
+
+        }
+      },
+      "owns": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Platform",
+          "Temporal",
+          "Active",
+          "Memory",
+          "User",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Data",
+          "Utility",
+          "Package",
+          "Memory",
+          "GitRepository",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "TechnologyGroup",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Tool",
+          "Branch",
+          "Project",
+          "Feature",
+          "Specification",
+          "Architecture",
+          "Documentation",
+          "File",
+          "Data",
+          "Domain",
+          "Principle",
+          "Process",
+          "Development",
+          "Configuration",
+          "Concept",
+          "DevOps",
+          "Language",
+          "Platform",
+          "Library",
+          "Frontend",
+          "Memory",
+          "Project",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "includes": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "SystemType",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "SystemGroup",
+          "Package",
+          "Component",
+          "Frontend"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 40,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Task",
+          "Temporal",
+          "Active",
+          "Planned",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Component": {
+    "count": 16,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 11,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Data",
+          "Utility",
+          "Memory",
+          "Project",
+          "Component",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Principle",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "includes": {
+        "count": 14,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Platform": {
+    "count": 3,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "owns": {
+        "count": 5,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 5,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Technology",
+          "Concept",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "DuplicateRelationshipCleanup": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "performs": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Domain": {
+    "count": 48,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "references": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 6,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 13,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Data",
+          "Utility",
+          "Specification",
+          "Memory",
+          "Project",
+          "Component",
+          "Feature",
+          "Architecture",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Principle",
+          "Temporal",
+          "Active",
+          "Concept",
+          "Utility",
+          "Data",
+          "Domain",
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Feature",
+          "Architecture",
+          "File",
+          "Package",
+          "Data",
+          "Domain",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "runs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Service",
+          "Domain",
+          "Backend",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Project",
+          "SystemType",
+          "SystemGroup",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Platform",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Technology",
+          "Platform",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "UI": {
+    "count": 5,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 6,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Utility",
+          "Memory",
+          "Project",
+          "Component",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Principle",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Agent": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "works_on": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Task",
+          "Temporal",
+          "Planned"
+        ],
+        "properties": {
+          "started_at": {
+            "indexed": false,
+            "type": "DATE_TIME",
+            "existence": false,
+            "array": false
+          },
+          "approach": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "tools_used": {
+            "indexed": false,
+            "type": "LIST",
+            "existence": false,
+            "array": true
+          },
+          "notes": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "phase": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "uses": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tool",
+          "Technology",
+          "Temporal",
+          "Active",
+          "Project",
+          "Memory",
+          "User",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "performs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "RelationshipStandardization",
+          "Temporal",
+          "Active",
+          "OrphanNodeCleanup",
+          "ObservationCompaction",
+          "DuplicateRelationshipCleanup"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses_when_needed": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tool",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 40,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "GitRepository": {
+    "count": 4,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "branch_of": {
+        "count": 1,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Branch",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "SystemGroup": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "includes": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Planned": {
+    "count": 3,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "works_on": {
+        "count": 2,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "started_at": {
+            "indexed": false,
+            "type": "DATE_TIME",
+            "existence": false,
+            "array": false
+          },
+          "approach": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "tools_used": {
+            "indexed": false,
+            "type": "LIST",
+            "existence": false,
+            "array": true
+          },
+          "notes": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "phase": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active",
+          "Package"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "SystemType": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "includes": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Utility": {
+    "count": 5,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 6,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Specification",
+          "Temporal",
+          "Active",
+          "Utility",
+          "Memory",
+          "Project",
+          "Component",
+          "Feature",
+          "Architecture",
+          "Utility",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "File",
+          "Configuration",
+          "Data",
+          "Domain",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "Methodology": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "Active": {
+    "count": 143,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "created_at": {
+        "unique": false,
+        "indexed": false,
+        "type": "DATE_TIME",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitConvention",
+          "Temporal",
+          "Active",
+          "Convention",
+          "Methodology",
+          "Memory",
+          "Project",
+          "GitRepository",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "owns": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Platform",
+          "Memory",
+          "Project",
+          "User",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "branch_of": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitRepository",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Branch",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "works_on": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Task",
+          "Temporal",
+          "Planned"
+        ],
+        "properties": {
+          "started_at": {
+            "indexed": false,
+            "type": "DATE_TIME",
+            "existence": false,
+            "array": false
+          },
+          "approach": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "tools_used": {
+            "indexed": false,
+            "type": "LIST",
+            "existence": false,
+            "array": true
+          },
+          "notes": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "phase": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "makes": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation",
+          "Memory",
+          "User",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 18,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Data",
+          "Utility",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Specification",
+          "Package",
+          "Project",
+          "LabelCategory",
+          "Process",
+          "Memory",
+          "Project",
+          "Component",
+          "Feature",
+          "Architecture",
+          "Utility",
+          "GitRepository",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "SystemType",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "SystemGroup",
+          "Host",
+          "Package",
+          "Component",
+          "Frontend",
+          "Memory",
+          "Project",
+          "SystemType",
+          "SystemGroup",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 7,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Process",
+          "Development",
+          "Tool",
+          "Project",
+          "Agent",
+          "Tag",
+          "GitConvention",
+          "Platform",
+          "Package",
+          "Testing",
+          "Language",
+          "Memory",
+          "Technology",
+          "Concept",
+          "Process",
+          "Configuration",
+          "Note",
+          "Tag",
+          "UsefulQuery",
+          "GitConvention",
+          "Pattern",
+          "Task",
+          "Platform",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Planned",
+          "Maintenance",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      },
+      "references": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Concept",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Process",
+          "Testing",
+          "Documentation",
+          "Memory",
+          "Project",
+          "Note",
+          "Package",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "tagged_with": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tag",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 14,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "TechnologyGroup",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Tool",
+          "Branch",
+          "Project",
+          "Feature",
+          "Specification",
+          "Architecture",
+          "Documentation",
+          "File",
+          "Data",
+          "Domain",
+          "Principle",
+          "Process",
+          "Development",
+          "Configuration",
+          "Platform",
+          "DevOps",
+          "Agent",
+          "Library",
+          "Frontend",
+          "Framework",
+          "Language",
+          "Utility",
+          "Concept",
+          "Memory",
+          "Project",
+          "User",
+          "TechnologyGroup",
+          "Tool",
+          "Agent",
+          "Component",
+          "Feature",
+          "Architecture",
+          "File",
+          "Process",
+          "Configuration",
+          "Package",
+          "Methodology",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Development",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "runs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Service",
+          "Domain",
+          "Backend",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "performs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "RelationshipStandardization",
+          "Temporal",
+          "Active",
+          "OrphanNodeCleanup",
+          "ObservationCompaction",
+          "DuplicateRelationshipCleanup",
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses_when_needed": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "UsefulQuery",
+          "Temporal",
+          "Active",
+          "Tool",
+          "Memory",
+          "Tool",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "GitConvention": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Tool",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Convention": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "LabelCategory": {
+    "count": 7,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 7,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Label",
+          "Memory",
+          "Temporal",
+          "Active",
+          "Documentation",
+          "LabelTaxonomy"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Task": {
+    "count": 4,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "works_on": {
+        "count": 2,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "started_at": {
+            "indexed": false,
+            "type": "DATE_TIME",
+            "existence": false,
+            "array": false
+          },
+          "approach": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "tools_used": {
+            "indexed": false,
+            "type": "LIST",
+            "existence": false,
+            "array": true
+          },
+          "notes": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "phase": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active",
+          "Package"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Pattern": {
+    "count": 3,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "references": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 6,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Platform",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Technology": {
+    "count": 26,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "owns": {
+        "count": 5,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Tool",
+          "Agent",
+          "Feature",
+          "Architecture",
+          "Package",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "contains": {
+        "count": 73,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Component",
+          "Feature",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 6,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Platform",
+          "Memory",
+          "Technology",
+          "Concept",
+          "Note",
+          "UsefulQuery",
+          "GitConvention",
+          "Pattern",
+          "Platform",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Backend": {
+    "count": 5,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "runs": {
+        "count": 5,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "owns": {
+    "count": 5,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "Documentation": {
+    "count": 17,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "created_at": {
+        "unique": false,
+        "indexed": false,
+        "type": "DATE_TIME",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "references": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Concept"
+        ],
+        "properties": {
+
+        }
+      },
+      "makes": {
+        "count": 5,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "User",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Temporal",
+          "Active",
+          "Documentation",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "tagged_with": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tag",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Utility",
+          "Data",
+          "Domain",
+          "Temporal",
+          "Active",
+          "LabelCategory"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Principle",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Library",
+          "Domain",
+          "Frontend",
+          "Framework",
+          "Specification",
+          "Memory",
+          "Project",
+          "Process",
+          "Package",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tool",
+          "Temporal",
+          "Active",
+          "Project",
+          "Agent",
+          "Technology",
+          "GitConvention",
+          "Process",
+          "Testing",
+          "Language"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Principle": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Component",
+          "Architecture",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "Branch": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "branch_of": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitRepository",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "TechnologyGroup": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Tool",
+          "Temporal",
+          "Active",
+          "Platform",
+          "Domain",
+          "DevOps",
+          "Library",
+          "Frontend",
+          "Framework",
+          "Specification",
+          "Language",
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "Temporal": {
+    "count": 146,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "created_at": {
+        "unique": false,
+        "indexed": false,
+        "type": "DATE_TIME",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "follows": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitConvention",
+          "Temporal",
+          "Active",
+          "Convention",
+          "Methodology",
+          "Memory",
+          "Project",
+          "GitRepository",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "owns": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Platform",
+          "Memory",
+          "Project",
+          "User",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "branch_of": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "GitRepository",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Branch",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "works_on": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Task",
+          "Temporal",
+          "Planned",
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "started_at": {
+            "indexed": false,
+            "type": "DATE_TIME",
+            "existence": false,
+            "array": false
+          },
+          "approach": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "tools_used": {
+            "indexed": false,
+            "type": "LIST",
+            "existence": false,
+            "array": true
+          },
+          "notes": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "phase": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "makes": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation",
+          "Memory",
+          "User",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "contains": {
+        "count": 18,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Data",
+          "Utility",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Specification",
+          "Package",
+          "Project",
+          "LabelCategory",
+          "Process",
+          "Memory",
+          "Project",
+          "Component",
+          "Feature",
+          "Architecture",
+          "Utility",
+          "GitRepository",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "SystemType",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "SystemGroup",
+          "Host",
+          "Package",
+          "Component",
+          "Frontend",
+          "Memory",
+          "Project",
+          "SystemType",
+          "SystemGroup",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 7,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Process",
+          "Development",
+          "Tool",
+          "Project",
+          "Agent",
+          "Tag",
+          "GitConvention",
+          "Platform",
+          "Package",
+          "Testing",
+          "Language",
+          "Memory",
+          "Technology",
+          "Concept",
+          "Process",
+          "Configuration",
+          "Note",
+          "Tag",
+          "UsefulQuery",
+          "GitConvention",
+          "Pattern",
+          "Task",
+          "Platform",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Planned",
+          "Maintenance",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      },
+      "references": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Concept",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Process",
+          "Testing",
+          "Documentation",
+          "Memory",
+          "Project",
+          "Note",
+          "Package",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "tagged_with": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tag",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 14,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "TechnologyGroup",
+          "Temporal",
+          "Active",
+          "Technology",
+          "Tool",
+          "Branch",
+          "Project",
+          "Feature",
+          "Specification",
+          "Architecture",
+          "Documentation",
+          "File",
+          "Data",
+          "Domain",
+          "Principle",
+          "Process",
+          "Development",
+          "Configuration",
+          "Platform",
+          "DevOps",
+          "Agent",
+          "Library",
+          "Frontend",
+          "Framework",
+          "Language",
+          "Utility",
+          "Concept",
+          "Memory",
+          "Project",
+          "User",
+          "TechnologyGroup",
+          "Tool",
+          "Agent",
+          "Component",
+          "Feature",
+          "Architecture",
+          "File",
+          "Process",
+          "Configuration",
+          "Package",
+          "Methodology",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Development",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "runs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Service",
+          "Domain",
+          "Backend",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "performs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "RelationshipStandardization",
+          "Temporal",
+          "Active",
+          "OrphanNodeCleanup",
+          "ObservationCompaction",
+          "DuplicateRelationshipCleanup",
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses_when_needed": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "UsefulQuery",
+          "Temporal",
+          "Active",
+          "Tool",
+          "Memory",
+          "Tool",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Testing": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "implements": {
+        "count": 6,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Package",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 40,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "includes": {
+    "count": 14,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "Infrastructure": {
+    "count": 13,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "runs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Service",
+          "Domain",
+          "Backend",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Project",
+          "SystemType",
+          "SystemGroup",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Frontend": {
+    "count": 20,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 11,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active",
+          "Feature",
+          "Technology",
+          "Framework",
+          "Data",
+          "Utility",
+          "Memory",
+          "Project",
+          "Component",
+          "Feature",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Principle",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Feature",
+          "Architecture",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "includes": {
+        "count": 14,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Package": {
+    "count": 4,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "implements": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Process",
+          "Temporal",
+          "Active",
+          "Testing"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Architecture",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "contains": {
+        "count": 73,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 14,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 40,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Process",
+          "Task",
+          "Temporal",
+          "Active",
+          "Planned",
+          "Maintenance"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "performs": {
+    "count": 4,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "UsefulQuery": {
+    "count": 4,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Tool",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses_when_needed": {
+        "count": 5,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Tool",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "makes": {
+    "count": 5,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "File": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Utility",
+          "Temporal",
+          "Active",
+          "Concept",
+          "Data",
+          "Domain",
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      }
+    }
+  },
+  "DevOps": {
+    "count": 21,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "references": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 6,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Package",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "runs": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Service",
+          "Domain",
+          "Backend",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "includes": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Host",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure",
+          "Memory",
+          "Project",
+          "SystemType",
+          "SystemGroup",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Infrastructure"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 1,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Platform",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Technology",
+          "Platform",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Concept": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "references": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "File",
+          "Data",
+          "Domain",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Platform",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "OrphanNodeCleanup": {
+    "count": 1,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "performs": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Agent",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Note": {
+    "count": 10,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "references": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Pattern",
+          "Domain",
+          "DevOps",
+          "Temporal",
+          "Active",
+          "Concept"
+        ],
+        "properties": {
+
+        }
+      },
+      "makes": {
+        "count": 5,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "User",
+          "Process",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "implements": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      },
+      "tagged_with": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tag",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Tool",
+          "Temporal",
+          "Active",
+          "Project",
+          "Agent",
+          "Technology",
+          "GitConvention",
+          "Process",
+          "Testing",
+          "Language"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Framework": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "TechnologyGroup",
+          "Feature",
+          "Architecture",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "contains": {
+        "count": 73,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Component",
+          "Feature",
+          "UI",
+          "Data",
+          "Domain",
+          "Frontend",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Configuration": {
+    "count": 3,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 2,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Utility",
+          "Temporal",
+          "Active",
+          "Memory",
+          "Project",
+          "Process",
+          "Temporal",
+          "Active",
+          "Development"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Process",
+          "Temporal",
+          "Active",
+          "Development"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Maintenance": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "relates_to": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Package",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "example_of": {
+    "count": 4,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "tagged_with": {
+    "count": 6,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "implements": {
+    "count": 6,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "Label": {
+    "count": 26,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "contains": {
+        "count": 73,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "LabelCategory"
+        ],
+        "properties": {
+
+        }
+      },
+      "example_of": {
+        "count": 0,
+        "direction": "out",
+        "labels": [
+          "Memory",
+          "Technology",
+          "Language",
+          "Temporal",
+          "Active",
+          "Component",
+          "UI",
+          "Domain",
+          "Frontend",
+          "Framework",
+          "Project"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "Language": {
+    "count": 2,
+    "labels": [],
+    "properties": {
+      "name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "type": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "original_name": {
+        "unique": false,
+        "indexed": false,
+        "type": "STRING",
+        "existence": false
+      },
+      "observations": {
+        "unique": false,
+        "indexed": false,
+        "type": "LIST",
+        "existence": false
+      }
+    },
+    "type": "node",
+    "relationships": {
+      "uses": {
+        "count": 83,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Project",
+          "TechnologyGroup",
+          "Temporal",
+          "Active"
+        ],
+        "properties": {
+          "importance": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "implementation_details": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "description": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "as": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "purpose": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "integration_method": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "file_type": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          },
+          "usage_context": {
+            "indexed": false,
+            "type": "STRING",
+            "existence": false,
+            "array": false
+          }
+        }
+      },
+      "example_of": {
+        "count": 4,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Label"
+        ],
+        "properties": {
+
+        }
+      },
+      "relates_to": {
+        "count": 40,
+        "direction": "in",
+        "labels": [
+          "Memory",
+          "Note",
+          "Temporal",
+          "Active",
+          "Documentation"
+        ],
+        "properties": {
+
+        }
+      }
+    }
+  },
+  "uses": {
+    "count": 83,
+    "properties": {
+      "importance": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "implementation_details": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "integration": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "description": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "as": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "purpose": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "integration_method": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "file_type": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      },
+      "usage_context": {
+        "indexed": false,
+        "type": "STRING",
+        "existence": false,
+        "array": false
+      }
+    },
+    "type": "relationship"
+  },
+  "runs": {
+    "count": 5,
+    "properties": {
+
+    },
+    "type": "relationship"
+  },
+  "uses_when_needed": {
+    "count": 5,
+    "properties": {
+
+    },
+    "type": "relationship"
+  }
+}
