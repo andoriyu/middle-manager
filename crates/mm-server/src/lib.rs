@@ -55,6 +55,114 @@ where
             service: Arc::new(service),
         }
     }
+
+    async fn handle_initialize_request(
+        &self,
+        runtime: &dyn McpServer,
+        initialize_request: rust_mcp_sdk::schema::InitializeRequest,
+    ) -> std::result::Result<ResultFromServer, RpcError> {
+        let mut server_info = runtime.server_info().to_owned();
+
+        if let Some(_updated_protocol_version) = enforce_compatible_protocol_version(
+            &initialize_request.params.protocol_version,
+            &server_info.protocol_version,
+        )
+        .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?
+        {
+            server_info.protocol_version = initialize_request.params.protocol_version;
+        }
+
+        Ok(server_info.into())
+    }
+
+    async fn handle_list_tools_request(&self) -> std::result::Result<ResultFromServer, RpcError> {
+        debug!("Handling list tools request");
+        Ok(ListToolsResult {
+            meta: None,
+            next_cursor: None,
+            tools: MemoryTools::tools(),
+        }
+        .into())
+    }
+
+    async fn handle_list_resources_request(
+        &self,
+    ) -> std::result::Result<ResultFromServer, RpcError> {
+        debug!("Handling list resources request");
+        Ok(resources::list_resources().into())
+    }
+
+    async fn handle_list_resource_templates_request(
+        &self,
+    ) -> std::result::Result<ResultFromServer, RpcError> {
+        debug!("Handling list resource templates request");
+        Ok(resources::list_resource_templates().into())
+    }
+
+    async fn handle_ping_request(&self) -> std::result::Result<ResultFromServer, RpcError> {
+        debug!("Handling ping request");
+        Ok(McpResult::default().into())
+    }
+
+    async fn handle_read_resource_request(
+        &self,
+        request: rust_mcp_sdk::schema::ReadResourceRequest,
+    ) -> std::result::Result<ResultFromServer, RpcError> {
+        debug!("Handling read resource request: {}", request.params.uri);
+        let ports = Ports::new(self.service.clone());
+        let result = resources::read_resource(&ports, &request.params.uri)
+            .await
+            .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?;
+        Ok(result.into())
+    }
+
+    async fn handle_call_tool_request(
+        &self,
+        request: rust_mcp_sdk::schema::CallToolRequest,
+    ) -> std::result::Result<ResultFromServer, RpcError> {
+        let tool_name = request.tool_name().to_string();
+        debug!("Handling call tool request: {}", tool_name);
+
+        // Create ports with the memory service
+        let ports = Ports::new(self.service.clone());
+
+        // Attempt to convert request parameters into MemoryTools enum
+        let tool_params = MemoryTools::try_from(request.params)
+            .map_err(|_| CallToolError::unknown_tool(tool_name.clone()))?;
+
+        // Match the tool variant and execute its corresponding logic
+        let result = match tool_params {
+            MemoryTools::CreateEntityTool(create_entity_tool) => create_entity_tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::CreateRelationshipTool(tool) => tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::GetEntityTool(get_entity_tool) => get_entity_tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::SetObservationsTool(tool) => tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::AddObservationsTool(tool) => tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::RemoveAllObservationsTool(tool) => tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::RemoveObservationsTool(tool) => tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+        };
+        Ok(result.into())
+    }
 }
 
 /// Create a Middle Manager MCP server handler with the given memory service
@@ -79,106 +187,23 @@ where
         match request {
             RequestFromClient::ClientRequest(client_request) => match client_request {
                 ClientRequest::InitializeRequest(initialize_request) => {
-                    let mut server_info = runtime.server_info().to_owned();
-
-                    if let Some(_updated_protocol_version) = enforce_compatible_protocol_version(
-                        &initialize_request.params.protocol_version,
-                        &server_info.protocol_version,
-                    )
-                    .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?
-                    {
-                        server_info.protocol_version = initialize_request.params.protocol_version;
-                    }
-
-                    return Ok(server_info.into());
-                }
-
-                ClientRequest::ListToolsRequest(_) => {
-                    debug!("Handling list tools request");
-                    Ok(ListToolsResult {
-                        meta: None,
-                        next_cursor: None,
-                        tools: MemoryTools::tools(),
-                    }
-                    .into())
-                }
-
-                ClientRequest::ListResourcesRequest(_) => {
-                    debug!("Handling list resources request");
-                    Ok(resources::list_resources().into())
-                }
-
-                ClientRequest::ListResourceTemplatesRequest(_) => {
-                    debug!("Handling list resource templates request");
-                    Ok(resources::list_resource_templates().into())
-                }
-
-                ClientRequest::PingRequest(_) => {
-                    debug!("Handling ping request");
-                    Ok(McpResult::default().into())
-                }
-
-                ClientRequest::ReadResourceRequest(request) => {
-                    debug!("Handling read resource request: {}", request.params.uri);
-                    let ports = Ports::new(self.service.clone());
-                    let result = resources::read_resource(&ports, &request.params.uri)
+                    self.handle_initialize_request(runtime, initialize_request)
                         .await
-                        .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?;
-                    Ok(result.into())
                 }
-
+                ClientRequest::ListToolsRequest(_) => self.handle_list_tools_request().await,
+                ClientRequest::ListResourcesRequest(_) => {
+                    self.handle_list_resources_request().await
+                }
+                ClientRequest::ListResourceTemplatesRequest(_) => {
+                    self.handle_list_resource_templates_request().await
+                }
+                ClientRequest::PingRequest(_) => self.handle_ping_request().await,
+                ClientRequest::ReadResourceRequest(request) => {
+                    self.handle_read_resource_request(request).await
+                }
                 ClientRequest::CallToolRequest(request) => {
-                    let tool_name = request.tool_name().to_string();
-                    debug!("Handling call tool request: {}", tool_name);
-
-                    // Create ports with the memory service
-                    let ports = Ports::new(self.service.clone());
-
-                    // Attempt to convert request parameters into MemoryTools enum
-                    let tool_params = MemoryTools::try_from(request.params)
-                        .map_err(|_| CallToolError::unknown_tool(tool_name.clone()))?;
-
-                    // Match the tool variant and execute its corresponding logic
-                    let result = match tool_params {
-                        MemoryTools::CreateEntityTool(create_entity_tool) => {
-                            create_entity_tool.call_tool(&ports).await.map_err(|err| {
-                                RpcError::internal_error().with_message(err.to_string())
-                            })?
-                        }
-                        MemoryTools::CreateRelationshipTool(tool) => {
-                            tool.call_tool(&ports).await.map_err(|err| {
-                                RpcError::internal_error().with_message(err.to_string())
-                            })?
-                        }
-                        MemoryTools::GetEntityTool(get_entity_tool) => {
-                            get_entity_tool.call_tool(&ports).await.map_err(|err| {
-                                RpcError::internal_error().with_message(err.to_string())
-                            })?
-                        }
-                        MemoryTools::SetObservationsTool(tool) => {
-                            tool.call_tool(&ports).await.map_err(|err| {
-                                RpcError::internal_error().with_message(err.to_string())
-                            })?
-                        }
-                        MemoryTools::AddObservationsTool(tool) => {
-                            tool.call_tool(&ports).await.map_err(|err| {
-                                RpcError::internal_error().with_message(err.to_string())
-                            })?
-                        }
-                        MemoryTools::RemoveAllObservationsTool(tool) => {
-                            tool.call_tool(&ports).await.map_err(|err| {
-                                RpcError::internal_error().with_message(err.to_string())
-                            })?
-                        }
-                        MemoryTools::RemoveObservationsTool(tool) => {
-                            tool.call_tool(&ports).await.map_err(|err| {
-                                RpcError::internal_error().with_message(err.to_string())
-                            })?
-                        }
-                    };
-                    Ok(result.into())
+                    self.handle_call_tool_request(request).await
                 }
-
                 _ => Err(RpcError::method_not_found().with_message(format!(
                     "No handler is implemented for '{}'.",
                     client_request.method()
