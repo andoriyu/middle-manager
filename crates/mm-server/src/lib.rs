@@ -28,7 +28,7 @@ use rust_mcp_sdk::{
     mcp_server::{ServerHandlerCore, enforce_compatible_protocol_version, server_runtime_core},
     schema::{
         Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
-        ServerCapabilitiesTools,
+        ServerCapabilitiesResources, ServerCapabilitiesTools,
     },
 };
 use tracing::debug;
@@ -232,8 +232,8 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
         },
         capabilities: ServerCapabilities {
             tools: Some(ServerCapabilitiesTools { list_changed: None }),
-            resources: Some(Default::default()),
-            ..Default::default()
+            resources: Some(ServerCapabilitiesResources::default()),
+            ..ServerCapabilities::default()
         },
         meta: None,
         instructions: Some(
