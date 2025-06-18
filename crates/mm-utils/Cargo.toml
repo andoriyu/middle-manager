@@ -5,3 +5,7 @@ edition = "2024"
 license = "MPL-2.0"
 
 [dependencies]
+
+[dev-dependencies]
+arbitrary = { workspace = true }
+fastrand = { workspace = true }
