@@ -1351,6 +1351,7 @@ dependencies = [
 name = "mm-memory"
 version = "0.1.0"
 dependencies = [
+ "arbitrary",
  "async-trait",
  "mm-utils",
  "mockall",
