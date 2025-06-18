@@ -508,7 +508,7 @@ mod tests {
         fn prop_create_entities_success() {
             async_arbtest(|rt, u| {
                 let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
-                let idx = u.int_in_range::<usize>(0..=DEFAULT_LABELS.len() - 1)?;
+                let idx = u.choose_index(DEFAULT_LABELS.len())?;
                 let label = DEFAULT_LABELS[idx].to_string();
                 let mut entity = prop_random_entity(u, Some(label))?;
                 entity.name.clone_from(&name);
@@ -530,7 +530,7 @@ mod tests {
         #[test]
         fn prop_create_entities_empty_name() {
             async_arbtest(|rt, u| {
-                let idx = u.int_in_range::<usize>(0..=DEFAULT_LABELS.len() - 1)?;
+                let idx = u.choose_index(DEFAULT_LABELS.len())?;
                 let label = DEFAULT_LABELS[idx].to_string();
                 let mut entity = prop_random_entity(u, Some(label))?;
                 entity.name = String::default();
@@ -597,7 +597,7 @@ mod tests {
                     Ok(v) => v,
                     Err(_) => return Ok(()),
                 };
-                let idx = match u.int_in_range::<usize>(0..=DEFAULT_RELATIONSHIPS.len() - 1) {
+                let idx = match u.choose_index(DEFAULT_RELATIONSHIPS.len()) {
                     Ok(v) => v,
                     Err(_) => return Ok(()),
                 };
@@ -641,7 +641,7 @@ mod tests {
                     Ok(v) => v,
                     Err(_) => return Ok(()),
                 };
-                let idx = match u.int_in_range::<usize>(0..=DEFAULT_RELATIONSHIPS.len() - 1) {
+                let idx = match u.choose_index(DEFAULT_RELATIONSHIPS.len()) {
                     Ok(v) => v,
                     Err(_) => return Ok(()),
                 };
@@ -682,7 +682,7 @@ mod tests {
                     Ok(v) => v,
                     Err(_) => return Ok(()),
                 };
-                let idx = match u.int_in_range::<usize>(0..=DEFAULT_RELATIONSHIPS.len() - 1) {
+                let idx = match u.choose_index(DEFAULT_RELATIONSHIPS.len()) {
                     Ok(v) => v,
                     Err(_) => return Ok(()),
                 };
