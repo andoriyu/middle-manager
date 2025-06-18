@@ -65,6 +65,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_tag: None,
+                default_labels: false,
                 ..MemoryConfig::default()
             },
         );
@@ -92,6 +93,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_tag: None,
+                default_labels: false,
                 ..MemoryConfig::default()
             },
         );
@@ -127,6 +129,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_tag: None,
+                default_labels: false,
                 ..MemoryConfig::default()
             },
         );
@@ -155,6 +158,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_tag: None,
+                default_labels: false,
                 ..MemoryConfig::default()
             },
         );

@@ -101,6 +101,8 @@ password = "test_password"
                 default_tag: None,
                 default_relationships: true,
                 additional_relationships: std::collections::HashSet::new(),
+                default_labels: true,
+                additional_labels: std::collections::HashSet::new(),
             },
         };
 

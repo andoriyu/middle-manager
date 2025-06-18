@@ -46,7 +46,13 @@ mod tests {
             .withf(|ents| ents.len() == 1 && ents[0].name == "test:entity")
             .returning(|_| Ok(()));
 
-        let service = MemoryService::new(mock, MemoryConfig::default());
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_labels: false,
+                ..MemoryConfig::default()
+            },
+        );
         let ports = Ports::new(Arc::new(service));
 
         let tool = CreateEntityTool {

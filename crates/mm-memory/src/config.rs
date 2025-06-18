@@ -15,6 +15,14 @@ pub struct MemoryConfig {
     /// Additional relationships allowed when default_relationships is enabled
     #[serde(default)]
     pub additional_relationships: HashSet<String>,
+
+    /// Enforce use of default labels
+    #[serde(default = "MemoryConfig::default_true")]
+    pub default_labels: bool,
+
+    /// Additional labels allowed when default_labels is enabled
+    #[serde(default)]
+    pub additional_labels: HashSet<String>,
 }
 
 /// Default tag used when none is specified in the configuration
@@ -40,6 +48,68 @@ pub const DEFAULT_RELATIONSHIPS: &[&str] = &[
     "example_of",
 ];
 
+/// Default set of allowed label names derived from the schema
+pub const DEFAULT_LABELS: &[&str] = &[
+    "User",
+    "ObservationCompaction",
+    "Service",
+    "Tool",
+    "Host",
+    "LabelTaxonomy",
+    "Architecture",
+    "Specification",
+    "Development",
+    "NamespaceRegistry",
+    "Feature",
+    "Data",
+    "Memory",
+    "Library",
+    "Tag",
+    "Process",
+    "RelationshipStandardization",
+    "Project",
+    "Component",
+    "Platform",
+    "DuplicateRelationshipCleanup",
+    "Domain",
+    "UI",
+    "Agent",
+    "GitRepository",
+    "SystemGroup",
+    "Planned",
+    "SystemType",
+    "Utility",
+    "Methodology",
+    "Active",
+    "GitConvention",
+    "Convention",
+    "LabelCategory",
+    "Task",
+    "Pattern",
+    "Technology",
+    "Backend",
+    "Documentation",
+    "Principle",
+    "Branch",
+    "TechnologyGroup",
+    "Temporal",
+    "Testing",
+    "Infrastructure",
+    "Frontend",
+    "Package",
+    "UsefulQuery",
+    "File",
+    "DevOps",
+    "Concept",
+    "OrphanNodeCleanup",
+    "Note",
+    "Framework",
+    "Configuration",
+    "Maintenance",
+    "Label",
+    "Language",
+];
+
 impl MemoryConfig {
     /// Helper for serde default of boolean true
     fn default_true() -> bool {
@@ -53,6 +123,8 @@ impl Default for MemoryConfig {
             default_tag: Some(DEFAULT_MEMORY_TAG.to_string()),
             default_relationships: true,
             additional_relationships: HashSet::new(),
+            default_labels: true,
+            additional_labels: HashSet::new(),
         }
     }
 }

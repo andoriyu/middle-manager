@@ -29,6 +29,8 @@ async fn test_find_nonexistent_entity() {
             default_tag: Some("TestFindNone".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::new(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
         },
     )
     .await
@@ -56,6 +58,8 @@ async fn test_create_and_find_entity() {
             default_tag: Some("TestCreate".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::new(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
         },
     )
     .await
@@ -104,6 +108,8 @@ async fn test_validation_errors() {
             default_tag: Some("TestValidation".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::new(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
         },
     )
     .await
@@ -147,6 +153,8 @@ async fn test_set_observations() {
             default_tag: Some("TestSet".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::new(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
         },
     )
     .await
@@ -192,6 +200,8 @@ async fn test_add_and_remove_observations() {
             default_tag: Some("TestAddRemove".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::new(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
         },
     )
     .await
@@ -258,6 +268,8 @@ async fn test_create_relationship() {
             default_tag: Some("RelationshipTest".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::new(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
         },
     )
     .await
