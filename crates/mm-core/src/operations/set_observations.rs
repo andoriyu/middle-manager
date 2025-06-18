@@ -86,4 +86,45 @@ mod tests {
         let result = set_observations(&ports, command).await;
         assert!(matches!(result, Err(CoreError::Memory(_))));
     }
+
+    use arbitrary::Arbitrary;
+    use mm_utils::prop::{NonEmptyName, async_arbtest};
+
+    #[test]
+    fn prop_set_observations_success() {
+        async_arbtest(|rt, u| {
+            let NonEmptyName(name) = NonEmptyName::arbitrary(u)?;
+            let observations = <Vec<String>>::arbitrary(u)?;
+            let mut mock = MockMemoryRepository::new();
+            let name_clone = name.clone();
+            let obs_clone = observations.clone();
+            mock.expect_set_observations()
+                .withf(move |n, o| n == name_clone && o == obs_clone.as_slice())
+                .returning(|_, _| Ok(()));
+            let service = MemoryService::new(mock, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let command = SetObservationsCommand { name, observations };
+            let result = rt.block_on(set_observations(&ports, command));
+            assert!(result.is_ok());
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn prop_set_observations_empty_name() {
+        async_arbtest(|rt, u| {
+            let observations = <Vec<String>>::arbitrary(u)?;
+            let mut mock = MockMemoryRepository::new();
+            mock.expect_set_observations().never();
+            let service = MemoryService::new(mock, MemoryConfig::default());
+            let ports = Ports::new(Arc::new(service));
+            let command = SetObservationsCommand {
+                name: String::new(),
+                observations,
+            };
+            let result = rt.block_on(set_observations(&ports, command));
+            assert!(matches!(result, Err(CoreError::Validation(_))));
+            Ok(())
+        });
+    }
 }

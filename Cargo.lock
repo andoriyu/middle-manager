@@ -1334,8 +1334,11 @@ dependencies = [
 name = "mm-core"
 version = "0.1.0"
 dependencies = [
+ "arbitrary",
+ "arbtest",
  "async-trait",
  "mm-memory",
+ "mm-utils",
  "mockall",
  "serde",
  "serde_json",
@@ -1398,6 +1401,7 @@ version = "0.1.0"
 dependencies = [
  "arbitrary",
  "arbtest",
+ "tokio",
 ]
 
 [[package]]
