@@ -6,6 +6,7 @@ license = "MPL-2.0"
 
 [features]
 mock = ["mockall"]
+arbitrary = ["dep:arbitrary"]
 
 [dependencies]
 serde = { workspace = true }
@@ -16,7 +17,10 @@ mockall = { workspace = true, optional = true }
 mm-utils = { path = "../mm-utils" }
 rust-mcp-sdk = { workspace = true }
 tracing = { workspace = true }
+arbitrary = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
 mockall = { workspace = true }
+arbitrary = { workspace = true }
+arbtest = { workspace = true }
