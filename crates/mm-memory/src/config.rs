@@ -4,9 +4,9 @@ use std::collections::HashSet;
 /// Configuration options for memory service behavior
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct MemoryConfig {
-    /// Optional tag automatically added to every created entity
+    /// Optional label automatically added to every created entity
     #[serde(default)]
-    pub default_tag: Option<String>,
+    pub default_label: Option<String>,
 
     /// Enforce use of default relationships
     #[serde(default = "MemoryConfig::default_true")]
@@ -25,8 +25,8 @@ pub struct MemoryConfig {
     pub additional_labels: HashSet<String>,
 }
 
-/// Default tag used when none is specified in the configuration
-pub const DEFAULT_MEMORY_TAG: &str = "Memory";
+/// Default label used when none is specified in the configuration
+pub const DEFAULT_MEMORY_LABEL: &str = "Memory";
 
 /// Default set of allowed relationship names
 pub const DEFAULT_RELATIONSHIPS: &[&str] = &[
@@ -120,7 +120,7 @@ impl MemoryConfig {
 impl Default for MemoryConfig {
     fn default() -> Self {
         Self {
-            default_tag: Some(DEFAULT_MEMORY_TAG.to_string()),
+            default_label: Some(DEFAULT_MEMORY_LABEL.to_string()),
             default_relationships: true,
             additional_relationships: HashSet::default(),
             default_labels: true,

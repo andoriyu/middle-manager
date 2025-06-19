@@ -44,9 +44,9 @@ where
 
         for entity in entities {
             let mut tagged = entity.clone();
-            if let Some(tag) = &self.config.default_tag {
-                if !tagged.labels.contains(tag) {
-                    tagged.labels.push(tag.clone());
+            if let Some(label) = &self.config.default_label {
+                if !tagged.labels.contains(label) {
+                    tagged.labels.push(label.clone());
                 }
             }
 
@@ -59,9 +59,9 @@ where
             }
             if self.config.default_labels {
                 for label in &tagged.labels {
-                    let allowed_default_tag =
-                        self.config.default_tag.as_deref() == Some(label.as_str());
-                    if !allowed_default_tag
+                    let allowed_default_label =
+                        self.config.default_label.as_deref() == Some(label.as_str());
+                    if !allowed_default_label
                         && !DEFAULT_LABELS.contains(&label.as_str())
                         && !self.config.additional_labels.contains(label)
                     {
@@ -180,7 +180,7 @@ mod tests {
     use std::collections::{HashMap, HashSet};
 
     #[tokio::test]
-    async fn test_default_tag_added() {
+    async fn test_default_label_added() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities()
             .withf(|e| e.len() == 1 && e[0].labels.contains(&"Memory".to_string()))
@@ -189,7 +189,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: Some("Memory".to_string()),
+                default_label: Some("Memory".to_string()),
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: false,
@@ -211,7 +211,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_no_default_tag() {
+    async fn test_no_default_label() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities()
             .withf(|e| e.len() == 1 && !e[0].labels.contains(&"Memory".to_string()))
@@ -220,7 +220,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: false,
@@ -242,7 +242,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_empty_labels_adds_default_tag() {
+    async fn test_empty_labels_adds_default_label() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities()
             .withf(|e| {
@@ -255,7 +255,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: Some("Memory".to_string()),
+                default_label: Some("Memory".to_string()),
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: false,
@@ -278,14 +278,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_empty_labels_without_default_tag_fails() {
+    async fn test_empty_labels_without_default_label_fails() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities().never();
 
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: false,
@@ -312,7 +312,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_default_tag_allowed_with_label_validation() {
+    async fn test_default_label_allowed_with_label_validation() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities()
             .withf(|e| e.len() == 1 && e[0].labels == ["Custom".to_string()])
@@ -321,7 +321,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: Some("Custom".to_string()),
+                default_label: Some("Custom".to_string()),
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: true,
@@ -351,7 +351,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: true,
@@ -384,7 +384,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: true,
@@ -413,7 +413,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: true,
@@ -449,7 +449,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: Some("Memory".to_string()),
+                default_label: Some("Memory".to_string()),
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: false,
@@ -477,7 +477,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_relationships: true,
                 additional_relationships: HashSet::default(),
                 default_labels: true,
@@ -561,7 +561,7 @@ mod tests {
                     Err(_) => return Ok(()),
                 };
                 if DEFAULT_LABELS.contains(&label.as_str())
-                    || label == MemoryConfig::default().default_tag.clone().unwrap()
+                    || label == MemoryConfig::default().default_label.clone().unwrap()
                 {
                     label.push_str("_x");
                 }

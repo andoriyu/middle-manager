@@ -2,8 +2,8 @@
 
 
 [memory]
-# Tag added to every new entity
-default_tag = "Memory"
+# Label added to every new entity
+default_label = "Memory"
 default_relationships = true
 additional_relationships = []
 default_labels = true
