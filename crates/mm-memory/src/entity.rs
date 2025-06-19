@@ -6,7 +6,7 @@ use crate::relationship::MemoryRelationship;
 use crate::value::MemoryValue;
 
 /// Memory entity representing a node in the knowledge graph
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, JsonSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, JsonSchema, Default)]
 pub struct MemoryEntity {
     /// Unique name of the entity
     pub name: String,

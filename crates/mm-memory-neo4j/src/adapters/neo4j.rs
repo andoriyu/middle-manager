@@ -117,7 +117,7 @@ impl MemoryRepository for Neo4jRepository {
             "MATCH (n {name: $name}) \n\
              OPTIONAL MATCH (n)-[r]-() \n\
              WITH n, collect({from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}) as rels \n\
-             RETURN n, apoc.convert.toJson(rels) as rels_json"
+             RETURN n, coalesce(apoc.convert.toJson(rels), '[]') as rels_json"
                 .to_string(),
         )
         .param("name", name.to_string());
