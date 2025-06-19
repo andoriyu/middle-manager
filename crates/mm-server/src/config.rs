@@ -70,7 +70,7 @@ mod tests {
     fn test_load_from_string() {
         let config_content = r#"
 [memory]
-default_tag = "TestTag"
+default_label = "TestTag"
 [neo4j]
 uri = "neo4j://testhost:7687"
 username = "test_user"
@@ -85,7 +85,7 @@ password = "test_password"
         assert_eq!(config.neo4j.uri, "neo4j://testhost:7687");
         assert_eq!(config.neo4j.username, "test_user");
         assert_eq!(config.neo4j.password, "test_password");
-        assert_eq!(config.memory.default_tag, Some("TestTag".to_string()));
+        assert_eq!(config.memory.default_label, Some("TestTag".to_string()));
         assert!(config.memory.default_relationships);
     }
 
@@ -98,7 +98,7 @@ password = "test_password"
                 password: "test_conversion_password".to_string(),
             },
             memory: MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_relationships: true,
                 additional_relationships: std::collections::HashSet::default(),
                 default_labels: true,

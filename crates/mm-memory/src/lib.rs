@@ -9,7 +9,7 @@ pub mod validation_error;
 pub mod value;
 
 pub use config::{DEFAULT_LABELS, DEFAULT_RELATIONSHIPS};
-pub use config::{DEFAULT_MEMORY_TAG, MemoryConfig};
+pub use config::{DEFAULT_MEMORY_LABEL, MemoryConfig};
 pub use entity::MemoryEntity;
 pub use error::{MemoryError, MemoryResult};
 pub use relationship::MemoryRelationship;

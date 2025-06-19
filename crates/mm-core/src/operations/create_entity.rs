@@ -64,7 +64,7 @@ mod tests {
         let service = MemoryService::new(
             mock_repo,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_labels: false,
                 ..MemoryConfig::default()
             },
@@ -92,7 +92,7 @@ mod tests {
         let service = MemoryService::new(
             mock_repo,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_labels: false,
                 ..MemoryConfig::default()
             },
@@ -128,7 +128,7 @@ mod tests {
         let service = MemoryService::new(
             mock_repo,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_labels: false,
                 ..MemoryConfig::default()
             },
@@ -157,7 +157,7 @@ mod tests {
         let service = MemoryService::new(
             mock_repo,
             MemoryConfig {
-                default_tag: None,
+                default_label: None,
                 default_labels: false,
                 ..MemoryConfig::default()
             },

@@ -26,7 +26,7 @@ async fn test_find_nonexistent_entity() {
     let service = create_neo4j_service(
         config,
         MemoryConfig {
-            default_tag: Some("TestFindNone".to_string()),
+            default_label: Some("TestFindNone".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
@@ -55,7 +55,7 @@ async fn test_create_and_find_entity() {
     let service = create_neo4j_service(
         config,
         MemoryConfig {
-            default_tag: Some("TestCreate".to_string()),
+            default_label: Some("TestCreate".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
@@ -111,7 +111,7 @@ async fn test_validation_errors() {
     let service = create_neo4j_service(
         config,
         MemoryConfig {
-            default_tag: Some("TestValidation".to_string()),
+            default_label: Some("TestValidation".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
@@ -156,7 +156,7 @@ async fn test_set_observations() {
     let service = create_neo4j_service(
         config,
         MemoryConfig {
-            default_tag: Some("TestSet".to_string()),
+            default_label: Some("TestSet".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
@@ -203,7 +203,7 @@ async fn test_add_and_remove_observations() {
     let service = create_neo4j_service(
         config,
         MemoryConfig {
-            default_tag: Some("TestAddRemove".to_string()),
+            default_label: Some("TestAddRemove".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
@@ -271,7 +271,7 @@ async fn test_create_relationship() {
     let service = create_neo4j_service(
         config,
         MemoryConfig {
-            default_tag: Some("RelationshipTest".to_string()),
+            default_label: Some("RelationshipTest".to_string()),
             default_relationships: true,
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
