@@ -1,4 +1,4 @@
-use mm_memory::MemoryRelationship;
+use mm_memory::{MemoryRelationship, MemoryValue};
 use mm_memory_neo4j::{MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, create_neo4j_service};
 use std::collections::HashMap;
 
@@ -65,11 +65,13 @@ async fn test_create_and_find_entity() {
     .await
     .unwrap();
 
+    let mut props = HashMap::new();
+    props.insert("rating".to_string(), MemoryValue::Integer(5));
     let entity = MemoryEntity {
         name: "test:entity:create".to_string(),
         labels: vec!["Example".to_string()],
         observations: vec!["This is a test entity for creation".to_string()],
-        properties: HashMap::default(),
+        properties: props,
     };
 
     // Test that entity creation doesn't error
@@ -88,6 +90,10 @@ async fn test_create_and_find_entity() {
     let found_entity = found.unwrap();
     assert_eq!(found_entity.name, entity.name);
     assert_eq!(found_entity.observations, entity.observations);
+    assert_eq!(
+        found_entity.properties.get("rating"),
+        Some(&MemoryValue::Integer(5))
+    );
 
     // Check that labels contain the expected values
     assert!(found_entity.labels.contains(&"Example".to_string()));

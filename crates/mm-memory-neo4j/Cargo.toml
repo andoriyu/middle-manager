@@ -5,7 +5,7 @@ edition = "2024"
 license = "MPL-2.0"
 
 [dependencies]
-neo4rs = "0.7.1"
+neo4rs = { version = "0.7.3", features = ["json"] }
 tokio = { workspace = true, features = ["full"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

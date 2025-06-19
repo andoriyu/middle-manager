@@ -2,6 +2,8 @@ use rust_mcp_sdk::macros::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::value::MemoryValue;
+
 /// Memory relationship representing an edge between entities
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, JsonSchema)]
 pub struct MemoryRelationship {
@@ -13,5 +15,5 @@ pub struct MemoryRelationship {
     pub name: String,
     /// Additional key-value properties
     #[serde(default)]
-    pub properties: HashMap<String, String>,
+    pub properties: HashMap<String, MemoryValue>,
 }
