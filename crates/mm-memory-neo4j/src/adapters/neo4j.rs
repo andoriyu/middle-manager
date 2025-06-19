@@ -72,12 +72,31 @@ impl Neo4jRepository {
     ) -> MemoryResult<Vec<MemoryRelationship>, neo4rs::Error> {
         let mut relationships = Vec::new();
 
+        // Handle empty list or null
+        if let neo4rs::BoltType::Null(_) = bolt {
+            return Ok(relationships);
+        }
+
         if let neo4rs::BoltType::List(rel_list) = bolt {
+            // If the list is empty, return an empty vector
+            if rel_list.is_empty() {
+                return Ok(relationships);
+            }
+
             for rel_item in rel_list {
                 if let neo4rs::BoltType::Map(rel_map) = rel_item {
+                    // Skip null entries (empty relationships)
+                    if rel_map.value.is_empty() {
+                        continue;
+                    }
+
                     // Extract from
                     let from = match rel_map.get("from") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        Ok(neo4rs::BoltType::Null(_)) => {
+                            // Skip null values for required fields
+                            continue;
+                        },
                         Err(e) => {
                             tracing::error!("Failed to get 'from' field from relationship: {}", e);
                             continue;
@@ -91,6 +110,10 @@ impl Neo4jRepository {
                     // Extract to
                     let to = match rel_map.get("to") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        Ok(neo4rs::BoltType::Null(_)) => {
+                            // Skip null values for required fields
+                            continue;
+                        },
                         Err(e) => {
                             tracing::error!("Failed to get 'to' field from relationship: {}", e);
                             continue;
@@ -104,6 +127,10 @@ impl Neo4jRepository {
                     // Extract name
                     let name = match rel_map.get("name") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        Ok(neo4rs::BoltType::Null(_)) => {
+                            // Skip null values for required fields
+                            continue;
+                        },
                         Err(e) => {
                             tracing::error!("Failed to get 'name' field from relationship: {}", e);
                             continue;
@@ -140,6 +167,9 @@ impl Neo4jRepository {
                         name,
                         properties,
                     });
+                } else if let neo4rs::BoltType::Null(_) = rel_item {
+                    // Skip null entries
+                    continue;
                 } else {
                     tracing::error!("Expected Map for relationship, got: {:?}", rel_item);
                 }
