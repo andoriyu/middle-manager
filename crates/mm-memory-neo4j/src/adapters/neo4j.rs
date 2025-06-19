@@ -97,20 +97,21 @@ impl Neo4jRepository {
                             return Err(MemoryError::runtime_error(
                                 "Required field 'from' is null in relationship".to_string(),
                             ));
-                        },
+                        }
                         Err(e) => {
                             return Err(MemoryError::runtime_error_with_source(
                                 "Failed to get required 'from' field from relationship".to_string(),
                                 e,
                             ));
-                        },
+                        }
                         Ok(other) => {
                             return Err(MemoryError::runtime_error(format!(
-                                "Expected string for required 'from' field, got: {:?}", other
+                                "Expected string for required 'from' field, got: {:?}",
+                                other
                             )));
                         }
                     };
-                    
+
                     // Extract to (required field)
                     let to = match rel_map.get("to") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
@@ -118,20 +119,21 @@ impl Neo4jRepository {
                             return Err(MemoryError::runtime_error(
                                 "Required field 'to' is null in relationship".to_string(),
                             ));
-                        },
+                        }
                         Err(e) => {
                             return Err(MemoryError::runtime_error_with_source(
                                 "Failed to get required 'to' field from relationship".to_string(),
                                 e,
                             ));
-                        },
+                        }
                         Ok(other) => {
                             return Err(MemoryError::runtime_error(format!(
-                                "Expected string for required 'to' field, got: {:?}", other
+                                "Expected string for required 'to' field, got: {:?}",
+                                other
                             )));
                         }
                     };
-                    
+
                     // Extract name (required field)
                     let name = match rel_map.get("name") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
@@ -139,20 +141,21 @@ impl Neo4jRepository {
                             return Err(MemoryError::runtime_error(
                                 "Required field 'name' is null in relationship".to_string(),
                             ));
-                        },
+                        }
                         Err(e) => {
                             return Err(MemoryError::runtime_error_with_source(
                                 "Failed to get required 'name' field from relationship".to_string(),
                                 e,
                             ));
-                        },
+                        }
                         Ok(other) => {
                             return Err(MemoryError::runtime_error(format!(
-                                "Expected string for required 'name' field, got: {:?}", other
+                                "Expected string for required 'name' field, got: {:?}",
+                                other
                             )));
                         }
                     };
-                    
+
                     // Extract properties (optional)
                     let mut properties = HashMap::new();
                     if let Ok(neo4rs::BoltType::Map(props_map)) = rel_map.get("properties") {
@@ -160,20 +163,29 @@ impl Neo4jRepository {
                             match bolt_to_memory_value(value.clone()) {
                                 Ok(memory_value) => {
                                     properties.insert(key.to_string(), memory_value);
-                                },
+                                }
                                 Err(e) => {
                                     // Property conversion errors are still logged but don't fail the whole operation
                                     tracing::error!(
-                                        "Failed to convert property '{}' in relationship {}-[{}]->{}: {}", 
-                                        key, from, name, to, e
+                                        "Failed to convert property '{}' in relationship {}-[{}]->{}: {}",
+                                        key,
+                                        from,
+                                        name,
+                                        to,
+                                        e
                                     );
                                 }
                             }
                         }
                     } else {
-                        tracing::debug!("No properties found for relationship {}-[{}]->{}", from, name, to);
+                        tracing::debug!(
+                            "No properties found for relationship {}-[{}]->{}",
+                            from,
+                            name,
+                            to
+                        );
                     }
-                    
+
                     relationships.push(MemoryRelationship {
                         from,
                         to,
@@ -185,16 +197,18 @@ impl Neo4jRepository {
                     continue;
                 } else {
                     return Err(MemoryError::runtime_error(format!(
-                        "Expected Map for relationship, got: {:?}", rel_item
+                        "Expected Map for relationship, got: {:?}",
+                        rel_item
                     )));
                 }
             }
         } else {
             return Err(MemoryError::runtime_error(format!(
-                "Expected List for relationships, got: {:?}", bolt
+                "Expected List for relationships, got: {:?}",
+                bolt
             )));
         }
-        
+
         Ok(relationships)
     }
 }
