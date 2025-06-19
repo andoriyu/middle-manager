@@ -72,6 +72,7 @@ async fn test_create_and_find_entity() {
         labels: vec!["Example".to_string()],
         observations: vec!["This is a test entity for creation".to_string()],
         properties: props,
+        relationships: Vec::new(),
     };
 
     // Test that entity creation doesn't error
@@ -131,6 +132,7 @@ async fn test_validation_errors() {
         labels: vec![],
         observations: vec!["This entity has no labels".to_string()],
         properties: HashMap::default(),
+        relationships: Vec::new(),
     };
 
     let result = service.create_entities(std::slice::from_ref(&entity)).await;
@@ -172,6 +174,7 @@ async fn test_set_observations() {
         labels: vec!["Example".to_string()],
         observations: vec!["initial".to_string()],
         properties: HashMap::default(),
+        relationships: Vec::new(),
     };
 
     service
@@ -219,6 +222,7 @@ async fn test_add_and_remove_observations() {
         labels: vec!["Example".to_string()],
         observations: vec!["obs1".to_string(), "obs2".to_string()],
         properties: HashMap::default(),
+        relationships: Vec::new(),
     };
 
     service
@@ -286,12 +290,14 @@ async fn test_create_relationship() {
         labels: vec!["Example".to_string()],
         observations: vec![],
         properties: HashMap::default(),
+        relationships: Vec::new(),
     };
     let b = MemoryEntity {
         name: "rel:b".to_string(),
         labels: vec!["Example".to_string()],
         observations: vec![],
         properties: HashMap::default(),
+        relationships: Vec::new(),
     };
 
     service
@@ -314,4 +320,20 @@ async fn test_create_relationship() {
         .create_relationships(std::slice::from_ref(&rel))
         .await
         .unwrap();
+
+    let fetched_a = service.find_entity_by_name("rel:a").await.unwrap().unwrap();
+    assert!(
+        fetched_a
+            .relationships
+            .iter()
+            .any(|r| r.from == "rel:a" && r.to == "rel:b" && r.name == "relates_to")
+    );
+
+    let fetched_b = service.find_entity_by_name("rel:b").await.unwrap().unwrap();
+    assert!(
+        fetched_b
+            .relationships
+            .iter()
+            .any(|r| r.from == "rel:a" && r.to == "rel:b" && r.name == "relates_to")
+    );
 }

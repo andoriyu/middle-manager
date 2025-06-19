@@ -2,6 +2,7 @@ use rust_mcp_sdk::macros::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::relationship::MemoryRelationship;
 use crate::value::MemoryValue;
 
 /// Memory entity representing a node in the knowledge graph
@@ -16,4 +17,7 @@ pub struct MemoryEntity {
     /// Additional key-value properties
     #[serde(default)]
     pub properties: HashMap<String, MemoryValue>,
+    /// Relationships connected to the entity
+    #[serde(default)]
+    pub relationships: Vec<MemoryRelationship>,
 }

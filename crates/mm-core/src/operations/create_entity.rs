@@ -77,6 +77,7 @@ mod tests {
                 labels: vec!["Test".to_string()],
                 observations: vec![],
                 properties: HashMap::default(),
+                relationships: Vec::new(),
             }],
         };
 
@@ -105,6 +106,7 @@ mod tests {
                 labels: vec!["Test".to_string()],
                 observations: vec![],
                 properties: HashMap::default(),
+                relationships: Vec::new(),
             }],
         };
 
@@ -141,6 +143,7 @@ mod tests {
                 labels: vec!["Test".to_string()],
                 observations: vec![],
                 properties: HashMap::default(),
+                relationships: Vec::new(),
             }],
         };
 
@@ -171,12 +174,14 @@ mod tests {
                     labels: vec![],
                     observations: vec![],
                     properties: HashMap::default(),
+                    relationships: Vec::new(),
                 },
                 MemoryEntity {
                     name: "valid:entity".to_string(),
                     labels: vec![],
                     observations: vec![],
                     properties: HashMap::default(),
+                    relationships: Vec::new(),
                 },
             ],
         };

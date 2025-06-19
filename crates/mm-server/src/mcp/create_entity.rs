@@ -61,6 +61,7 @@ mod tests {
                 labels: vec!["Test".to_string()],
                 observations: vec![],
                 properties: HashMap::default(),
+                relationships: Vec::new(),
             }],
         };
 
@@ -71,7 +72,8 @@ mod tests {
                 "name": "test:entity",
                 "labels": ["Test"],
                 "observations": [],
-                "properties": {}
+                "properties": {},
+                "relationships": []
             }
         ]);
         assert_eq!(text, expected.to_string());
@@ -92,6 +94,7 @@ mod tests {
                 labels: vec!["Test".to_string()],
                 observations: vec![],
                 properties: HashMap::default(),
+                relationships: Vec::new(),
             }],
         };
 

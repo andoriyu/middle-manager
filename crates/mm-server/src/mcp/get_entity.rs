@@ -55,6 +55,7 @@ mod tests {
             labels: vec!["Test".to_string()],
             observations: vec![],
             properties: HashMap::default(),
+            relationships: Vec::new(),
         };
 
         let mut mock = MockMemoryRepository::new();
@@ -73,6 +74,7 @@ mod tests {
         let text = result.content[0].as_text_content().unwrap().text.clone();
         let value: Value = serde_json::from_str(&text).unwrap();
         assert_eq!(value["name"], "test:entity");
+        assert!(value["relationships"].as_array().unwrap().is_empty());
     }
 
     #[tokio::test]

@@ -113,8 +113,14 @@ impl MemoryRepository for Neo4jRepository {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
-        let query = Query::new("MATCH (n {name: $name}) RETURN n".to_string())
-            .param("name", name.to_string());
+        let query = Query::new(
+            "MATCH (n {name: $name}) \n\
+             OPTIONAL MATCH (n)-[r]-() \n\
+             WITH n, collect({from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}) as rels \n\
+             RETURN n, apoc.convert.toJson(rels) as rels_json"
+                .to_string(),
+        )
+        .param("name", name.to_string());
 
         let mut result = self.graph.execute(query).await.map_err(|e| {
             MemoryError::query_error_with_source(
@@ -183,11 +189,21 @@ impl MemoryRepository for Neo4jRepository {
                 }
             }
 
+            // Parse relationships
+            let rels_json = row.get::<String>("rels_json").map_err(|e| {
+                MemoryError::runtime_error_with_source(
+                    "Failed to decode relationships".to_string(),
+                    e,
+                )
+            })?;
+            let relationships: Vec<MemoryRelationship> = serde_json::from_str(&rels_json)?;
+
             Ok(Some(MemoryEntity {
                 name: entity_name,
                 labels,
                 observations,
                 properties,
+                relationships,
             }))
         } else {
             Ok(None)
