@@ -62,6 +62,59 @@ impl Neo4jRepository {
 
         Ok(Self { graph })
     }
+
+    /// Parse relationships from Neo4j BoltType
+    ///
+    /// This function converts a Neo4j BoltType (typically a List of Maps) into a Vec of MemoryRelationship.
+    /// Each map in the list should contain 'from', 'to', 'name', and optionally 'properties'.
+    fn parse_relationships_from_bolt(
+        bolt: neo4rs::BoltType,
+    ) -> MemoryResult<Vec<MemoryRelationship>, neo4rs::Error> {
+        let mut relationships = Vec::new();
+
+        if let neo4rs::BoltType::List(rel_list) = bolt {
+            for rel_item in rel_list {
+                if let neo4rs::BoltType::Map(rel_map) = rel_item {
+                    // Extract from
+                    let from = match rel_map.get("from") {
+                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        _ => continue, // Skip if from is missing or not a string
+                    };
+
+                    // Extract to
+                    let to = match rel_map.get("to") {
+                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        _ => continue, // Skip if to is missing or not a string
+                    };
+
+                    // Extract name
+                    let name = match rel_map.get("name") {
+                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        _ => continue, // Skip if name is missing or not a string
+                    };
+
+                    // Extract properties
+                    let mut properties = HashMap::new();
+                    if let Ok(neo4rs::BoltType::Map(props_map)) = rel_map.get("properties") {
+                        for (key, value) in &props_map.value {
+                            if let Ok(memory_value) = bolt_to_memory_value(value.clone()) {
+                                properties.insert(key.to_string(), memory_value);
+                            }
+                        }
+                    }
+
+                    relationships.push(MemoryRelationship {
+                        from,
+                        to,
+                        name,
+                        properties,
+                    });
+                }
+            }
+        }
+
+        Ok(relationships)
+    }
 }
 
 #[async_trait]
@@ -117,7 +170,7 @@ impl MemoryRepository for Neo4jRepository {
             "MATCH (n {name: $name}) \n\
              OPTIONAL MATCH (n)-[r]-() \n\
              WITH n, collect({from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}) as rels \n\
-             RETURN n, coalesce(apoc.convert.toJson(rels), '[]') as rels_json"
+             RETURN n, rels"
                 .to_string(),
         )
         .param("name", name.to_string());
@@ -190,13 +243,14 @@ impl MemoryRepository for Neo4jRepository {
             }
 
             // Parse relationships
-            let rels_json = row.get::<String>("rels_json").map_err(|e| {
+            let rels_bolt = row.get::<neo4rs::BoltType>("rels").map_err(|e| {
                 MemoryError::runtime_error_with_source(
                     "Failed to decode relationships".to_string(),
                     e,
                 )
             })?;
-            let relationships: Vec<MemoryRelationship> = serde_json::from_str(&rels_json)?;
+
+            let relationships = Self::parse_relationships_from_bolt(rels_bolt)?;
 
             Ok(Some(MemoryEntity {
                 name: entity_name,
