@@ -78,41 +78,76 @@ impl Neo4jRepository {
                     // Extract from
                     let from = match rel_map.get("from") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
-                        _ => continue, // Skip if from is missing or not a string
+                        Err(e) => {
+                            tracing::error!("Failed to get 'from' field from relationship: {}", e);
+                            continue;
+                        },
+                        Ok(other) => {
+                            tracing::error!("Expected string for 'from' field, got: {:?}", other);
+                            continue;
+                        }
                     };
-
+                    
                     // Extract to
                     let to = match rel_map.get("to") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
-                        _ => continue, // Skip if to is missing or not a string
+                        Err(e) => {
+                            tracing::error!("Failed to get 'to' field from relationship: {}", e);
+                            continue;
+                        },
+                        Ok(other) => {
+                            tracing::error!("Expected string for 'to' field, got: {:?}", other);
+                            continue;
+                        }
                     };
-
+                    
                     // Extract name
                     let name = match rel_map.get("name") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
-                        _ => continue, // Skip if name is missing or not a string
+                        Err(e) => {
+                            tracing::error!("Failed to get 'name' field from relationship: {}", e);
+                            continue;
+                        },
+                        Ok(other) => {
+                            tracing::error!("Expected string for 'name' field, got: {:?}", other);
+                            continue;
+                        }
                     };
-
+                    
                     // Extract properties
                     let mut properties = HashMap::new();
                     if let Ok(neo4rs::BoltType::Map(props_map)) = rel_map.get("properties") {
                         for (key, value) in &props_map.value {
-                            if let Ok(memory_value) = bolt_to_memory_value(value.clone()) {
-                                properties.insert(key.to_string(), memory_value);
+                            match bolt_to_memory_value(value.clone()) {
+                                Ok(memory_value) => {
+                                    properties.insert(key.to_string(), memory_value);
+                                },
+                                Err(e) => {
+                                    tracing::error!(
+                                        "Failed to convert property '{}' in relationship {}-[{}]->{}: {}", 
+                                        key, from, name, to, e
+                                    );
+                                }
                             }
                         }
+                    } else {
+                        tracing::debug!("No properties found for relationship {}-[{}]->{}", from, name, to);
                     }
-
+                    
                     relationships.push(MemoryRelationship {
                         from,
                         to,
                         name,
                         properties,
                     });
+                } else {
+                    tracing::error!("Expected Map for relationship, got: {:?}", rel_item);
                 }
             }
+        } else {
+            tracing::error!("Expected List for relationships, got: {:?}", bolt);
         }
-
+        
         Ok(relationships)
     }
 }
