@@ -1,6 +1,6 @@
 # Middle Manager
 
-Middle Manager is a Model Context Protocol (MCP) server that provides tools for interacting with a Neo4j memory graph. It uses a hexagonal architecture to separate domain logic from external protocols.
+Middle Manager is a Model Context Protocol (MCP) server for a Neo4j memory graph. It uses a hexagonal architecture to keep domain logic independent of external protocols.
 
 ### Memory
 
@@ -10,10 +10,7 @@ Middle Manager is a Model Context Protocol (MCP) server that provides tools for 
 | --- | ----------- | ------- |
 | `memory://{name}` | Read a memory entity by name | `memory://tech:language:rust` |
 
-The `memory://` scheme represents **dynamic** resources: any entity name can be
-requested even though `list_resources` returns an empty list. The server
-advertises this capability through a single resource template returned by
-`list_resource_templates`.
+The `memory://` scheme is dynamic: any entity name can be requested. The server exposes this through a single template from `list_resource_templates`.
 
 #### Tools
 
@@ -127,33 +124,29 @@ graph TD
 
 ### Memory
 
-- Stores and retrieves knowledge from a Neo4j graph database
-- Entity management: create and retrieve entities with labels, observations, and properties
-- Observation management: set, add, remove, or clear observations for an entity
-- Relationship management: create relationships between entities
+- Stores and retrieves data in Neo4j
+- Create and retrieve entities with labels, observations, and properties
+- Set, add, remove, or clear observations
+- Create relationships between entities
 
-- Dynamic resources: any entity can be fetched via `memory://{name}` URIs and is
-  advertised through `list_resource_templates`
-
-- **Configurable Logging**: Control log level and file output
+- Fetch any entity with `memory://{name}`; `list_resource_templates` advertises this
+- Configurable logging
 
 ## Building
 
-Run `cargo build` from the repository root to compile all crates.
+Run `cargo build` to compile all crates.
 
-The workspace requires the **Rust 2024 edition**. CI pins the toolchain in
-[`rust-toolchain.toml`](./rust-toolchain.toml), so ensure your local setup
-matches that file.
+The workspace uses Rust 2024 as pinned in [`rust-toolchain.toml`](./rust-toolchain.toml).
 
 ### Using Nix
 
-If you have [Nix](https://nixos.org/) installed you can build the CLI package with:
+With [Nix](https://nixos.org/), you can build the CLI package:
 
 ```bash
 nix build .#middle_manager
 ```
 
-The [Determinate Systems installer](https://install.determinate.systems/nix) provides a fast way to install Nix:
+Install Nix with the [Determinate Systems installer](https://install.determinate.systems/nix):
 
 ```bash
 curl -L https://install.determinate.systems/nix | sh -s -- --no-confirm
@@ -161,7 +154,7 @@ curl -L https://install.determinate.systems/nix | sh -s -- --no-confirm
 
 ## Running
 
-Execute `cargo run -p mm-cli` to build and run the CLI with default settings.
+Run `cargo run -p mm-cli` to start the CLI.
 
 ### CLI Options
 
@@ -180,7 +173,7 @@ OPTIONS:
 
 ### Configuration
 
-The server looks for configuration files in the following order:
+Configuration search order:
 1. Custom config file specified with `-c` or `--config`
 2. `config/default.toml`
 3. `config/local.toml` (gitignored for local overrides)
@@ -194,16 +187,14 @@ username = "neo4j"
 password = "password"
 ```
 
-When using the provided `docker-compose.yml` file, Neo4j is exposed on host
-port `7688` rather than the default `7687`. Update `config/local.toml` or set
-the environment variable `MM_NEO4J__URI` to `neo4j://localhost:7688` when
-running with Docker.
+With `docker-compose.yml`, Neo4j runs on port `7688`. Update `config/local.toml` or set `MM_NEO4J__URI` to `neo4j://localhost:7688`.
+
 
 ## Development
 
 ### Using Just
 
-The project includes a `justfile` with common development tasks:
+Use the `justfile` for common tasks:
 
 ```bash
 # List available commands
@@ -229,27 +220,9 @@ npx @modelcontextprotocol/inspector cargo run -p mm-cli
 
 ### Using Nix
 
-This repository provides a Nix flake. Enter the development environment with:
+This repository provides a Nix flake. Enter with `nix develop`, build with `nix build`, and run checks with `nix flake check`.
 
-```bash
-nix develop
-```
-
-Build the workspace via:
-
-```bash
-nix build
-```
-
-Run the flake's checks:
-
-```bash
-nix flake check
-```
-
-The flake uses [naersk](https://github.com/nix-community/naersk) together
-with the [rust overlay](https://github.com/oxalica/rust-overlay) to build the
-Rust workspace.
+The flake builds the workspace with [naersk](https://github.com/nix-community/naersk) and the [rust overlay](https://github.com/oxalica/rust-overlay).
 
 ## Architecture
 
@@ -260,7 +233,7 @@ The project follows a hexagonal architecture (ports and adapters) pattern:
 - **Adapters**: Implementations of ports for specific technologies
 - **MCP Protocol**: External interface for AI assistants
 
-This architecture ensures that the core domain logic is isolated from external concerns, making it more maintainable and testable.
+This keeps the core domain isolated and testable.
 
 ## License
 
