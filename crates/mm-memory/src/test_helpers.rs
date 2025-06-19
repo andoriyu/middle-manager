@@ -40,7 +40,7 @@ pub fn prop_random_entity(
         labels,
         observations,
         properties,
-        relationships: Vec::new(),
+        ..Default::default()
     })
 }
 

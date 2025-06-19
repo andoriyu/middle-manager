@@ -200,9 +200,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         let result = service
@@ -232,9 +230,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         let result = service
@@ -269,9 +265,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec![],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         let errors = service
@@ -300,9 +294,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec![],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         let result = service
@@ -337,9 +329,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec![],
-            observations: vec![],
-            properties: HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         let result = service
@@ -368,9 +358,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Unknown".to_string()],
-            observations: vec![],
-            properties: HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         let result = service
@@ -467,9 +455,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         let result = service.create_entities(std::slice::from_ref(&entity)).await;
@@ -517,9 +503,8 @@ mod tests {
         let entity = MemoryEntity {
             name: "a".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: HashMap::default(),
             relationships: vec![relationship.clone()],
+            ..Default::default()
         };
 
         let mut mock = MockMemoryRepository::new();

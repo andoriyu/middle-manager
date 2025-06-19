@@ -47,7 +47,6 @@ mod tests {
     use super::*;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
     use mockall::predicate::*;
-    use std::collections::HashMap;
     use std::sync::Arc;
 
     #[tokio::test]
@@ -56,9 +55,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: HashMap::default(),
-            relationships: Vec::new(),
+            ..Default::default()
         };
 
         mock_repo

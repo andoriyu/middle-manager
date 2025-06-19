@@ -36,7 +36,6 @@ mod tests {
     use super::*;
     use mm_core::Ports;
     use mm_memory::{MemoryConfig, MemoryError, MemoryService, MockMemoryRepository};
-    use std::collections::HashMap;
     use std::sync::Arc;
 
     #[tokio::test]
@@ -59,9 +58,7 @@ mod tests {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
-                observations: vec![],
-                properties: HashMap::default(),
-                relationships: Vec::new(),
+                ..Default::default()
             }],
         };
 
@@ -92,9 +89,7 @@ mod tests {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
-                observations: vec![],
-                properties: HashMap::default(),
-                relationships: Vec::new(),
+                ..Default::default()
             }],
         };
 
