@@ -72,7 +72,7 @@ impl Neo4jRepository {
     ) -> MemoryResult<Vec<MemoryRelationship>, neo4rs::Error> {
         let mut relationships = Vec::new();
 
-        // Handle empty list or null
+        // Handle empty list or null (no relationships case)
         if let neo4rs::BoltType::Null(_) = bolt {
             return Ok(relationships);
         }
@@ -85,63 +85,75 @@ impl Neo4jRepository {
 
             for rel_item in rel_list {
                 if let neo4rs::BoltType::Map(rel_map) = rel_item {
-                    // Skip null entries (empty relationships)
+                    // Skip empty maps (no data)
                     if rel_map.value.is_empty() {
                         continue;
                     }
 
-                    // Extract from
+                    // Extract from (required field)
                     let from = match rel_map.get("from") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
                         Ok(neo4rs::BoltType::Null(_)) => {
-                            // Skip null values for required fields
-                            continue;
+                            return Err(MemoryError::runtime_error(
+                                "Required field 'from' is null in relationship".to_string(),
+                            ));
                         },
                         Err(e) => {
-                            tracing::error!("Failed to get 'from' field from relationship: {}", e);
-                            continue;
+                            return Err(MemoryError::runtime_error_with_source(
+                                "Failed to get required 'from' field from relationship".to_string(),
+                                e,
+                            ));
                         },
                         Ok(other) => {
-                            tracing::error!("Expected string for 'from' field, got: {:?}", other);
-                            continue;
+                            return Err(MemoryError::runtime_error(format!(
+                                "Expected string for required 'from' field, got: {:?}", other
+                            )));
                         }
                     };
                     
-                    // Extract to
+                    // Extract to (required field)
                     let to = match rel_map.get("to") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
                         Ok(neo4rs::BoltType::Null(_)) => {
-                            // Skip null values for required fields
-                            continue;
+                            return Err(MemoryError::runtime_error(
+                                "Required field 'to' is null in relationship".to_string(),
+                            ));
                         },
                         Err(e) => {
-                            tracing::error!("Failed to get 'to' field from relationship: {}", e);
-                            continue;
+                            return Err(MemoryError::runtime_error_with_source(
+                                "Failed to get required 'to' field from relationship".to_string(),
+                                e,
+                            ));
                         },
                         Ok(other) => {
-                            tracing::error!("Expected string for 'to' field, got: {:?}", other);
-                            continue;
+                            return Err(MemoryError::runtime_error(format!(
+                                "Expected string for required 'to' field, got: {:?}", other
+                            )));
                         }
                     };
                     
-                    // Extract name
+                    // Extract name (required field)
                     let name = match rel_map.get("name") {
                         Ok(neo4rs::BoltType::String(s)) => s.to_string(),
                         Ok(neo4rs::BoltType::Null(_)) => {
-                            // Skip null values for required fields
-                            continue;
+                            return Err(MemoryError::runtime_error(
+                                "Required field 'name' is null in relationship".to_string(),
+                            ));
                         },
                         Err(e) => {
-                            tracing::error!("Failed to get 'name' field from relationship: {}", e);
-                            continue;
+                            return Err(MemoryError::runtime_error_with_source(
+                                "Failed to get required 'name' field from relationship".to_string(),
+                                e,
+                            ));
                         },
                         Ok(other) => {
-                            tracing::error!("Expected string for 'name' field, got: {:?}", other);
-                            continue;
+                            return Err(MemoryError::runtime_error(format!(
+                                "Expected string for required 'name' field, got: {:?}", other
+                            )));
                         }
                     };
                     
-                    // Extract properties
+                    // Extract properties (optional)
                     let mut properties = HashMap::new();
                     if let Ok(neo4rs::BoltType::Map(props_map)) = rel_map.get("properties") {
                         for (key, value) in &props_map.value {
@@ -150,6 +162,7 @@ impl Neo4jRepository {
                                     properties.insert(key.to_string(), memory_value);
                                 },
                                 Err(e) => {
+                                    // Property conversion errors are still logged but don't fail the whole operation
                                     tracing::error!(
                                         "Failed to convert property '{}' in relationship {}-[{}]->{}: {}", 
                                         key, from, name, to, e
@@ -168,14 +181,18 @@ impl Neo4jRepository {
                         properties,
                     });
                 } else if let neo4rs::BoltType::Null(_) = rel_item {
-                    // Skip null entries
+                    // Skip null entries in the list
                     continue;
                 } else {
-                    tracing::error!("Expected Map for relationship, got: {:?}", rel_item);
+                    return Err(MemoryError::runtime_error(format!(
+                        "Expected Map for relationship, got: {:?}", rel_item
+                    )));
                 }
             }
         } else {
-            tracing::error!("Expected List for relationships, got: {:?}", bolt);
+            return Err(MemoryError::runtime_error(format!(
+                "Expected List for relationships, got: {:?}", bolt
+            )));
         }
         
         Ok(relationships)
@@ -234,8 +251,8 @@ impl MemoryRepository for Neo4jRepository {
         let query = Query::new(
             "MATCH (n {name: $name}) \n\
              OPTIONAL MATCH (n)-[r]-() \n\
-             WITH n, collect({from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}) as rels \n\
-             RETURN n, rels"
+             WITH n, collect(CASE WHEN r IS NOT NULL THEN {from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)} END) as rels \n\
+             RETURN n, [x IN rels WHERE x IS NOT NULL] as rels"
                 .to_string(),
         )
         .param("name", name.to_string());
