@@ -1,8 +1,8 @@
+use crate::adapters::conversions::{bolt_to_memory_value, memory_value_to_bolt};
 use async_trait::async_trait;
 use neo4rs::{self, Graph, Node, Query};
 use serde_json;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use tracing::instrument;
 
 use mm_memory::{
@@ -80,13 +80,7 @@ impl MemoryRepository for Neo4jRepository {
             let observations_json = serde_json::to_string(&entity.observations)?;
             props.insert("observations".to_string(), observations_json.into());
             for (k, v) in &entity.properties {
-                let json = serde_json::to_value(v)?;
-                let bolt: neo4rs::BoltType = json.try_into().map_err(|e| {
-                    MemoryError::runtime_error_with_source(
-                        "Failed to convert property".to_string(),
-                        e,
-                    )
-                })?;
+                let bolt = memory_value_to_bolt(v)?;
                 props.insert(k.clone(), bolt);
             }
 
@@ -176,21 +170,16 @@ impl MemoryRepository for Neo4jRepository {
 
             // Extract all other properties
             let mut properties: HashMap<String, MemoryValue> = HashMap::default();
-            let map: HashMap<String, serde_json::Value> = node.to().map_err(|e| {
-                MemoryError::runtime_error_with_source(
-                    "Failed to decode node properties".to_string(),
-                    e,
-                )
-            })?;
-            for (k, v) in map {
-                if k != "name" && k != "observations" {
-                    let mv = MemoryValue::try_from(v).map_err(|e| {
+            for key in node.keys() {
+                if key != "name" && key != "observations" {
+                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
                         MemoryError::runtime_error_with_source(
-                            "Failed to decode property".to_string(),
+                            "Failed to decode node properties".to_string(),
                             e,
                         )
                     })?;
-                    properties.insert(k, mv);
+                    let mv = bolt_to_memory_value(bolt)?;
+                    properties.insert(key.to_string(), mv);
                 }
             }
 
@@ -277,13 +266,7 @@ impl MemoryRepository for Neo4jRepository {
         for rel in relationships {
             let mut props: HashMap<String, neo4rs::BoltType> = HashMap::default();
             for (k, v) in &rel.properties {
-                let json = serde_json::to_value(v)?;
-                let bolt: neo4rs::BoltType = json.try_into().map_err(|e| {
-                    MemoryError::runtime_error_with_source(
-                        "Failed to convert relationship property".to_string(),
-                        e,
-                    )
-                })?;
+                let bolt = memory_value_to_bolt(v)?;
                 props.insert(k.clone(), bolt);
             }
 
