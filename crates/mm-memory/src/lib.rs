@@ -22,3 +22,6 @@ pub use value::MemoryValue;
 
 #[cfg(test)]
 pub mod test_helpers;
+
+#[cfg(any(test, feature = "test-suite"))]
+pub mod test_suite;

@@ -1,5 +1,8 @@
+use mm_memory::test_suite::run_memory_service_test_suite;
 use mm_memory::{MemoryRelationship, MemoryValue};
-use mm_memory_neo4j::{MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, create_neo4j_service};
+use mm_memory_neo4j::{
+    MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, Neo4jRepository, create_neo4j_service,
+};
 use std::collections::HashMap;
 
 #[tokio::test]
@@ -328,4 +331,16 @@ async fn test_create_relationship() {
             .iter()
             .any(|r| r.from == "rel:a" && r.to == "rel:b" && r.name == "relates_to")
     );
+}
+
+#[tokio::test]
+async fn test_run_memory_service_suite() {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+
+    let repo = Neo4jRepository::new(config).await.unwrap();
+    run_memory_service_test_suite(repo).await.unwrap();
 }

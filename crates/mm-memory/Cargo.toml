@@ -6,6 +6,7 @@ license = "MPL-2.0"
 
 [features]
 mock = ["mockall"]
+test-suite = []
 
 [dependencies]
 serde = { workspace = true }

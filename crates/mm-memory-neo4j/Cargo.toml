@@ -18,4 +18,4 @@ time = { workspace = true }
 [dev-dependencies]
 mockall = { workspace = true }
 tokio = { workspace = true, features = ["full", "test-util"] }
-mm-memory = { path = "../mm-memory", features = ["mock"] }
+mm-memory = { path = "../mm-memory", features = ["mock", "test-suite"] }
