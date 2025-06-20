@@ -1,5 +1,5 @@
 use mm_memory::test_suite::run_memory_service_test_suite;
-use mm_memory::{MemoryRelationship, MemoryValue};
+use mm_memory::{MemoryRelationship, MemoryValue, RelationshipDirection};
 use mm_memory_neo4j::{
     MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, Neo4jRepository, create_neo4j_service,
 };

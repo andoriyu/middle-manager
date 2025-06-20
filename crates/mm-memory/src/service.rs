@@ -5,6 +5,12 @@ use crate::{
 use mm_utils::is_snake_case;
 use tracing::instrument;
 
+/// Minimum allowed traversal depth for related entity queries
+const MIN_TRAVERSAL_DEPTH: u32 = 1;
+
+/// Maximum allowed traversal depth for related entity queries
+const MAX_TRAVERSAL_DEPTH: u32 = 5;
+
 /// Service for memory operations
 ///
 /// This service provides a high-level API for interacting with the memory store.
@@ -183,7 +189,7 @@ where
         if name.is_empty() {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
-        if depth < MIN_TRAVERSAL_DEPTH || depth > MAX_TRAVERSAL_DEPTH {
+        if !(MIN_TRAVERSAL_DEPTH..=MAX_TRAVERSAL_DEPTH).contains(&depth) {
             return Err(ValidationError::from(ValidationErrorKind::InvalidDepth(depth)).into());
         }
 
