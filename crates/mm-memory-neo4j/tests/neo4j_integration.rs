@@ -1,5 +1,6 @@
 use mm_memory::test_suite::run_memory_service_test_suite;
 use mm_memory::{MemoryRelationship, MemoryValue, RelationshipDirection};
+use mm_memory_neo4j::LabelMatchMode;
 use mm_memory_neo4j::{
     MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, Neo4jRepository, create_neo4j_service,
 };
@@ -403,6 +404,69 @@ async fn test_find_related_entities() {
         .unwrap();
     assert!(related.iter().any(|e| e.name == b.name));
     assert!(related.iter().any(|e| e.name == c.name));
+}
+
+#[tokio::test]
+async fn test_find_entities_by_labels() {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_label: Some("LabelTest".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::default(),
+            default_labels: true,
+            additional_labels: ["Example".to_string(), "Extra".to_string()]
+                .into_iter()
+                .collect(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let a = MemoryEntity {
+        name: "label:a".to_string(),
+        labels: vec!["Example".to_string()],
+        ..Default::default()
+    };
+    let b = MemoryEntity {
+        name: "label:b".to_string(),
+        labels: vec!["Example".to_string(), "Extra".to_string()],
+        ..Default::default()
+    };
+
+    service
+        .create_entities(&[a.clone(), b.clone()])
+        .await
+        .unwrap();
+
+    let any = service
+        .find_entities_by_labels(&["Extra".to_string()], LabelMatchMode::Any, None)
+        .await
+        .unwrap();
+    assert!(any.iter().any(|e| e.name == b.name));
+    assert!(!any.iter().any(|e| e.name == a.name));
+
+    let all = service
+        .find_entities_by_labels(
+            &["Example".to_string(), "Extra".to_string()],
+            LabelMatchMode::All,
+            None,
+        )
+        .await
+        .unwrap();
+    assert!(all.iter().any(|e| e.name == b.name));
+
+    let req = service
+        .find_entities_by_labels(&[], LabelMatchMode::Any, Some("Extra".to_string()))
+        .await
+        .unwrap();
+    assert!(req.iter().all(|e| e.labels.contains(&"Extra".to_string())));
 }
 
 #[tokio::test]

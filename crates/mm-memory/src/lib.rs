@@ -2,6 +2,7 @@
 pub mod config;
 pub mod entity;
 pub mod error;
+pub mod label_match_mode;
 pub mod relationship;
 pub mod relationship_direction;
 pub mod repository;
@@ -13,6 +14,7 @@ pub use config::{DEFAULT_LABELS, DEFAULT_RELATIONSHIPS};
 pub use config::{DEFAULT_MEMORY_LABEL, MemoryConfig};
 pub use entity::MemoryEntity;
 pub use error::{MemoryError, MemoryResult};
+pub use label_match_mode::LabelMatchMode;
 pub use relationship::MemoryRelationship;
 pub use relationship_direction::RelationshipDirection;
 pub use repository::MemoryRepository;

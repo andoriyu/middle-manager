@@ -3,6 +3,7 @@ use std::error::Error as StdError;
 
 use crate::entity::MemoryEntity;
 use crate::error::MemoryResult;
+use crate::label_match_mode::LabelMatchMode;
 use crate::relationship::MemoryRelationship;
 use crate::relationship_direction::RelationshipDirection;
 
@@ -41,6 +42,13 @@ pub trait MemoryRepository {
         &self,
         relationships: &[MemoryRelationship],
     ) -> MemoryResult<(), Self::Error>;
+
+    async fn find_entities_by_labels(
+        &self,
+        labels: &[String],
+        match_mode: LabelMatchMode,
+        required_label: Option<String>,
+    ) -> MemoryResult<Vec<MemoryEntity>, Self::Error>;
 
     async fn find_related_entities(
         &self,
