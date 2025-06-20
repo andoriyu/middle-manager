@@ -183,7 +183,7 @@ where
         if name.is_empty() {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
-        if depth == 0 || depth > 5 {
+        if depth < MIN_TRAVERSAL_DEPTH || depth > MAX_TRAVERSAL_DEPTH {
             return Err(ValidationError::from(ValidationErrorKind::InvalidDepth(depth)).into());
         }
 
