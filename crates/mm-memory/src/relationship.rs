@@ -1,4 +1,4 @@
-use rust_mcp_sdk::macros::JsonSchema;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -16,4 +16,14 @@ pub struct MemoryRelationship {
     /// Additional key-value properties
     #[serde(default)]
     pub properties: HashMap<String, MemoryValue>,
+}
+
+impl MemoryRelationship {
+    pub fn json_schema() -> serde_json::Map<String, serde_json::Value> {
+        serde_json::to_value(schemars::schema_for!(Self))
+            .expect("schema serialization")
+            .as_object()
+            .cloned()
+            .expect("schema object")
+    }
 }

@@ -18,6 +18,7 @@ mm-utils = { path = "../mm-utils" }
 rust-mcp-sdk = { workspace = true }
 tracing = { workspace = true }
 time = { workspace = true, features = ["formatting", "parsing", "serde"] }
+schemars = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }

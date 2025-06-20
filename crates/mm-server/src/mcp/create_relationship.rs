@@ -1,6 +1,7 @@
 use mm_core::{CreateRelationshipCommand, MemoryRelationship, create_relationship};
 use mm_memory::MemoryValue;
-use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
+use rust_mcp_sdk::macros::mcp_tool;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -34,6 +35,14 @@ pub struct CreateRelationshipTool {
 }
 
 impl CreateRelationshipTool {
+    pub fn json_schema() -> serde_json::Map<String, serde_json::Value> {
+        serde_json::to_value(schemars::schema_for!(Self))
+            .expect("schema serialization")
+            .as_object()
+            .cloned()
+            .expect("schema object")
+    }
+
     generate_call_tool!(
         self,
         CreateRelationshipCommand {
