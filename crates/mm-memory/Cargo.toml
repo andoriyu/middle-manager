@@ -16,7 +16,7 @@ async-trait = { workspace = true }
 mockall = { workspace = true, optional = true }
 mm-utils = { path = "../mm-utils" }
 tracing = { workspace = true }
-time = { workspace = true, features = ["formatting", "parsing", "serde"] }
+chrono = { workspace = true }
 schemars = { workspace = true }
 
 [dev-dependencies]

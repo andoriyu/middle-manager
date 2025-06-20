@@ -1,10 +1,11 @@
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json;
-use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use std::time::Duration;
 
 /// Supported value types for memory properties.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, JsonSchema)]
 #[serde(untagged)]
 pub enum MemoryValue {
     String(String),
@@ -14,21 +15,41 @@ pub enum MemoryValue {
     Bytes(Vec<u8>),
     List(Vec<MemoryValue>),
     #[schemars(with = "String")]
-    Date(Date),
+    Date(NaiveDate),
     #[schemars(with = "String")]
-    Time(Time),
+    Time(NaiveTime),
     OffsetTime {
         #[schemars(with = "String")]
-        time: Time,
+        time: NaiveTime,
         #[schemars(with = "String")]
-        offset: UtcOffset,
+        offset: FixedOffset,
     },
     #[schemars(with = "String")]
-    DateTime(OffsetDateTime),
+    DateTime(DateTime<FixedOffset>),
     #[schemars(with = "String")]
-    LocalDateTime(PrimitiveDateTime),
+    LocalDateTime(NaiveDateTime),
     #[schemars(with = "String")]
     Duration(Duration),
+}
+
+impl Serialize for MemoryValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let value: serde_json::Value = self.clone().into();
+        value.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for MemoryValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        MemoryValue::try_from(value).map_err(serde::de::Error::custom)
+    }
 }
 
 impl From<MemoryValue> for serde_json::Value {
@@ -53,14 +74,9 @@ impl From<MemoryValue> for serde_json::Value {
             MemoryValue::OffsetTime { time, offset } => {
                 serde_json::json!({"time": time.to_string(), "offset": offset.to_string()})
             }
-            MemoryValue::DateTime(dt) => serde_json::Value::String(
-                dt.format(&time::format_description::well_known::Rfc3339)
-                    .unwrap(),
-            ),
+            MemoryValue::DateTime(dt) => serde_json::Value::String(dt.to_rfc3339()),
             MemoryValue::LocalDateTime(dt) => serde_json::Value::String(dt.to_string()),
-            MemoryValue::Duration(d) => {
-                serde_json::Value::String(format!("{}", d.whole_nanoseconds()))
-            }
+            MemoryValue::Duration(d) => serde_json::Value::String(format!("{}", d.as_nanos())),
         }
     }
 }
