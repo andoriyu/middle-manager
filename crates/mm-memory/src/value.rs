@@ -5,7 +5,7 @@ use serde_json;
 use std::time::Duration;
 
 /// Supported value types for memory properties.
-#[derive(Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, JsonSchema, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MemoryValue {
     String(String),
@@ -30,26 +30,6 @@ pub enum MemoryValue {
     LocalDateTime(NaiveDateTime),
     #[schemars(with = "String")]
     Duration(Duration),
-}
-
-impl Serialize for MemoryValue {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let value: serde_json::Value = self.clone().into();
-        value.serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for MemoryValue {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let value = serde_json::Value::deserialize(deserializer)?;
-        MemoryValue::try_from(value).map_err(serde::de::Error::custom)
-    }
 }
 
 impl From<MemoryValue> for serde_json::Value {
