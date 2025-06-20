@@ -1,12 +1,13 @@
 use mm_core::{RemoveAllObservationsCommand, remove_all_observations};
-use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
+use mm_utils::IntoJsonSchema;
+use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
 
 #[mcp_tool(
     name = "remove_all_observations",
     description = "Remove all observations from an entity"
 )]
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct RemoveAllObservationsTool {
     pub name: String,
 }

@@ -1,12 +1,13 @@
 use mm_core::{AddObservationsCommand, add_observations};
-use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
+use mm_utils::IntoJsonSchema;
+use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
 
 #[mcp_tool(
     name = "add_observations",
     description = "Add observations to an entity"
 )]
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct AddObservationsTool {
     pub name: String,
     pub observations: Vec<String>,

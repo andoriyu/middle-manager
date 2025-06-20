@@ -1,9 +1,10 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 /// Supported value types for memory properties.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum MemoryValue {
     String(String),
@@ -12,11 +13,21 @@ pub enum MemoryValue {
     Boolean(bool),
     Bytes(Vec<u8>),
     List(Vec<MemoryValue>),
+    #[schemars(with = "String")]
     Date(Date),
+    #[schemars(with = "String")]
     Time(Time),
-    OffsetTime { time: Time, offset: UtcOffset },
+    OffsetTime {
+        #[schemars(with = "String")]
+        time: Time,
+        #[schemars(with = "String")]
+        offset: UtcOffset,
+    },
+    #[schemars(with = "String")]
     DateTime(OffsetDateTime),
+    #[schemars(with = "String")]
     LocalDateTime(PrimitiveDateTime),
+    #[schemars(with = "String")]
     Duration(Duration),
 }
 

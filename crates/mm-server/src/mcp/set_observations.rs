@@ -1,12 +1,13 @@
 use mm_core::{SetObservationsCommand, set_observations};
-use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
+use mm_utils::IntoJsonSchema;
+use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
 
 #[mcp_tool(
     name = "set_observations",
     description = "Replace all observations for an entity"
 )]
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct SetObservationsTool {
     pub name: String,
     pub observations: Vec<String>,

@@ -1,4 +1,4 @@
-use rust_mcp_sdk::macros::JsonSchema;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -1,10 +1,11 @@
 use mm_core::{CreateRelationshipCommand, MemoryRelationship, create_relationship};
 use mm_memory::MemoryValue;
-use rust_mcp_sdk::macros::{JsonSchema, mcp_tool};
+use mm_utils::IntoJsonSchema;
+use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct RelationshipInput {
     pub from: String,
     pub to: String,
@@ -28,7 +29,7 @@ impl RelationshipInput {
     name = "create_relationship",
     description = "Create a relationship between two entities"
 )]
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CreateRelationshipTool {
     pub relationships: Vec<RelationshipInput>,
 }
