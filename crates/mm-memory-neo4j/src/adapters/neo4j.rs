@@ -62,6 +62,155 @@ impl Neo4jRepository {
 
         Ok(Self { graph })
     }
+
+    /// Parse relationships from Neo4j BoltType
+    ///
+    /// This function converts a Neo4j BoltType (typically a List of Maps) into a Vec of MemoryRelationship.
+    /// Each map in the list should contain 'from', 'to', 'name', and optionally 'properties'.
+    fn parse_relationships_from_bolt(
+        bolt: neo4rs::BoltType,
+    ) -> MemoryResult<Vec<MemoryRelationship>, neo4rs::Error> {
+        let mut relationships = Vec::new();
+
+        // Handle empty list or null (no relationships case)
+        if let neo4rs::BoltType::Null(_) = bolt {
+            return Ok(relationships);
+        }
+
+        if let neo4rs::BoltType::List(rel_list) = bolt {
+            // If the list is empty, return an empty vector
+            if rel_list.is_empty() {
+                return Ok(relationships);
+            }
+
+            for rel_item in rel_list {
+                if let neo4rs::BoltType::Map(rel_map) = rel_item {
+                    // Skip empty maps (no data)
+                    if rel_map.value.is_empty() {
+                        continue;
+                    }
+
+                    // Extract from (required field)
+                    let from = match rel_map.get("from") {
+                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        Ok(neo4rs::BoltType::Null(_)) => {
+                            return Err(MemoryError::runtime_error(
+                                "Required field 'from' is null in relationship".to_string(),
+                            ));
+                        }
+                        Err(e) => {
+                            return Err(MemoryError::runtime_error_with_source(
+                                "Failed to get required 'from' field from relationship".to_string(),
+                                e,
+                            ));
+                        }
+                        Ok(other) => {
+                            return Err(MemoryError::runtime_error(format!(
+                                "Expected string for required 'from' field, got: {:?}",
+                                other
+                            )));
+                        }
+                    };
+
+                    // Extract to (required field)
+                    let to = match rel_map.get("to") {
+                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        Ok(neo4rs::BoltType::Null(_)) => {
+                            return Err(MemoryError::runtime_error(
+                                "Required field 'to' is null in relationship".to_string(),
+                            ));
+                        }
+                        Err(e) => {
+                            return Err(MemoryError::runtime_error_with_source(
+                                "Failed to get required 'to' field from relationship".to_string(),
+                                e,
+                            ));
+                        }
+                        Ok(other) => {
+                            return Err(MemoryError::runtime_error(format!(
+                                "Expected string for required 'to' field, got: {:?}",
+                                other
+                            )));
+                        }
+                    };
+
+                    // Extract name (required field)
+                    let name = match rel_map.get("name") {
+                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
+                        Ok(neo4rs::BoltType::Null(_)) => {
+                            return Err(MemoryError::runtime_error(
+                                "Required field 'name' is null in relationship".to_string(),
+                            ));
+                        }
+                        Err(e) => {
+                            return Err(MemoryError::runtime_error_with_source(
+                                "Failed to get required 'name' field from relationship".to_string(),
+                                e,
+                            ));
+                        }
+                        Ok(other) => {
+                            return Err(MemoryError::runtime_error(format!(
+                                "Expected string for required 'name' field, got: {:?}",
+                                other
+                            )));
+                        }
+                    };
+
+                    // Extract properties (optional)
+                    let mut properties = HashMap::new();
+                    if let Ok(neo4rs::BoltType::Map(props_map)) = rel_map.get("properties") {
+                        for (key, value) in &props_map.value {
+                            match bolt_to_memory_value(value.clone()) {
+                                Ok(memory_value) => {
+                                    properties.insert(key.to_string(), memory_value);
+                                }
+                                Err(e) => {
+                                    // Property conversion errors are still logged but don't fail the whole operation
+                                    tracing::error!(
+                                        "Failed to convert property '{}' in relationship {}-[{}]->{}: {}",
+                                        key,
+                                        from,
+                                        name,
+                                        to,
+                                        e
+                                    );
+                                }
+                            }
+                        }
+                    } else {
+                        tracing::debug!(
+                            "No properties found for relationship {}-[{}]->{}",
+                            from,
+                            name,
+                            to
+                        );
+                    }
+
+                    relationships.push(MemoryRelationship {
+                        from,
+                        to,
+                        name,
+                        properties,
+                    });
+                } else if let neo4rs::BoltType::Null(_) = rel_item {
+                    // Skip null entries in the list
+                    continue;
+                } else {
+                    return Err(MemoryError::runtime_error(format!(
+                        "Expected Map for relationship, got: {:?}",
+                        rel_item
+                    )));
+                }
+            }
+        } else {
+            return Err(MemoryError::runtime_error(format!(
+                "Expected List for relationships, got: {:?}",
+                bolt
+            )));
+        }
+
+        Ok(relationships)
+    }
 }
 
 #[async_trait]
@@ -113,8 +262,14 @@ impl MemoryRepository for Neo4jRepository {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
-        let query = Query::new("MATCH (n {name: $name}) RETURN n".to_string())
-            .param("name", name.to_string());
+        let query = Query::new(
+            "MATCH (n {name: $name}) \n\
+             OPTIONAL MATCH (n)-[r]-() \n\
+             WITH n, collect(CASE WHEN r IS NOT NULL THEN {from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)} END) as rels \n\
+             RETURN n, [x IN rels WHERE x IS NOT NULL] as rels"
+                .to_string(),
+        )
+        .param("name", name.to_string());
 
         let mut result = self.graph.execute(query).await.map_err(|e| {
             MemoryError::query_error_with_source(
@@ -183,11 +338,22 @@ impl MemoryRepository for Neo4jRepository {
                 }
             }
 
+            // Parse relationships
+            let rels_bolt = row.get::<neo4rs::BoltType>("rels").map_err(|e| {
+                MemoryError::runtime_error_with_source(
+                    "Failed to decode relationships".to_string(),
+                    e,
+                )
+            })?;
+
+            let relationships = Self::parse_relationships_from_bolt(rels_bolt)?;
+
             Ok(Some(MemoryEntity {
                 name: entity_name,
                 labels,
                 observations,
                 properties,
+                relationships,
             }))
         } else {
             Ok(None)

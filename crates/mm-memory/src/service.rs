@@ -177,6 +177,7 @@ mod tests {
     use super::*;
     use crate::MockMemoryRepository;
     use crate::ValidationErrorKind;
+    use mockall::predicate::*;
     use std::collections::{HashMap, HashSet};
 
     #[tokio::test]
@@ -199,8 +200,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
+            ..Default::default()
         };
 
         let result = service
@@ -230,8 +230,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
+            ..Default::default()
         };
 
         let result = service
@@ -266,8 +265,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec![],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
+            ..Default::default()
         };
 
         let errors = service
@@ -296,8 +294,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec![],
-            observations: vec![],
-            properties: std::collections::HashMap::default(),
+            ..Default::default()
         };
 
         let result = service
@@ -332,8 +329,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec![],
-            observations: vec![],
-            properties: HashMap::default(),
+            ..Default::default()
         };
 
         let result = service
@@ -362,8 +358,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Unknown".to_string()],
-            observations: vec![],
-            properties: HashMap::default(),
+            ..Default::default()
         };
 
         let result = service
@@ -460,8 +455,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: HashMap::default(),
+            ..Default::default()
         };
 
         let result = service.create_entities(std::slice::from_ref(&entity)).await;
@@ -496,6 +490,32 @@ mod tests {
             .create_relationships(std::slice::from_ref(&rel))
             .await;
         assert!(matches!(result, Err(crate::MemoryError::QueryError { .. })));
+    }
+
+    #[tokio::test]
+    async fn test_find_entity_with_relationships() {
+        let relationship = MemoryRelationship {
+            from: "a".to_string(),
+            to: "b".to_string(),
+            name: "relates_to".to_string(),
+            properties: HashMap::default(),
+        };
+        let entity = MemoryEntity {
+            name: "a".to_string(),
+            labels: vec!["Test".to_string()],
+            relationships: vec![relationship.clone()],
+            ..Default::default()
+        };
+
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_find_entity_by_name()
+            .with(eq("a"))
+            .returning(move |_| Ok(Some(entity.clone())));
+
+        let service = MemoryService::new(mock, MemoryConfig::default());
+
+        let found = service.find_entity_by_name("a").await.unwrap().unwrap();
+        assert_eq!(found.relationships, vec![relationship]);
     }
 
     mod prop_tests {

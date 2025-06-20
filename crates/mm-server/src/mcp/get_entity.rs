@@ -45,7 +45,6 @@ mod tests {
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryError, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use serde_json::Value;
-    use std::collections::HashMap;
     use std::sync::Arc;
 
     #[tokio::test]
@@ -53,8 +52,7 @@ mod tests {
         let entity = MemoryEntity {
             name: "test:entity".to_string(),
             labels: vec!["Test".to_string()],
-            observations: vec![],
-            properties: HashMap::default(),
+            ..Default::default()
         };
 
         let mut mock = MockMemoryRepository::new();
@@ -73,6 +71,7 @@ mod tests {
         let text = result.content[0].as_text_content().unwrap().text.clone();
         let value: Value = serde_json::from_str(&text).unwrap();
         assert_eq!(value["name"], "test:entity");
+        assert!(value["relationships"].as_array().unwrap().is_empty());
     }
 
     #[tokio::test]

@@ -50,7 +50,6 @@ mod tests {
     use super::*;
     use mm_memory::ValidationErrorKind;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
-    use std::collections::HashMap;
     use std::sync::Arc;
 
     #[tokio::test]
@@ -75,8 +74,7 @@ mod tests {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
-                observations: vec![],
-                properties: HashMap::default(),
+                ..Default::default()
             }],
         };
 
@@ -103,8 +101,7 @@ mod tests {
             entities: vec![MemoryEntity {
                 name: "".to_string(),
                 labels: vec!["Test".to_string()],
-                observations: vec![],
-                properties: HashMap::default(),
+                ..Default::default()
             }],
         };
 
@@ -139,8 +136,7 @@ mod tests {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
-                observations: vec![],
-                properties: HashMap::default(),
+                ..Default::default()
             }],
         };
 
@@ -168,15 +164,11 @@ mod tests {
             entities: vec![
                 MemoryEntity {
                     name: "".to_string(),
-                    labels: vec![],
-                    observations: vec![],
-                    properties: HashMap::default(),
+                    ..Default::default()
                 },
                 MemoryEntity {
                     name: "valid:entity".to_string(),
-                    labels: vec![],
-                    observations: vec![],
-                    properties: HashMap::default(),
+                    ..Default::default()
                 },
             ],
         };

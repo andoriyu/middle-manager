@@ -72,6 +72,7 @@ async fn test_create_and_find_entity() {
         labels: vec!["Example".to_string()],
         observations: vec!["This is a test entity for creation".to_string()],
         properties: props,
+        ..Default::default()
     };
 
     // Test that entity creation doesn't error
@@ -128,9 +129,8 @@ async fn test_validation_errors() {
     // Test entity with no labels
     let entity = MemoryEntity {
         name: "test:entity:no_labels".to_string(),
-        labels: vec![],
         observations: vec!["This entity has no labels".to_string()],
-        properties: HashMap::default(),
+        ..Default::default()
     };
 
     let result = service.create_entities(std::slice::from_ref(&entity)).await;
@@ -171,7 +171,7 @@ async fn test_set_observations() {
         name: entity_name.to_string(),
         labels: vec!["Example".to_string()],
         observations: vec!["initial".to_string()],
-        properties: HashMap::default(),
+        ..Default::default()
     };
 
     service
@@ -218,7 +218,7 @@ async fn test_add_and_remove_observations() {
         name: entity_name.to_string(),
         labels: vec!["Example".to_string()],
         observations: vec!["obs1".to_string(), "obs2".to_string()],
-        properties: HashMap::default(),
+        ..Default::default()
     };
 
     service
@@ -284,14 +284,12 @@ async fn test_create_relationship() {
     let a = MemoryEntity {
         name: "rel:a".to_string(),
         labels: vec!["Example".to_string()],
-        observations: vec![],
-        properties: HashMap::default(),
+        ..Default::default()
     };
     let b = MemoryEntity {
         name: "rel:b".to_string(),
         labels: vec!["Example".to_string()],
-        observations: vec![],
-        properties: HashMap::default(),
+        ..Default::default()
     };
 
     service
@@ -314,4 +312,20 @@ async fn test_create_relationship() {
         .create_relationships(std::slice::from_ref(&rel))
         .await
         .unwrap();
+
+    let fetched_a = service.find_entity_by_name("rel:a").await.unwrap().unwrap();
+    assert!(
+        fetched_a
+            .relationships
+            .iter()
+            .any(|r| r.from == "rel:a" && r.to == "rel:b" && r.name == "relates_to")
+    );
+
+    let fetched_b = service.find_entity_by_name("rel:b").await.unwrap().unwrap();
+    assert!(
+        fetched_b
+            .relationships
+            .iter()
+            .any(|r| r.from == "rel:a" && r.to == "rel:b" && r.name == "relates_to")
+    );
 }

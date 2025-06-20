@@ -40,6 +40,7 @@ pub fn prop_random_entity(
         labels,
         observations,
         properties,
+        ..Default::default()
     })
 }
 
