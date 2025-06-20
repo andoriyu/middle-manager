@@ -153,7 +153,9 @@ mod tests {
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
             BoltType::Date(date) => {
-                let got: NaiveDate = date.into();
+                let got: NaiveDate = date
+                    .try_into()
+                    .expect("Failed to convert BoltDate to NaiveDate");
                 assert_eq!(got, d);
             }
             other => panic!("expected date, got {other:?}"),
@@ -200,7 +202,9 @@ mod tests {
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
             BoltType::DateTime(d) => {
-                let got: DateTime<FixedOffset> = d.into();
+                let got: DateTime<FixedOffset> = d
+                    .try_into()
+                    .expect("Failed to convert BoltDateTime to DateTime<FixedOffset>");
                 assert_eq!(got, dt);
             }
             other => panic!("expected datetime, got {other:?}"),
@@ -216,7 +220,9 @@ mod tests {
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
             BoltType::LocalDateTime(ldt) => {
-                let got: NaiveDateTime = ldt.into();
+                let got: NaiveDateTime = ldt
+                    .try_into()
+                    .expect("Failed to convert BoltLocalDateTime to NaiveDateTime");
                 assert_eq!(got, dt);
             }
             other => panic!("expected local datetime, got {other:?}"),
