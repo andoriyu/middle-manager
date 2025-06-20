@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn round_trip_float() {
-        let v = MemoryValue::Float(3.14);
+        let v = MemoryValue::Float(6.9);
         let bolt = memory_value_to_bolt(&v).unwrap();
         let back = bolt_to_memory_value(bolt).unwrap();
         assert_eq!(v, back);
