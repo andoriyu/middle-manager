@@ -1,8 +1,8 @@
 use crate::{
     MemoryConfig, MemoryEntity, MemoryRelationship, MemoryRepository, MemoryService, MemoryValue,
 };
+use chrono::Utc;
 use std::collections::{HashMap, HashSet};
-use time::OffsetDateTime;
 
 /// Run a comprehensive test suite against a `MemoryRepository` implementation.
 ///
@@ -28,7 +28,7 @@ where
     let service = MemoryService::new(repository, config);
 
     // Generate unique names so repeated runs don't conflict
-    let unique = OffsetDateTime::now_utc().unix_timestamp_nanos();
+    let unique = Utc::now().timestamp_nanos_opt().unwrap_or(0);
     let name_a = format!("test:suite:a:{unique}");
     let name_b = format!("test:suite:b:{unique}");
 

@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
 use mm_memory::{MemoryError, MemoryValue};
 use neo4rs::BoltType;
-use time::format_description::well_known::Rfc3339;
 
 /// Convert a [`MemoryValue`] directly into a [`neo4rs::BoltType`].
 ///
@@ -24,19 +22,12 @@ pub(crate) fn memory_value_to_bolt(
                 .collect::<Result<_, _>>()?;
             bolt_items.into()
         }
-        MemoryValue::Date(d) => d.to_string().into(),
-        MemoryValue::Time(t) => t.to_string().into(),
-        MemoryValue::OffsetTime { time, offset } => {
-            let mut map: HashMap<String, BoltType> = HashMap::new();
-            map.insert("time".to_string(), time.to_string().into());
-            map.insert("offset".to_string(), offset.to_string().into());
-            map.into()
-        }
-        MemoryValue::DateTime(dt) => dt.format(&Rfc3339).map(|s| s.into()).map_err(|e| {
-            MemoryError::runtime_error_with_source("Invalid datetime".to_string(), e)
-        })?,
-        MemoryValue::LocalDateTime(dt) => dt.to_string().into(),
-        MemoryValue::Duration(d) => format!("{}", d.whole_nanoseconds()).into(),
+        MemoryValue::Date(d) => (*d).into(),
+        MemoryValue::Time(t) => (*t).into(),
+        MemoryValue::OffsetTime { time, offset } => (*time, *offset).into(),
+        MemoryValue::DateTime(dt) => (*dt).into(),
+        MemoryValue::LocalDateTime(dt) => (*dt).into(),
+        MemoryValue::Duration(d) => (*d).into(),
     })
 }
 
@@ -58,6 +49,34 @@ pub(crate) fn bolt_to_memory_value(
                 .map(bolt_to_memory_value)
                 .collect::<Result<Vec<MemoryValue>, _>>()?,
         ),
+        BoltType::Duration(d) => MemoryValue::Duration(d.into()),
+        BoltType::Date(d) => {
+            let date: NaiveDate = d.try_into().map_err(|e| {
+                MemoryError::runtime_error_with_source("Invalid date".to_string(), e)
+            })?;
+            MemoryValue::Date(date)
+        }
+        BoltType::Time(t) => {
+            let (time, offset): (NaiveTime, FixedOffset) = (&t).into();
+            if offset.local_minus_utc() == 0 {
+                MemoryValue::Time(time)
+            } else {
+                MemoryValue::OffsetTime { time, offset }
+            }
+        }
+        BoltType::LocalTime(t) => MemoryValue::Time(t.into()),
+        BoltType::DateTime(dt) => {
+            let dt: DateTime<FixedOffset> = dt.try_into().map_err(|e| {
+                MemoryError::runtime_error_with_source("Invalid datetime".to_string(), e)
+            })?;
+            MemoryValue::DateTime(dt)
+        }
+        BoltType::LocalDateTime(dt) => {
+            let ndt: NaiveDateTime = dt.try_into().map_err(|e| {
+                MemoryError::runtime_error_with_source("Invalid local datetime".to_string(), e)
+            })?;
+            MemoryValue::LocalDateTime(ndt)
+        }
         BoltType::Map(map) => {
             return Err(MemoryError::runtime_error(format!(
                 "Unsupported bolt type: Map({:?})",
@@ -76,7 +95,8 @@ pub(crate) fn bolt_to_memory_value(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+    use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
+    use std::time::Duration;
 
     #[test]
     fn round_trip_string() {
@@ -128,79 +148,98 @@ mod tests {
 
     #[test]
     fn convert_date() {
-        let d = Date::from_calendar_date(2024, Month::January, 1).unwrap();
+        let d = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
         let v = MemoryValue::Date(d);
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
-            BoltType::String(s) => assert_eq!(s.value, "2024-01-01"),
-            other => panic!("expected string, got {other:?}"),
+            BoltType::Date(date) => {
+                let got: NaiveDate = date
+                    .try_into()
+                    .expect("Failed to convert BoltDate to NaiveDate");
+                assert_eq!(got, d);
+            }
+            other => panic!("expected date, got {other:?}"),
         }
     }
 
     #[test]
     fn convert_time() {
-        let t = Time::from_hms(12, 34, 56).unwrap();
+        let t = NaiveTime::from_hms_opt(12, 34, 56).unwrap();
         let v = MemoryValue::Time(t);
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
-            BoltType::String(s) => assert_eq!(s.value, "12:34:56.0"),
-            other => panic!("expected string, got {other:?}"),
+            BoltType::LocalTime(time) => {
+                let got: NaiveTime = time.into();
+                assert_eq!(got, t);
+            }
+            other => panic!("expected local time, got {other:?}"),
         }
     }
 
     #[test]
     fn convert_offset_time() {
-        let t = Time::from_hms(1, 2, 3).unwrap();
-        let offset = UtcOffset::from_hms(1, 0, 0).unwrap();
+        let t = NaiveTime::from_hms_opt(1, 2, 3).unwrap();
+        let offset = FixedOffset::east_opt(3600).unwrap();
         let v = MemoryValue::OffsetTime { time: t, offset };
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
-            BoltType::Map(map) => {
-                match map.value.get("time") {
-                    Some(BoltType::String(s)) => assert_eq!(s.value, "1:02:03.0"),
-                    other => panic!("bad time entry: {other:?}"),
-                }
-                match map.value.get("offset") {
-                    Some(BoltType::String(s)) => assert_eq!(s.value, "+01:00:00"),
-                    other => panic!("bad offset entry: {other:?}"),
-                }
+            BoltType::Time(time) => {
+                let (got_time, got_offset): (NaiveTime, FixedOffset) = (&time).into();
+                assert_eq!(got_time, t);
+                assert_eq!(got_offset, offset);
             }
-            other => panic!("expected map, got {other:?}"),
+            other => panic!("expected time, got {other:?}"),
         }
     }
 
     #[test]
     fn convert_datetime() {
-        let dt = OffsetDateTime::UNIX_EPOCH;
+        let dt = DateTime::from_naive_utc_and_offset(
+            DateTime::UNIX_EPOCH.naive_utc(),
+            FixedOffset::east_opt(0).unwrap(),
+        );
         let v = MemoryValue::DateTime(dt);
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
-            BoltType::String(s) => assert_eq!(s.value, "1970-01-01T00:00:00Z"),
-            other => panic!("expected string, got {other:?}"),
+            BoltType::DateTime(d) => {
+                let got: DateTime<FixedOffset> = d
+                    .try_into()
+                    .expect("Failed to convert BoltDateTime to DateTime<FixedOffset>");
+                assert_eq!(got, dt);
+            }
+            other => panic!("expected datetime, got {other:?}"),
         }
     }
 
     #[test]
     fn convert_local_datetime() {
-        let date = Date::from_calendar_date(2024, Month::May, 5).unwrap();
-        let time = Time::from_hms(6, 7, 8).unwrap();
-        let dt = PrimitiveDateTime::new(date, time);
+        let date = NaiveDate::from_ymd_opt(2024, 5, 5).unwrap();
+        let time = NaiveTime::from_hms_opt(6, 7, 8).unwrap();
+        let dt = NaiveDateTime::new(date, time);
         let v = MemoryValue::LocalDateTime(dt);
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
-            BoltType::String(s) => assert_eq!(s.value, "2024-05-05 6:07:08.0"),
-            other => panic!("expected string, got {other:?}"),
+            BoltType::LocalDateTime(ldt) => {
+                let got: NaiveDateTime = ldt
+                    .try_into()
+                    .expect("Failed to convert BoltLocalDateTime to NaiveDateTime");
+                assert_eq!(got, dt);
+            }
+            other => panic!("expected local datetime, got {other:?}"),
         }
     }
 
     #[test]
     fn convert_duration() {
-        let d = Duration::seconds(5);
+        let d = Duration::from_secs(5);
         let v = MemoryValue::Duration(d);
         let bolt = memory_value_to_bolt(&v).unwrap();
         match bolt {
-            BoltType::String(s) => assert_eq!(s.value, d.whole_nanoseconds().to_string()),
-            other => panic!("expected string, got {other:?}"),
+            BoltType::Duration(bd) => {
+                let got: Duration = bd.into();
+                assert_eq!(got, d);
+            }
+            other => panic!("expected duration, got {other:?}"),
         }
     }
 }
