@@ -334,6 +334,78 @@ async fn test_create_relationship() {
 }
 
 #[tokio::test]
+async fn test_find_related_entities() {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+
+    let service = create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_label: Some("RelatedTest".to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::default(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let a = MemoryEntity {
+        name: "related:a".to_string(),
+        labels: vec!["Example".to_string()],
+        ..Default::default()
+    };
+    let b = MemoryEntity {
+        name: "related:b".to_string(),
+        labels: vec!["Example".to_string()],
+        ..Default::default()
+    };
+    let c = MemoryEntity {
+        name: "related:c".to_string(),
+        labels: vec!["Example".to_string()],
+        ..Default::default()
+    };
+
+    service
+        .create_entities(&[a.clone(), b.clone(), c.clone()])
+        .await
+        .unwrap();
+
+    let rel_ab = MemoryRelationship {
+        from: a.name.clone(),
+        to: b.name.clone(),
+        name: "relates_to".to_string(),
+        properties: HashMap::default(),
+    };
+    let rel_bc = MemoryRelationship {
+        from: b.name.clone(),
+        to: c.name.clone(),
+        name: "relates_to".to_string(),
+        properties: HashMap::default(),
+    };
+    service
+        .create_relationships(&[rel_ab, rel_bc])
+        .await
+        .unwrap();
+
+    let related = service
+        .find_related_entities(
+            &a.name,
+            Some("relates_to".to_string()),
+            Some(RelationshipDirection::Outgoing),
+            2,
+        )
+        .await
+        .unwrap();
+    assert!(related.iter().any(|e| e.name == b.name));
+    assert!(related.iter().any(|e| e.name == c.name));
+}
+
+#[tokio::test]
 async fn test_run_memory_service_suite() {
     let config = Neo4jConfig {
         uri: "neo4j://localhost:7688".to_string(),

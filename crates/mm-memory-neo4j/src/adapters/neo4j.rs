@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use mm_memory::{
     MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository, MemoryResult, MemoryValue,
-    ValidationError, ValidationErrorKind,
+    RelationshipDirection, ValidationError, ValidationErrorKind,
 };
 
 /// Configuration for connecting to Neo4j
@@ -455,5 +455,105 @@ impl MemoryRepository for Neo4jRepository {
         })?;
 
         Ok(())
+    }
+
+    #[instrument(skip(self), fields(name = %name, depth))]
+    async fn find_related_entities(
+        &self,
+        name: &str,
+        relationship_type: Option<String>,
+        direction: Option<RelationshipDirection>,
+        depth: u32,
+    ) -> MemoryResult<Vec<MemoryEntity>, Self::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
+        }
+
+        let dir = direction.unwrap_or(RelationshipDirection::Both);
+        let rel_type = relationship_type
+            .as_deref()
+            .map(|t| format!(":{}", t))
+            .unwrap_or_default();
+        let pattern = match dir {
+            RelationshipDirection::Outgoing => format!("-[r{}*1..{}]->", rel_type, depth),
+            RelationshipDirection::Incoming => format!("<-[r{}*1..{}]-", rel_type, depth),
+            RelationshipDirection::Both => format!("-[r{}*1..{}]-", rel_type, depth),
+        };
+
+        let query_str = format!(
+            "MATCH (start {{name: $name}}) MATCH (start){}(n)\n\
+             WITH DISTINCT n\n\
+             OPTIONAL MATCH (n)-[r]-()\n\
+             WITH n, collect(CASE WHEN r IS NOT NULL THEN {{from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}} END) as rels\n\
+             RETURN n, [x IN rels WHERE x IS NOT NULL] as rels",
+            pattern
+        );
+
+        let query = Query::new(query_str).param("name", name.to_string());
+        let mut result = self.graph.execute(query).await.map_err(|e| {
+            MemoryError::query_error_with_source(
+                format!("Failed to execute related entity query for {}", name),
+                e,
+            )
+        })?;
+
+        let mut entities = Vec::new();
+        while let Some(row) = result.next().await.map_err(|e| {
+            MemoryError::query_error_with_source(
+                format!("Failed to retrieve related entity results for {}", name),
+                e,
+            )
+        })? {
+            let node = row.get::<Node>("n").map_err(|e| {
+                MemoryError::runtime_error_with_source(
+                    "Failed to get node from result".to_string(),
+                    e,
+                )
+            })?;
+
+            let entity_name = node.get::<String>("name").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to get name property".to_string(), e)
+            })?;
+            let observations_json = node.get::<String>("observations").map_err(|e| {
+                MemoryError::runtime_error_with_source(
+                    "Failed to get observations property from node".to_string(),
+                    e,
+                )
+            })?;
+            let observations: Vec<String> = serde_json::from_str(&observations_json)?;
+            let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
+
+            let mut properties: HashMap<String, MemoryValue> = HashMap::default();
+            for key in node.keys() {
+                if key != "name" && key != "observations" {
+                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
+                        MemoryError::runtime_error_with_source(
+                            "Failed to decode node properties".to_string(),
+                            e,
+                        )
+                    })?;
+                    let mv = bolt_to_memory_value(bolt)?;
+                    properties.insert(key.to_string(), mv);
+                }
+            }
+
+            let rels_bolt = row.get::<neo4rs::BoltType>("rels").map_err(|e| {
+                MemoryError::runtime_error_with_source(
+                    "Failed to decode relationships".to_string(),
+                    e,
+                )
+            })?;
+            let relationships = Self::parse_relationships_from_bolt(rels_bolt)?;
+
+            entities.push(MemoryEntity {
+                name: entity_name,
+                labels,
+                observations,
+                properties,
+                relationships,
+            });
+        }
+
+        Ok(entities)
     }
 }

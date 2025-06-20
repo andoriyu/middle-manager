@@ -1,6 +1,6 @@
 use crate::{
     DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, MemoryConfig, MemoryEntity, MemoryRelationship,
-    MemoryRepository, MemoryResult, ValidationError, ValidationErrorKind,
+    MemoryRepository, MemoryResult, RelationshipDirection, ValidationError, ValidationErrorKind,
 };
 use mm_utils::is_snake_case;
 use tracing::instrument;
@@ -169,6 +169,27 @@ where
         }
 
         Ok(errors)
+    }
+
+    /// Find entities related to the given entity
+    #[instrument(skip(self), fields(name, depth))]
+    pub async fn find_related_entities(
+        &self,
+        name: &str,
+        relationship_type: Option<String>,
+        direction: Option<RelationshipDirection>,
+        depth: u32,
+    ) -> MemoryResult<Vec<MemoryEntity>, R::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
+        }
+        if depth == 0 || depth > 5 {
+            return Err(ValidationError::from(ValidationErrorKind::InvalidDepth(depth)).into());
+        }
+
+        self.repository
+            .find_related_entities(name, relationship_type.clone(), direction, depth)
+            .await
     }
 }
 
@@ -516,6 +537,54 @@ mod tests {
 
         let found = service.find_entity_by_name("a").await.unwrap().unwrap();
         assert_eq!(found.relationships, vec![relationship]);
+    }
+
+    #[tokio::test]
+    async fn test_find_related_entities_validation() {
+        let mock = MockMemoryRepository::new();
+        let service = MemoryService::new(mock, MemoryConfig::default());
+
+        let err = service
+            .find_related_entities("", None, None, 1)
+            .await
+            .unwrap_err();
+        assert!(matches!(err, crate::MemoryError::ValidationError(_)));
+
+        let err = service
+            .find_related_entities("a", None, None, 6)
+            .await
+            .unwrap_err();
+        assert!(matches!(err, crate::MemoryError::ValidationError(_)));
+    }
+
+    #[tokio::test]
+    async fn test_find_related_entities_calls_repo() {
+        let mut mock = MockMemoryRepository::new();
+        let expected: Vec<MemoryEntity> = vec![MemoryEntity {
+            name: "b".to_string(),
+            ..Default::default()
+        }];
+        mock.expect_find_related_entities()
+            .with(
+                eq("a"),
+                eq(Some("relates_to".to_string())),
+                eq(Some(RelationshipDirection::Outgoing)),
+                eq(2u32),
+            )
+            .return_once(move |_, _, _, _| Ok(expected.clone()));
+
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let result = service
+            .find_related_entities(
+                "a",
+                Some("relates_to".to_string()),
+                Some(RelationshipDirection::Outgoing),
+                2,
+            )
+            .await
+            .unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].name, "b");
     }
 
     mod prop_tests {
