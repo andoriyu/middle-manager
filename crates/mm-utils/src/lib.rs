@@ -1,7 +1,10 @@
 //! Utility helpers that are independent from the rest of the project.
 
 #![warn(clippy::all)]
+pub mod json_schema;
 pub mod prop;
+
+pub use json_schema::IntoJsonSchema;
 
 /// Check if a string is in snake_case format.
 ///

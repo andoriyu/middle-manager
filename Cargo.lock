@@ -1371,7 +1371,6 @@ dependencies = [
  "async-trait",
  "mm-utils",
  "mockall",
- "rust-mcp-sdk",
  "schemars",
  "serde",
  "serde_json",
@@ -1424,6 +1423,8 @@ version = "0.1.0"
 dependencies = [
  "arbitrary",
  "arbtest",
+ "schemars",
+ "serde_json",
  "tokio",
 ]
 

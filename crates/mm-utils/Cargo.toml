@@ -8,5 +8,7 @@ license = "MPL-2.0"
 arbitrary = { workspace = true }
 arbtest = { workspace = true }
 tokio = { workspace = true, features = ["rt"] }
+schemars = { workspace = true }
+serde_json = { workspace = true }
 
 [dev-dependencies]

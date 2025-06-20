@@ -1,6 +1,6 @@
 use mm_core::{GetEntityCommand, get_entity};
+use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// MCP tool for retrieving entities
@@ -8,21 +8,13 @@ use serde::{Deserialize, Serialize};
     name = "get_entity",
     description = "Get an entity from the memory graph by name"
 )]
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct GetEntityTool {
     /// Name of the entity to retrieve
     pub name: String,
 }
 
 impl GetEntityTool {
-    pub fn json_schema() -> serde_json::Map<String, serde_json::Value> {
-        serde_json::to_value(schemars::schema_for!(Self))
-            .expect("schema serialization")
-            .as_object()
-            .cloned()
-            .expect("schema object")
-    }
-
     generate_call_tool!(
         self,
         GetEntityCommand { name },

@@ -15,7 +15,6 @@ thiserror = { workspace = true }
 async-trait = { workspace = true }
 mockall = { workspace = true, optional = true }
 mm-utils = { path = "../mm-utils" }
-rust-mcp-sdk = { workspace = true }
 tracing = { workspace = true }
 time = { workspace = true, features = ["formatting", "parsing", "serde"] }
 schemars = { workspace = true }
