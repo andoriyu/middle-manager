@@ -76,6 +76,7 @@ pub(crate) fn bolt_to_memory_value(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
     #[test]
     fn round_trip_string() {
@@ -91,5 +92,115 @@ mod tests {
         let bolt = memory_value_to_bolt(&v).unwrap();
         let back = bolt_to_memory_value(bolt).unwrap();
         assert_eq!(v, back);
+    }
+
+    #[test]
+    fn round_trip_boolean() {
+        let v = MemoryValue::Boolean(true);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        let back = bolt_to_memory_value(bolt).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[test]
+    fn round_trip_integer() {
+        let v = MemoryValue::Integer(-42);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        let back = bolt_to_memory_value(bolt).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[test]
+    fn round_trip_float() {
+        let v = MemoryValue::Float(3.14);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        let back = bolt_to_memory_value(bolt).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[test]
+    fn round_trip_bytes() {
+        let v = MemoryValue::Bytes(vec![1, 2, 3]);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        let back = bolt_to_memory_value(bolt).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[test]
+    fn convert_date() {
+        let d = Date::from_calendar_date(2024, Month::January, 1).unwrap();
+        let v = MemoryValue::Date(d);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        match bolt {
+            BoltType::String(s) => assert_eq!(s.value, "2024-01-01"),
+            other => panic!("expected string, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn convert_time() {
+        let t = Time::from_hms(12, 34, 56).unwrap();
+        let v = MemoryValue::Time(t);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        match bolt {
+            BoltType::String(s) => assert_eq!(s.value, "12:34:56.0"),
+            other => panic!("expected string, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn convert_offset_time() {
+        let t = Time::from_hms(1, 2, 3).unwrap();
+        let offset = UtcOffset::from_hms(1, 0, 0).unwrap();
+        let v = MemoryValue::OffsetTime { time: t, offset };
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        match bolt {
+            BoltType::Map(map) => {
+                match map.value.get("time") {
+                    Some(BoltType::String(s)) => assert_eq!(s.value, "1:02:03.0"),
+                    other => panic!("bad time entry: {other:?}"),
+                }
+                match map.value.get("offset") {
+                    Some(BoltType::String(s)) => assert_eq!(s.value, "+01:00:00"),
+                    other => panic!("bad offset entry: {other:?}"),
+                }
+            }
+            other => panic!("expected map, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn convert_datetime() {
+        let dt = OffsetDateTime::UNIX_EPOCH;
+        let v = MemoryValue::DateTime(dt);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        match bolt {
+            BoltType::String(s) => assert_eq!(s.value, "1970-01-01T00:00:00Z"),
+            other => panic!("expected string, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn convert_local_datetime() {
+        let date = Date::from_calendar_date(2024, Month::May, 5).unwrap();
+        let time = Time::from_hms(6, 7, 8).unwrap();
+        let dt = PrimitiveDateTime::new(date, time);
+        let v = MemoryValue::LocalDateTime(dt);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        match bolt {
+            BoltType::String(s) => assert_eq!(s.value, "2024-05-05 6:07:08.0"),
+            other => panic!("expected string, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn convert_duration() {
+        let d = Duration::seconds(5);
+        let v = MemoryValue::Duration(d);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        match bolt {
+            BoltType::String(s) => assert_eq!(s.value, d.whole_nanoseconds().to_string()),
+            other => panic!("expected string, got {other:?}"),
+        }
     }
 }
