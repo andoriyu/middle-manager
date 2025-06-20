@@ -22,6 +22,10 @@ pub enum ValidationErrorKind {
     /// Error when a label is not allowed
     #[error("Label '{0}' is not allowed")]
     UnknownLabel(String),
+
+    /// Error when traversal depth is invalid
+    #[error("Traversal depth '{0}' is out of range (1-5)")]
+    InvalidDepth(u32),
 }
 
 /// Collection of validation errors

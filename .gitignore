@@ -29,6 +29,4 @@ result-*
 
 # Local configuration
 config/local.toml
-
-# Development workflow documentation
-making_issues.json
+ctxs

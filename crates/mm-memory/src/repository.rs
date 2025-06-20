@@ -4,6 +4,7 @@ use std::error::Error as StdError;
 use crate::entity::MemoryEntity;
 use crate::error::MemoryResult;
 use crate::relationship::MemoryRelationship;
+use crate::relationship_direction::RelationshipDirection;
 
 #[cfg_attr(any(test, feature = "mock"), mockall::automock(type Error = std::convert::Infallible;))]
 #[async_trait]
@@ -40,4 +41,12 @@ pub trait MemoryRepository {
         &self,
         relationships: &[MemoryRelationship],
     ) -> MemoryResult<(), Self::Error>;
+
+    async fn find_related_entities(
+        &self,
+        name: &str,
+        relationship_type: Option<String>,
+        direction: Option<RelationshipDirection>,
+        depth: u32,
+    ) -> MemoryResult<Vec<MemoryEntity>, Self::Error>;
 }
