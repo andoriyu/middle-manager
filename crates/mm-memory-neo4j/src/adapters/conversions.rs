@@ -192,8 +192,8 @@ mod tests {
 
     #[test]
     fn convert_datetime() {
-        let dt = DateTime::<FixedOffset>::from_utc(
-            NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
+        let dt = DateTime::from_naive_utc_and_offset(
+            DateTime::UNIX_EPOCH.naive_utc(),
             FixedOffset::east_opt(0).unwrap(),
         );
         let v = MemoryValue::DateTime(dt);

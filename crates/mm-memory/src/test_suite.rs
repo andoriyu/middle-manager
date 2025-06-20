@@ -28,7 +28,7 @@ where
     let service = MemoryService::new(repository, config);
 
     // Generate unique names so repeated runs don't conflict
-    let unique = Utc::now().timestamp_nanos();
+    let unique = Utc::now().timestamp_nanos_opt().unwrap_or(0);
     let name_a = format!("test:suite:a:{unique}");
     let name_b = format!("test:suite:b:{unique}");
 

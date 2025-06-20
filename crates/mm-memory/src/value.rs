@@ -4,6 +4,30 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use std::time::Duration;
 
+/// Module for custom serialization of FixedOffset
+mod fixed_offset_serde {
+    use chrono::FixedOffset;
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(offset: &FixedOffset, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // Serialize as seconds from UTC
+        serializer.serialize_i32(offset.local_minus_utc())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<FixedOffset, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let seconds = i32::deserialize(deserializer)?;
+        FixedOffset::east_opt(seconds)
+            .or_else(|| FixedOffset::west_opt(-seconds))
+            .ok_or_else(|| serde::de::Error::custom(format!("Invalid offset seconds: {}", seconds)))
+    }
+}
+
 /// Supported value types for memory properties.
 #[derive(Clone, Debug, PartialEq, JsonSchema, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -14,21 +38,50 @@ pub enum MemoryValue {
     Boolean(bool),
     Bytes(Vec<u8>),
     List(Vec<MemoryValue>),
-    #[schemars(with = "String")]
+    #[schemars(
+        with = "String",
+        title = "Date",
+        description = "Date in YYYY-MM-DD format"
+    )]
     Date(NaiveDate),
-    #[schemars(with = "String")]
+    #[schemars(
+        with = "String",
+        title = "Time",
+        description = "Time in HH:MM:SS format"
+    )]
     Time(NaiveTime),
     OffsetTime {
-        #[schemars(with = "String")]
+        #[schemars(
+            with = "String",
+            title = "Time with Offset",
+            description = "Time in HH:MM:SS format"
+        )]
         time: NaiveTime,
-        #[schemars(with = "String")]
+        #[schemars(
+            with = "String",
+            title = "UTC Offset",
+            description = "Timezone offset in seconds from UTC"
+        )]
+        #[serde(with = "fixed_offset_serde")]
         offset: FixedOffset,
     },
-    #[schemars(with = "String")]
+    #[schemars(
+        with = "String",
+        title = "DateTime",
+        description = "Date and time with timezone in RFC 3339 format"
+    )]
     DateTime(DateTime<FixedOffset>),
-    #[schemars(with = "String")]
+    #[schemars(
+        with = "String",
+        title = "Local DateTime",
+        description = "Date and time without timezone"
+    )]
     LocalDateTime(NaiveDateTime),
-    #[schemars(with = "String")]
+    #[schemars(
+        with = "String",
+        title = "Duration",
+        description = "Duration in nanoseconds"
+    )]
     Duration(Duration),
 }
 
