@@ -226,8 +226,10 @@ impl MemoryRepository for Neo4jRepository {
         for entity in entities {
             let mut props: HashMap<String, neo4rs::BoltType> = HashMap::default();
             props.insert("name".to_string(), entity.name.clone().into());
-            let observations_json = serde_json::to_string(&entity.observations)?;
-            props.insert("observations".to_string(), observations_json.into());
+            
+            // Store observations as a native Neo4j array/sequence
+            props.insert("observations".to_string(), entity.observations.clone().into());
+            
             for (k, v) in &entity.properties {
                 let bolt = memory_value_to_bolt(v)?;
                 props.insert(k.clone(), bolt);
@@ -370,11 +372,11 @@ impl MemoryRepository for Neo4jRepository {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
-        let observations_json = serde_json::to_string(observations)?;
+        // Store observations as a native Neo4j array/sequence
         let query =
             Query::new("MATCH (n {name: $name}) SET n.observations = $observations".to_string())
                 .param("name", name.to_string())
-                .param("observations", observations_json);
+                .param("observations", observations.to_vec());
 
         self.graph.run(query).await.map_err(|e| {
             MemoryError::query_error_with_source(
@@ -514,13 +516,37 @@ impl MemoryRepository for Neo4jRepository {
             let entity_name = node.get::<String>("name").map_err(|e| {
                 MemoryError::runtime_error_with_source("Failed to get name property".to_string(), e)
             })?;
-            let observations_json = node.get::<String>("observations").map_err(|e| {
+            
+            // Get observations as a native Neo4j array/sequence
+            let observations_bolt = node.get::<neo4rs::BoltType>("observations").map_err(|e| {
                 MemoryError::runtime_error_with_source(
                     "Failed to get observations property from node".to_string(),
                     e,
                 )
             })?;
-            let observations: Vec<String> = serde_json::from_str(&observations_json)?;
+            
+            // Convert the BoltType to Vec<String>
+            let observations = match observations_bolt {
+                neo4rs::BoltType::List(items) => {
+                    let mut result = Vec::with_capacity(items.len());
+                    for item in items {
+                        if let neo4rs::BoltType::String(s) = item {
+                            result.push(s.to_string());
+                        } else {
+                            return Err(MemoryError::runtime_error(
+                                format!("Expected string in observations list, got {:?}", item)
+                            ));
+                        }
+                    }
+                    result
+                },
+                neo4rs::BoltType::Null(_) => Vec::new(),
+                _ => {
+                    return Err(MemoryError::runtime_error(
+                        format!("Expected observations to be a list, got {:?}", observations_bolt)
+                    ));
+                }
+            };
             let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
             let mut properties: HashMap<String, MemoryValue> = HashMap::default();
@@ -615,13 +641,37 @@ impl MemoryRepository for Neo4jRepository {
             let entity_name = node.get::<String>("name").map_err(|e| {
                 MemoryError::runtime_error_with_source("Failed to get name property".to_string(), e)
             })?;
-            let observations_json = node.get::<String>("observations").map_err(|e| {
+            
+            // Get observations as a native Neo4j array/sequence
+            let observations_bolt = node.get::<neo4rs::BoltType>("observations").map_err(|e| {
                 MemoryError::runtime_error_with_source(
                     "Failed to get observations property from node".to_string(),
                     e,
                 )
             })?;
-            let observations: Vec<String> = serde_json::from_str(&observations_json)?;
+            
+            // Convert the BoltType to Vec<String>
+            let observations = match observations_bolt {
+                neo4rs::BoltType::List(items) => {
+                    let mut result = Vec::with_capacity(items.len());
+                    for item in items {
+                        if let neo4rs::BoltType::String(s) = item {
+                            result.push(s.to_string());
+                        } else {
+                            return Err(MemoryError::runtime_error(
+                                format!("Expected string in observations list, got {:?}", item)
+                            ));
+                        }
+                    }
+                    result
+                },
+                neo4rs::BoltType::Null(_) => Vec::new(),
+                _ => {
+                    return Err(MemoryError::runtime_error(
+                        format!("Expected observations to be a list, got {:?}", observations_bolt)
+                    ));
+                }
+            };
             let labels_vec: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
             let mut properties: HashMap<String, MemoryValue> = HashMap::default();
