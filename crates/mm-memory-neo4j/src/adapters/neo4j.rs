@@ -72,18 +72,20 @@ impl Neo4jRepository {
     ) -> MemoryResult<Vec<String>, neo4rs::Error> {
         match bolt {
             neo4rs::BoltType::List(items) => {
-                let mut result = Vec::with_capacity(items.len());
-                for item in items {
-                    if let neo4rs::BoltType::String(s) = item {
-                        result.push(s.to_string());
-                    } else {
-                        return Err(MemoryError::runtime_error(format!(
-                            "Expected string in observations list, got {:?}",
-                            item
-                        )));
-                    }
-                }
-                Ok(result)
+                let result: Result<Vec<String>, _> = items
+                    .into_iter()
+                    .map(|item| {
+                        if let neo4rs::BoltType::String(s) = item {
+                            Ok(s.to_string())
+                        } else {
+                            Err(MemoryError::runtime_error(format!(
+                                "Expected string in observations list, got {:?}",
+                                item
+                            )))
+                        }
+                    })
+                    .collect();
+                result
             }
             neo4rs::BoltType::Null(_) => Ok(Vec::new()),
             _ => Err(MemoryError::runtime_error(format!(
