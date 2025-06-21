@@ -40,6 +40,10 @@ where
     /// Domain validation error
     #[error("Validation error")]
     ValidationError(#[from] ValidationError),
+
+    /// Error when an entity is not found
+    #[error("Entity not found: {0}")]
+    EntityNotFound(String),
 }
 
 impl<E> MemoryError<E>
@@ -90,6 +94,10 @@ where
             message: message.into(),
             source: Some(Box::new(source)),
         }
+    }
+
+    pub fn entity_not_found<S: Into<String>>(entity_name: S) -> Self {
+        Self::EntityNotFound(entity_name.into())
     }
 }
 

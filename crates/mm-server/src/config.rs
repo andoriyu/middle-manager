@@ -103,6 +103,7 @@ password = "test_password"
                 additional_relationships: std::collections::HashSet::default(),
                 default_labels: true,
                 additional_labels: std::collections::HashSet::default(),
+                default_project: None,
             },
         };
 

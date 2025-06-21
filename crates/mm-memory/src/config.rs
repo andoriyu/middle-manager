@@ -23,6 +23,10 @@ pub struct MemoryConfig {
     /// Additional labels allowed when default_labels is enabled
     #[serde(default)]
     pub additional_labels: HashSet<String>,
+
+    /// Optional default project name to use when not explicitly specified
+    #[serde(default)]
+    pub default_project: Option<String>,
 }
 
 /// Default label used when none is specified in the configuration
@@ -125,6 +129,7 @@ impl Default for MemoryConfig {
             additional_relationships: HashSet::default(),
             default_labels: true,
             additional_labels: HashSet::default(),
+            default_project: None,
         }
     }
 }
