@@ -131,5 +131,29 @@ where
         .collect();
     service.create_entities(&extra).await?;
 
+    // --- Find entities by labels ---
+    use crate::label_match_mode::LabelMatchMode;
+    let by_example = service
+        .find_entities_by_labels(&["Example".to_string()], LabelMatchMode::Any, None)
+        .await?;
+    assert!(by_example.iter().any(|e| e.name == name_a));
+    assert!(by_example.iter().any(|e| e.name == name_b));
+
+    let by_all = service
+        .find_entities_by_labels(
+            &["Example".to_string(), "TestSuite".to_string()],
+            LabelMatchMode::All,
+            None,
+        )
+        .await?;
+    assert!(by_all.iter().any(|e| e.name == name_a));
+    assert!(by_all.iter().any(|e| e.name == name_b));
+
+    let required_only = service
+        .find_entities_by_labels(&[], LabelMatchMode::Any, Some("TestSuite".to_string()))
+        .await?;
+    assert!(required_only.iter().any(|e| e.name == name_a));
+    assert!(required_only.iter().any(|e| e.name == name_b));
+
     Ok(())
 }

@@ -40,8 +40,8 @@ pub mod adapters;
 // Re-export main types for convenience
 pub use adapters::neo4j::{Neo4jConfig, Neo4jRepository};
 pub use mm_memory::{
-    DEFAULT_MEMORY_LABEL, MemoryConfig, MemoryEntity, MemoryError, MemoryRepository, MemoryResult,
-    MemoryService, ValidationError,
+    DEFAULT_MEMORY_LABEL, LabelMatchMode, MemoryConfig, MemoryEntity, MemoryError,
+    MemoryRepository, MemoryResult, MemoryService, ValidationError,
 };
 
 // Re-export neo4rs for use by other crates

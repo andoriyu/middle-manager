@@ -1,6 +1,7 @@
 use crate::{
-    DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, MemoryConfig, MemoryEntity, MemoryRelationship,
-    MemoryRepository, MemoryResult, RelationshipDirection, ValidationError, ValidationErrorKind,
+    DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, LabelMatchMode, MemoryConfig, MemoryEntity,
+    MemoryRelationship, MemoryRepository, MemoryResult, RelationshipDirection, ValidationError,
+    ValidationErrorKind,
 };
 use mm_utils::is_snake_case;
 use tracing::instrument;
@@ -195,6 +196,20 @@ where
 
         self.repository
             .find_related_entities(name, relationship_type.clone(), direction, depth)
+            .await
+    }
+
+    /// Find entities matching the given labels
+    #[instrument(skip(self, labels), fields(labels_count = labels.len()))]
+    pub async fn find_entities_by_labels(
+        &self,
+        labels: &[String],
+        match_mode: LabelMatchMode,
+        required_label: Option<String>,
+    ) -> MemoryResult<Vec<MemoryEntity>, R::Error> {
+        let effective_required = required_label.or_else(|| self.config.default_label.clone());
+        self.repository
+            .find_entities_by_labels(labels, match_mode, effective_required)
             .await
     }
 }
@@ -591,6 +606,62 @@ mod tests {
             .unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].name, "b");
+    }
+
+    #[tokio::test]
+    async fn test_find_entities_by_labels_default_required() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_find_entities_by_labels()
+            .withf(|labels, mode, req| {
+                labels == ["Example".to_string()]
+                    && *mode == LabelMatchMode::Any
+                    && req.as_deref() == Some("Default")
+            })
+            .return_once(|_, _, _| Ok(Vec::new()));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_label: Some("Default".to_string()),
+                default_relationships: true,
+                additional_relationships: HashSet::default(),
+                default_labels: true,
+                additional_labels: HashSet::default(),
+            },
+        );
+
+        let _ = service
+            .find_entities_by_labels(&["Example".to_string()], LabelMatchMode::Any, None)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_find_entities_by_labels_required_override() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_find_entities_by_labels()
+            .withf(|labels, mode, req| {
+                labels.is_empty()
+                    && *mode == LabelMatchMode::All
+                    && req.as_deref() == Some("Explicit")
+            })
+            .return_once(|_, _, _| Ok(Vec::new()));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_label: Some("Default".to_string()),
+                default_relationships: true,
+                additional_relationships: HashSet::default(),
+                default_labels: true,
+                additional_labels: HashSet::default(),
+            },
+        );
+
+        let _ = service
+            .find_entities_by_labels(&[], LabelMatchMode::All, Some("Explicit".to_string()))
+            .await
+            .unwrap();
     }
 
     mod prop_tests {
