@@ -576,7 +576,7 @@ impl MemoryRepository for Neo4jRepository {
             conditions.push(expr);
         }
         let where_clause = if conditions.is_empty() {
-            String::new()
+            String::default()
         } else {
             format!("WHERE {}", conditions.join(" AND "))
         };

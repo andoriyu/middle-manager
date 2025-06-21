@@ -613,7 +613,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_find_entities_by_labels()
             .withf(|labels, mode, req| {
-                labels == &["Example".to_string()]
+                labels == ["Example".to_string()]
                     && *mode == LabelMatchMode::Any
                     && req.as_deref() == Some("Default")
             })
