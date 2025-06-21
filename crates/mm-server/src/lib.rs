@@ -160,6 +160,14 @@ where
                 .call_tool(&ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::GetProjectContextTool(tool) => tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::ListProjectsTool(tool) => tool
+                .call_tool(&ports)
+                .await
+                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
         };
         Ok(result.into())
     }

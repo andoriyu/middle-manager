@@ -35,6 +35,7 @@ async fn test_find_nonexistent_entity() {
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
         },
     )
     .await
@@ -64,6 +65,7 @@ async fn test_create_and_find_entity() {
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
         },
     )
     .await
@@ -121,6 +123,7 @@ async fn test_validation_errors() {
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
         },
     )
     .await
@@ -165,6 +168,7 @@ async fn test_set_observations() {
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
         },
     )
     .await
@@ -212,6 +216,7 @@ async fn test_add_and_remove_observations() {
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
         },
     )
     .await
@@ -280,6 +285,7 @@ async fn test_create_relationship() {
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
         },
     )
     .await
@@ -350,6 +356,7 @@ async fn test_find_related_entities() {
             additional_relationships: std::collections::HashSet::default(),
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
         },
     )
     .await
@@ -424,6 +431,7 @@ async fn test_find_entities_by_labels() {
             additional_labels: ["Example".to_string(), "Extra".to_string()]
                 .into_iter()
                 .collect(),
+            default_project: None,
         },
     )
     .await

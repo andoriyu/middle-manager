@@ -237,6 +237,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: false,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
         let entity = MemoryEntity {
@@ -267,6 +268,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: false,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
         let entity = MemoryEntity {
@@ -301,6 +303,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: false,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -330,6 +333,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: false,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -365,6 +369,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: true,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -394,6 +399,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: true,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -426,6 +432,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: true,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -455,6 +462,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: true,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -491,6 +499,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: false,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -518,6 +527,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: true,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -627,6 +637,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: true,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 
@@ -655,6 +666,7 @@ mod tests {
                 additional_relationships: HashSet::default(),
                 default_labels: true,
                 additional_labels: HashSet::default(),
+                default_project: None,
             },
         );
 

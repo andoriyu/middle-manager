@@ -23,6 +23,7 @@ where
         additional_relationships: HashSet::default(),
         default_labels: true,
         additional_labels: std::iter::once("Example".to_string()).collect(),
+        default_project: None,
     };
 
     let service = MemoryService::new(repository, config);
