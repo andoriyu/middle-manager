@@ -31,18 +31,19 @@ use rust_mcp_sdk::{
         ServerCapabilitiesResources, ServerCapabilitiesTools,
     },
 };
-use tracing::debug;
+use tracing::{debug, error};
 
 mod mcp;
 use mcp::MemoryTools;
 mod resources;
+mod roots;
 
 /// Middle Manager MCP server handler
 pub struct MiddleManagerHandler<R>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
-    service: Arc<MemoryService<R>>,
+    ports: Arc<Ports<R>>,
 }
 
 impl<R> MiddleManagerHandler<R>
@@ -51,9 +52,8 @@ where
 {
     /// Create a new Middle Manager MCP server handler
     pub fn new(service: MemoryService<R>) -> Self {
-        Self {
-            service: Arc::new(service),
-        }
+        let ports = Arc::new(Ports::new(Arc::new(service)));
+        Self { ports }
     }
 
     async fn handle_initialize_request(
@@ -70,6 +70,28 @@ where
         .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?
         {
             server_info.protocol_version = initialize_request.params.protocol_version;
+        }
+
+        // Request client roots and store them
+        match runtime.list_roots(None).await {
+            Ok(result) => {
+                let roots = result
+                    .roots
+                    .into_iter()
+                    .map(roots::from_sdk_root)
+                    .collect::<Vec<_>>();
+                match self.ports.roots.write() {
+                    Ok(mut collection) => {
+                        collection.set_roots(roots);
+                    }
+                    Err(err) => {
+                        error!("Failed to acquire write lock on roots: {err}");
+                    }
+                }
+            }
+            Err(err) => {
+                error!("Failed to list client roots and update the roots collection: {err}");
+            }
         }
 
         Ok(server_info.into())
@@ -109,8 +131,7 @@ where
         request: rust_mcp_sdk::schema::ReadResourceRequest,
     ) -> std::result::Result<ResultFromServer, RpcError> {
         debug!("Handling read resource request: {}", request.params.uri);
-        let ports = Ports::new(self.service.clone());
-        let result = resources::read_resource(&ports, &request.params.uri)
+        let result = resources::read_resource(&self.ports, &request.params.uri)
             .await
             .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?;
         Ok(result.into())
@@ -123,9 +144,6 @@ where
         let tool_name = request.tool_name().to_string();
         debug!("Handling call tool request: {}", tool_name);
 
-        // Create ports with the memory service
-        let ports = Ports::new(self.service.clone());
-
         // Attempt to convert request parameters into MemoryTools enum
         let tool_params = MemoryTools::try_from(request.params)
             .map_err(|_| CallToolError::unknown_tool(tool_name.clone()))?;
@@ -133,39 +151,39 @@ where
         // Match the tool variant and execute its corresponding logic
         let result = match tool_params {
             MemoryTools::CreateEntityTool(create_entity_tool) => create_entity_tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::CreateRelationshipTool(tool) => tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::GetEntityTool(get_entity_tool) => get_entity_tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::SetObservationsTool(tool) => tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::AddObservationsTool(tool) => tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::RemoveAllObservationsTool(tool) => tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::RemoveObservationsTool(tool) => tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::GetProjectContextTool(tool) => tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
             MemoryTools::ListProjectsTool(tool) => tool
-                .call_tool(&ports)
+                .call_tool(&self.ports)
                 .await
                 .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
         };

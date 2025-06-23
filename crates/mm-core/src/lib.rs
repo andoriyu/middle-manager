@@ -9,6 +9,7 @@
 pub mod error;
 mod operations;
 mod ports;
+mod root;
 
 pub use error::{CoreError, CoreResult};
 pub use mm_memory::MemoryService;
@@ -23,6 +24,7 @@ pub use operations::{
     set_observations,
 };
 pub use ports::Ports;
+pub use root::{Root, RootCollection};
 
 // Re-export types from mm-memory
 pub use mm_memory::{MemoryEntity, MemoryRelationship, ProjectContext};
