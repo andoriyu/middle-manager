@@ -370,7 +370,7 @@ impl MemoryRepository for Neo4jRepository {
                 if key != "name" && key != "observations" {
                     let value: String = node.get(key).map_err(|e| {
                         MemoryError::runtime_error_with_source(
-                            "Failed to decode node properties".to_string(),
+                            format!("Failed to decode node property for key: {}", key),
                             e,
                         )
                     })?;
