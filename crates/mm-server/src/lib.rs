@@ -80,8 +80,14 @@ where
                     .into_iter()
                     .map(roots::from_sdk_root)
                     .collect::<Vec<_>>();
-                let mut collection = self.ports.roots.write().unwrap();
-                collection.set_roots(roots);
+                match self.ports.roots.write() {
+                    Ok(mut collection) => {
+                        collection.set_roots(roots);
+                    }
+                    Err(err) => {
+                        error!("Failed to acquire write lock on roots: {err}");
+                    }
+                }
             }
             Err(err) => {
                 error!("Failed to list client roots: {err}");
