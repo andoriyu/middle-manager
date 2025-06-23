@@ -155,12 +155,13 @@ curl -L https://install.determinate.systems/nix | sh -s -- --no-confirm
 ## Running
 
 Run `cargo run -p mm-cli` to start the CLI.
+Use the `tools` subcommand to interact with MCP tools.
 
 ### CLI Options
 
 ```
 USAGE:
-    mm-cli [OPTIONS]
+    mm-cli [OPTIONS] [COMMAND]
 
 OPTIONS:
     -l, --log-level <LOG_LEVEL>    Log level [default: info] [possible values: error, warn, info, debug, trace]
@@ -169,6 +170,10 @@ OPTIONS:
     -c, --config <FILE>            Path to config file
     -h, --help                     Print help
     -V, --version                  Print version
+
+COMMANDS:
+    server    Start the MCP server (default)
+    tools     Call server tools from the CLI
 ```
 
 ### Configuration
@@ -188,6 +193,32 @@ password = "password"
 ```
 
 With `docker-compose.yml`, Neo4j runs on port `7688`. Update `config/local.toml` or set `MM_NEO4J__URI` to `neo4j://localhost:7688`.
+
+### Using Tools
+
+List available tools:
+
+```bash
+cargo run -p mm-cli -- tools list --config config/local.toml --log-level debug
+```
+
+Call a tool (example adds an observation):
+
+```bash
+cargo run -p mm-cli -- tools call add_observations '{"name":"example","observations":["demo"]}'
+```
+
+Call the built-in `tools/list` operation:
+
+```bash
+cargo run -p mm-cli -- tools call tools/list '{}'
+```
+
+View the JSON schema for a tool:
+
+```bash
+cargo run -p mm-cli -- tools schema MemoryTools add_observations
+```
 
 
 ## Development
