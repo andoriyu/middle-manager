@@ -90,7 +90,7 @@ where
                 }
             }
             Err(err) => {
-                error!("Failed to list client roots: {err}");
+                error!("Failed to list client roots and update the roots collection: {err}");
             }
         }
 
