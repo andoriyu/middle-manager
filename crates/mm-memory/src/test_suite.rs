@@ -1,6 +1,4 @@
-use crate::{
-    MemoryConfig, MemoryEntity, MemoryRelationship, MemoryRepository, MemoryService, MemoryValue,
-};
+use crate::{MemoryConfig, MemoryEntity, MemoryRelationship, MemoryRepository, MemoryService};
 use chrono::Utc;
 use std::collections::{HashMap, HashSet};
 
@@ -35,7 +33,7 @@ where
 
     // --- Entity creation (batch) ---
     let mut props = HashMap::new();
-    props.insert("k".to_string(), MemoryValue::String("v".to_string()));
+    props.insert("k".to_string(), "v".to_string());
     let entity_a = MemoryEntity {
         name: name_a.clone(),
         labels: vec!["Example".to_string()],
@@ -62,10 +60,7 @@ where
     assert!(fetched_a.labels.contains(&"TestSuite".to_string()));
     assert!(fetched_a.labels.contains(&"Example".to_string()));
     assert_eq!(fetched_a.observations, ["first".to_string()]);
-    assert_eq!(
-        fetched_a.properties.get("k"),
-        Some(&MemoryValue::String("v".to_string()))
-    );
+    assert_eq!(fetched_a.properties.get("k"), Some(&"v".to_string()));
 
     // --- Relationship creation ---
     let rel = MemoryRelationship {

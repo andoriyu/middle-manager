@@ -1,5 +1,5 @@
 use mm_core::{CreateRelationshipCommand, MemoryRelationship, create_relationship};
-use mm_memory::MemoryValue;
+
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ pub struct RelationshipInput {
     pub to: String,
     pub name: String,
     #[serde(default)]
-    pub properties: Option<HashMap<String, MemoryValue>>,
+    pub properties: Option<HashMap<String, String>>,
 }
 
 impl RelationshipInput {

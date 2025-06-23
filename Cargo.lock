@@ -1418,7 +1418,6 @@ name = "mm-memory-neo4j"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "chrono",
  "mm-memory",
  "mockall",
  "neo4rs",
