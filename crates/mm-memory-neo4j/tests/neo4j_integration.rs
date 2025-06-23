@@ -1,5 +1,5 @@
 use mm_memory::test_suite::run_memory_service_test_suite;
-use mm_memory::{MemoryRelationship, RelationshipDirection};
+use mm_memory::{MemoryRelationship, MemoryValue, RelationshipDirection};
 use mm_memory_neo4j::LabelMatchMode;
 use mm_memory_neo4j::{
     MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, Neo4jRepository, create_neo4j_service,
@@ -72,7 +72,7 @@ async fn test_create_and_find_entity() {
     .unwrap();
 
     let mut props = HashMap::new();
-    props.insert("rating".to_string(), "5".to_string());
+    props.insert("rating".to_string(), MemoryValue::Integer(5));
     let entity = MemoryEntity {
         name: "test:entity:create".to_string(),
         labels: vec!["Example".to_string()],
@@ -99,7 +99,7 @@ async fn test_create_and_find_entity() {
     assert_eq!(found_entity.observations, entity.observations);
     assert_eq!(
         found_entity.properties.get("rating"),
-        Some(&"5".to_string())
+        Some(&MemoryValue::Integer(5))
     );
 
     // Check that labels contain the expected values

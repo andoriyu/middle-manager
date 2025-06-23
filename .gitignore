@@ -29,4 +29,7 @@ result-*
 
 # Local configuration
 config/local.toml
-ctxs
+ctxsvendor/
+vendor/
+ctxs/
+.amazonq

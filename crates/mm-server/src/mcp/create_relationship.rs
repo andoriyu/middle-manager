@@ -1,5 +1,5 @@
 use mm_core::{CreateRelationshipCommand, MemoryRelationship, create_relationship};
-
+use mm_memory::MemoryValue;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ pub struct RelationshipInput {
     pub to: String,
     pub name: String,
     #[serde(default)]
-    pub properties: Option<HashMap<String, String>>,
+    pub properties: Option<HashMap<String, MemoryValue>>,
 }
 
 impl RelationshipInput {
@@ -105,5 +105,32 @@ mod tests {
 
         let result = tool.call_tool(&ports).await;
         assert!(result.is_err());
+    }
+}
+#[cfg(test)]
+mod schema_tests {
+    use super::*;
+    use mm_utils::IntoJsonSchema;
+
+    #[test]
+    fn test_schema_has_no_refs() {
+        // Generate the schema for CreateRelationshipTool
+        let schema = CreateRelationshipTool::json_schema();
+
+        // Convert to a string to check for $defs
+        let schema_str =
+            serde_json::to_string(&schema).expect("Failed to convert schema to string");
+
+        // Verify that the schema doesn't contain $defs
+        assert!(
+            !schema_str.contains("\"$defs\""),
+            "Schema should not contain $defs section"
+        );
+
+        // Verify that the schema doesn't contain any $ref that points to $defs
+        assert!(
+            !schema_str.contains("\"$ref\":\"#/$defs/"),
+            "Schema should not contain references to $defs"
+        );
     }
 }
