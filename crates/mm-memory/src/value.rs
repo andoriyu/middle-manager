@@ -105,14 +105,14 @@ impl From<MemoryValue> for serde_json::Value {
             ),
             MemoryValue::List(l) => {
                 serde_json::Value::Array(l.into_iter().map(serde_json::Value::String).collect())
-            },
+            }
             MemoryValue::Map(m) => {
                 let mut map = serde_json::Map::new();
                 for (k, v) in m {
                     map.insert(k, serde_json::Value::String(v));
                 }
                 serde_json::Value::Object(map)
-            },
+            }
             MemoryValue::Date(d) => serde_json::Value::String(d.to_string()),
             MemoryValue::Time(t) => serde_json::Value::String(t.to_string()),
             MemoryValue::OffsetTime { time, offset } => {
@@ -143,14 +143,15 @@ impl TryFrom<serde_json::Value> for MemoryValue {
             }
             serde_json::Value::Array(arr) => {
                 // Convert array to list of strings
-                let strings = arr.into_iter()
+                let strings = arr
+                    .into_iter()
                     .map(|v| match v {
                         serde_json::Value::String(s) => s,
                         _ => v.to_string(),
                     })
                     .collect();
                 MemoryValue::List(strings)
-            },
+            }
             serde_json::Value::Object(obj) => {
                 // Convert object to map of strings
                 let mut map = HashMap::new();
@@ -162,7 +163,7 @@ impl TryFrom<serde_json::Value> for MemoryValue {
                     map.insert(k, value_str);
                 }
                 MemoryValue::Map(map)
-            },
+            }
             serde_json::Value::Null => MemoryValue::String("null".to_string()),
         })
     }

@@ -18,12 +18,9 @@ pub(crate) fn memory_value_to_bolt(
         MemoryValue::Bytes(bytes) => bytes.clone().into(),
         MemoryValue::List(items) => {
             // Convert Vec<String> to Vec<BoltType>
-            let bolt_items: Vec<BoltType> = items
-                .iter()
-                .map(|s| s.clone().into())
-                .collect();
+            let bolt_items: Vec<BoltType> = items.iter().map(|s| s.clone().into()).collect();
             bolt_items.into()
-        },
+        }
         MemoryValue::Map(map) => {
             // Convert HashMap<String, String> to BoltType::Map
             let mut bolt_map = HashMap::new();
@@ -31,7 +28,7 @@ pub(crate) fn memory_value_to_bolt(
                 bolt_map.insert(k.clone(), BoltType::String(v.clone().into()));
             }
             bolt_map.into()
-        },
+        }
         MemoryValue::Date(d) => (*d).into(),
         MemoryValue::Time(t) => (*t).into(),
         MemoryValue::OffsetTime { time, offset } => (*time, *offset).into(),
@@ -55,17 +52,16 @@ pub(crate) fn bolt_to_memory_value(
         BoltType::Bytes(b) => MemoryValue::Bytes(b.value.to_vec()),
         BoltType::List(list) => {
             // Convert list of BoltType to Vec<String>
-            let string_list = list.value
+            let string_list = list
+                .value
                 .into_iter()
-                .map(|bolt_item| {
-                    match bolt_to_memory_value(bolt_item)? {
-                        MemoryValue::String(s) => Ok::<String, MemoryError<neo4rs::Error>>(s),
-                        other => Ok(other.to_string())
-                    }
+                .map(|bolt_item| match bolt_to_memory_value(bolt_item)? {
+                    MemoryValue::String(s) => Ok::<String, MemoryError<neo4rs::Error>>(s),
+                    other => Ok(other.to_string()),
                 })
                 .collect::<Result<Vec<String>, _>>()?;
             MemoryValue::List(string_list)
-        },
+        }
         BoltType::Map(map) => {
             // Convert BoltType::Map to HashMap<String, String>
             let mut string_map = HashMap::new();
@@ -77,7 +73,7 @@ pub(crate) fn bolt_to_memory_value(
                 string_map.insert(k.to_string(), value);
             }
             MemoryValue::Map(string_map)
-        },
+        }
         BoltType::Duration(d) => MemoryValue::Duration(d.into()),
         BoltType::Date(d) => {
             let date: NaiveDate = d.try_into().map_err(|e| {

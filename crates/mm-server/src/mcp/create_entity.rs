@@ -108,17 +108,25 @@ mod schema_tests {
     fn test_schema_has_no_refs() {
         // Generate the schema for CreateEntityTool
         let schema = CreateEntityTool::json_schema();
-        
+
         // Convert to a Value for easier inspection
-        let schema_value = serde_json::to_value(&schema).expect("Failed to convert schema to Value");
-        
+        let schema_value =
+            serde_json::to_value(&schema).expect("Failed to convert schema to Value");
+
         // Convert to a string to check for $defs
-        let schema_str = serde_json::to_string(&schema_value).expect("Failed to convert schema to string");
-        
+        let schema_str =
+            serde_json::to_string(&schema_value).expect("Failed to convert schema to string");
+
         // Verify that the schema doesn't contain $defs
-        assert!(!schema_str.contains("\"$defs\""), "Schema should not contain $defs section");
-        
+        assert!(
+            !schema_str.contains("\"$defs\""),
+            "Schema should not contain $defs section"
+        );
+
         // Verify that the schema doesn't contain any $ref that points to $defs
-        assert!(!schema_str.contains("\"$ref\":\"#/$defs/"), "Schema should not contain references to $defs");
+        assert!(
+            !schema_str.contains("\"$ref\":\"#/$defs/"),
+            "Schema should not contain references to $defs"
+        );
     }
 }

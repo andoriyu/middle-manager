@@ -116,14 +116,21 @@ mod schema_tests {
     fn test_schema_has_no_refs() {
         // Generate the schema for CreateRelationshipTool
         let schema = CreateRelationshipTool::json_schema();
-        
+
         // Convert to a string to check for $defs
-        let schema_str = serde_json::to_string(&schema).expect("Failed to convert schema to string");
-        
+        let schema_str =
+            serde_json::to_string(&schema).expect("Failed to convert schema to string");
+
         // Verify that the schema doesn't contain $defs
-        assert!(!schema_str.contains("\"$defs\""), "Schema should not contain $defs section");
-        
+        assert!(
+            !schema_str.contains("\"$defs\""),
+            "Schema should not contain $defs section"
+        );
+
         // Verify that the schema doesn't contain any $ref that points to $defs
-        assert!(!schema_str.contains("\"$ref\":\"#/$defs/"), "Schema should not contain references to $defs");
+        assert!(
+            !schema_str.contains("\"$ref\":\"#/$defs/"),
+            "Schema should not contain references to $defs"
+        );
     }
 }
