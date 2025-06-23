@@ -1,5 +1,5 @@
 #![warn(clippy::all)]
-use clap::{Parser, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::path::PathBuf;
@@ -8,11 +8,14 @@ use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt, prelude::*};
 
 use mm_server as mm_server_lib;
+use mm_server_lib::ToolsCommand;
 
 /// Middle Manager CLI
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    #[command(subcommand)]
+    command: Option<Command>,
     /// Log level
     #[arg(short, long, value_enum, default_value_t = LogLevel::Info)]
     log_level: LogLevel,
@@ -47,6 +50,15 @@ enum LogLevel {
     Info,
     Debug,
     Trace,
+}
+
+#[derive(Subcommand, Debug)]
+enum Command {
+    /// Start the MCP server
+    Server,
+    /// Interact with tools
+    #[command(subcommand)]
+    Tools(ToolsCommand),
 }
 
 impl From<LogLevel> for Level {
@@ -100,15 +112,18 @@ async fn run(args: Args) -> anyhow::Result<()> {
     let config_paths: Vec<PathBuf> = if let Some(config_path) = args.config {
         vec![config_path]
     } else {
-        // Default config paths
         vec![
             PathBuf::from("config/default.toml"),
             PathBuf::from("config/local.toml"),
         ]
     };
 
-    // Run the server
-    mm_server_lib::run_server(&config_paths).await?;
+    match args.command.unwrap_or(Command::Server) {
+        Command::Server => mm_server_lib::run_server(&config_paths).await?,
+        Command::Tools(tool_cmd) => {
+            mm_server_lib::run_tools(tool_cmd, &config_paths).await?;
+        }
+    }
 
     Ok(())
 }

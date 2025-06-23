@@ -33,10 +33,29 @@ use rust_mcp_sdk::{
 };
 use tracing::{debug, error};
 
-mod mcp;
+pub mod mcp;
 use mcp::MemoryTools;
 mod resources;
 mod roots;
+
+use clap::Subcommand;
+use mm_utils::IntoJsonSchema;
+use rust_mcp_sdk::schema::{ListResourceTemplatesResult, ListResourcesResult};
+use serde_json::Value;
+
+/// Subcommands for interacting with tools via the CLI
+#[derive(Subcommand, Debug, Clone)]
+pub enum ToolsCommand {
+    /// List available tools
+    List,
+    /// Call a tool with JSON input
+    Call {
+        tool_name: String,
+        tool_input: String,
+    },
+    /// Print the JSON schema for a tool
+    Schema { toolbox: String, tool_name: String },
+}
 
 /// Middle Manager MCP server handler
 pub struct MiddleManagerHandler<R>
@@ -305,4 +324,90 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
         .start()
         .await
         .map_err(|e| anyhow::anyhow!("Server failed to start or run: {}", e))
+}
+
+/// Execute tool-related commands from the CLI
+#[tracing::instrument(skip(config_paths), fields(paths = config_paths.len()))]
+pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]) -> AnyResult<()> {
+    // Load configuration
+    let config = Config::load(config_paths)?;
+    let service = create_neo4j_service(config.neo4j, config.memory).await?;
+    let ports = Ports::new(Arc::new(service));
+
+    match command {
+        ToolsCommand::List => {
+            println!("MemoryTools:");
+            for tool in MemoryTools::tools() {
+                let desc = tool.description.unwrap_or_default();
+                println!("  {} - {}", tool.name, desc);
+            }
+        }
+        ToolsCommand::Call {
+            tool_name,
+            tool_input,
+        } => match tool_name.as_str() {
+            "tools/list" | "list_tools" => {
+                let result = ListToolsResult {
+                    meta: None,
+                    next_cursor: None,
+                    tools: MemoryTools::tools(),
+                };
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+            "resources/list" | "list_resources" => {
+                let result: ListResourcesResult = resources::list_resources();
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+            "resource_templates/list" | "list_resource_templates" => {
+                let result: ListResourceTemplatesResult = resources::list_resource_templates();
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+            _ => {
+                let value: Value = serde_json::from_str(&tool_input)?;
+                let map = value
+                    .as_object()
+                    .cloned()
+                    .ok_or_else(|| anyhow::anyhow!("tool input must be an object"))?;
+                let params = rust_mcp_sdk::schema::CallToolRequestParams {
+                    name: tool_name.clone(),
+                    arguments: Some(map),
+                };
+                let tool =
+                    MemoryTools::try_from(params).map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
+                let result = match tool {
+                    MemoryTools::CreateEntityTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::CreateRelationshipTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::GetEntityTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::SetObservationsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::AddObservationsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::RemoveAllObservationsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::RemoveObservationsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::GetProjectContextTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::ListProjectsTool(t) => t.call_tool(&ports).await,
+                }
+                .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+        },
+        ToolsCommand::Schema { toolbox, tool_name } => {
+            if toolbox != "MemoryTools" {
+                anyhow::bail!("Unknown toolbox: {}", toolbox);
+            }
+            let schema = match tool_name.as_str() {
+                "create_entity" => mcp::CreateEntityTool::json_schema(),
+                "create_relationship" => mcp::CreateRelationshipTool::json_schema(),
+                "get_entity" => mcp::GetEntityTool::json_schema(),
+                "set_observations" => mcp::SetObservationsTool::json_schema(),
+                "add_observations" => mcp::AddObservationsTool::json_schema(),
+                "remove_all_observations" => mcp::RemoveAllObservationsTool::json_schema(),
+                "remove_observations" => mcp::RemoveObservationsTool::json_schema(),
+                "get_project_context" => mcp::GetProjectContextTool::json_schema(),
+                "list_projects" => mcp::ListProjectsTool::json_schema(),
+                _ => anyhow::bail!("Unknown tool: {}", tool_name),
+            };
+            println!("{}", serde_json::to_string_pretty(&schema)?);
+        }
+    }
+
+    Ok(())
 }
