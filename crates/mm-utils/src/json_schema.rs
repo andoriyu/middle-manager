@@ -1,4 +1,8 @@
-use schemars::JsonSchema;
+use schemars::{
+    JsonSchema,
+    generate::SchemaSettings,
+    transform::{AddNullable, RecursiveTransform},
+};
 use serde_json;
 
 /// Trait for converting types to JSON Schema
@@ -10,7 +14,14 @@ pub trait IntoJsonSchema {
 /// Blanket implementation for all types that implement JsonSchema
 impl<T: JsonSchema> IntoJsonSchema for T {
     fn json_schema() -> serde_json::Map<String, serde_json::Value> {
-        serde_json::to_value(schemars::schema_for!(T))
+        let generator = SchemaSettings::draft2020_12()
+            .with(|s| {
+                s.meta_schema = None;
+                s.inline_subschemas = true;
+            })
+            .with_transform(RecursiveTransform(AddNullable::default()))
+            .into_generator();
+        serde_json::to_value(generator.into_root_schema_for::<T>())
             .expect("schema serialization")
             .as_object()
             .cloned()
