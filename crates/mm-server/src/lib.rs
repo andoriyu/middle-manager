@@ -20,12 +20,11 @@ mod config;
 pub use config::Config;
 
 use rust_mcp_sdk::schema::{
-    ClientRequest, ListToolsResult, Result as McpResult, RpcError,
-    schema_utils::{CallToolError, NotificationFromClient, RequestFromClient, ResultFromServer},
+    ListToolsResult, Result as McpResult, RpcError, schema_utils::CallToolError,
 };
 use rust_mcp_sdk::{
     McpServer, StdioTransport, TransportOptions,
-    mcp_server::{ServerHandlerCore, enforce_compatible_protocol_version, server_runtime_core},
+    mcp_server::{ServerHandler, server_runtime},
     schema::{
         Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
         ServerCapabilitiesResources, ServerCapabilitiesTools,
@@ -75,91 +74,89 @@ where
         Self { ports }
     }
 
-    async fn handle_initialize_request(
-        &self,
-        runtime: &dyn McpServer,
-        initialize_request: rust_mcp_sdk::schema::InitializeRequest,
-    ) -> std::result::Result<ResultFromServer, RpcError> {
-        let mut server_info = runtime.server_info().to_owned();
-
-        if let Some(_updated_protocol_version) = enforce_compatible_protocol_version(
-            &initialize_request.params.protocol_version,
-            &server_info.protocol_version,
-        )
-        .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?
-        {
-            server_info.protocol_version = initialize_request.params.protocol_version;
-        }
-
-        // Request client roots and store them
-        match runtime.list_roots(None).await {
-            Ok(result) => {
-                let roots = result
-                    .roots
-                    .into_iter()
-                    .map(roots::from_sdk_root)
-                    .collect::<Vec<_>>();
-                match self.ports.roots.write() {
-                    Ok(mut collection) => {
-                        collection.set_roots(roots);
-                    }
-                    Err(err) => {
-                        error!("Failed to acquire write lock on roots: {err}");
+    /// Request the client's roots and store them if supported.
+    async fn update_client_roots(&self, runtime: &dyn McpServer) {
+        if runtime.client_supports_root_list().unwrap_or(false) {
+            match runtime.list_roots(None).await {
+                Ok(result) => {
+                    let roots = result
+                        .roots
+                        .into_iter()
+                        .map(roots::from_sdk_root)
+                        .collect::<Vec<_>>();
+                    match self.ports.roots.write() {
+                        Ok(mut collection) => {
+                            collection.set_roots(roots);
+                        }
+                        Err(err) => {
+                            error!("Failed to acquire write lock on roots: {err}");
+                        }
                     }
                 }
-            }
-            Err(err) => {
-                error!("Failed to list client roots and update the roots collection: {err}");
+                Err(err) => {
+                    error!("Failed to list client roots and update the roots collection: {err}");
+                }
             }
         }
-
-        Ok(server_info.into())
     }
 
-    async fn handle_list_tools_request(&self) -> std::result::Result<ResultFromServer, RpcError> {
+    async fn handle_list_tools_request(
+        &self,
+        _request: rust_mcp_sdk::schema::ListToolsRequest,
+        _runtime: &dyn McpServer,
+    ) -> std::result::Result<ListToolsResult, RpcError> {
         debug!("Handling list tools request");
         Ok(ListToolsResult {
             meta: None,
             next_cursor: None,
             tools: MemoryTools::tools(),
-        }
-        .into())
+        })
     }
 
     async fn handle_list_resources_request(
         &self,
-    ) -> std::result::Result<ResultFromServer, RpcError> {
+        _request: rust_mcp_sdk::schema::ListResourcesRequest,
+        _runtime: &dyn McpServer,
+    ) -> std::result::Result<ListResourcesResult, RpcError> {
         debug!("Handling list resources request");
-        Ok(resources::list_resources().into())
+        Ok(resources::list_resources())
     }
 
     async fn handle_list_resource_templates_request(
         &self,
-    ) -> std::result::Result<ResultFromServer, RpcError> {
+        _request: rust_mcp_sdk::schema::ListResourceTemplatesRequest,
+        _runtime: &dyn McpServer,
+    ) -> std::result::Result<ListResourceTemplatesResult, RpcError> {
         debug!("Handling list resource templates request");
-        Ok(resources::list_resource_templates().into())
+        Ok(resources::list_resource_templates())
     }
 
-    async fn handle_ping_request(&self) -> std::result::Result<ResultFromServer, RpcError> {
+    async fn handle_ping_request(
+        &self,
+        _request: rust_mcp_sdk::schema::PingRequest,
+        _runtime: &dyn McpServer,
+    ) -> std::result::Result<McpResult, RpcError> {
         debug!("Handling ping request");
-        Ok(McpResult::default().into())
+        Ok(McpResult::default())
     }
 
     async fn handle_read_resource_request(
         &self,
         request: rust_mcp_sdk::schema::ReadResourceRequest,
-    ) -> std::result::Result<ResultFromServer, RpcError> {
+        _runtime: &dyn McpServer,
+    ) -> std::result::Result<rust_mcp_sdk::schema::ReadResourceResult, RpcError> {
         debug!("Handling read resource request: {}", request.params.uri);
         let result = resources::read_resource(&self.ports, &request.params.uri)
             .await
             .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?;
-        Ok(result.into())
+        Ok(result)
     }
 
     async fn handle_call_tool_request(
         &self,
         request: rust_mcp_sdk::schema::CallToolRequest,
-    ) -> std::result::Result<ResultFromServer, RpcError> {
+        _runtime: &dyn McpServer,
+    ) -> std::result::Result<rust_mcp_sdk::schema::CallToolResult, CallToolError> {
         let tool_name = request.tool_name().to_string();
         debug!("Handling call tool request: {}", tool_name);
 
@@ -169,44 +166,21 @@ where
 
         // Match the tool variant and execute its corresponding logic
         let result = match tool_params {
-            MemoryTools::CreateEntityTool(create_entity_tool) => create_entity_tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::CreateRelationshipTool(tool) => tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::GetEntityTool(get_entity_tool) => get_entity_tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::SetObservationsTool(tool) => tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::AddObservationsTool(tool) => tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::RemoveAllObservationsTool(tool) => tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::RemoveObservationsTool(tool) => tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::GetProjectContextTool(tool) => tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
-            MemoryTools::ListProjectsTool(tool) => tool
-                .call_tool(&self.ports)
-                .await
-                .map_err(|err| RpcError::internal_error().with_message(err.to_string()))?,
+            MemoryTools::CreateEntityTool(create_entity_tool) => {
+                create_entity_tool.call_tool(&self.ports).await?
+            }
+            MemoryTools::CreateRelationshipTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::GetEntityTool(get_entity_tool) => {
+                get_entity_tool.call_tool(&self.ports).await?
+            }
+            MemoryTools::SetObservationsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::AddObservationsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::RemoveAllObservationsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::RemoveObservationsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::GetProjectContextTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
         };
-        Ok(result.into())
+        Ok(result)
     }
 }
 
@@ -219,60 +193,60 @@ where
 }
 
 #[async_trait]
-impl<R> ServerHandlerCore for MiddleManagerHandler<R>
+impl<R> ServerHandler for MiddleManagerHandler<R>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
-    #[tracing::instrument(skip(self, runtime, request), fields(method = request.method()))]
-    async fn handle_request(
+    async fn on_initialized(&self, runtime: &dyn McpServer) {
+        self.update_client_roots(runtime).await;
+    }
+
+    async fn handle_list_tools_request(
         &self,
-        request: RequestFromClient,
+        request: rust_mcp_sdk::schema::ListToolsRequest,
         runtime: &dyn McpServer,
-    ) -> std::result::Result<ResultFromServer, RpcError> {
-        match request {
-            RequestFromClient::ClientRequest(client_request) => match client_request {
-                ClientRequest::InitializeRequest(initialize_request) => {
-                    self.handle_initialize_request(runtime, initialize_request)
-                        .await
-                }
-                ClientRequest::ListToolsRequest(_) => self.handle_list_tools_request().await,
-                ClientRequest::ListResourcesRequest(_) => {
-                    self.handle_list_resources_request().await
-                }
-                ClientRequest::ListResourceTemplatesRequest(_) => {
-                    self.handle_list_resource_templates_request().await
-                }
-                ClientRequest::PingRequest(_) => self.handle_ping_request().await,
-                ClientRequest::ReadResourceRequest(request) => {
-                    self.handle_read_resource_request(request).await
-                }
-                ClientRequest::CallToolRequest(request) => {
-                    self.handle_call_tool_request(request).await
-                }
-                _ => Err(RpcError::method_not_found().with_message(format!(
-                    "No handler is implemented for '{}'.",
-                    client_request.method()
-                ))),
-            },
-            RequestFromClient::CustomRequest(_) => Err(RpcError::method_not_found()
-                .with_message("No handler is implemented for custom requests.".to_string())),
-        }
+    ) -> std::result::Result<ListToolsResult, RpcError> {
+        MiddleManagerHandler::handle_list_tools_request(self, request, runtime).await
     }
 
-    async fn handle_notification(
+    async fn handle_list_resources_request(
         &self,
-        _notification: NotificationFromClient,
-        _: &dyn McpServer,
-    ) -> std::result::Result<(), RpcError> {
-        Ok(())
+        request: rust_mcp_sdk::schema::ListResourcesRequest,
+        runtime: &dyn McpServer,
+    ) -> std::result::Result<ListResourcesResult, RpcError> {
+        MiddleManagerHandler::handle_list_resources_request(self, request, runtime).await
     }
 
-    async fn handle_error(
+    async fn handle_list_resource_templates_request(
         &self,
-        _error: RpcError,
-        _: &dyn McpServer,
-    ) -> std::result::Result<(), RpcError> {
-        Ok(())
+        request: rust_mcp_sdk::schema::ListResourceTemplatesRequest,
+        runtime: &dyn McpServer,
+    ) -> std::result::Result<ListResourceTemplatesResult, RpcError> {
+        MiddleManagerHandler::handle_list_resource_templates_request(self, request, runtime).await
+    }
+
+    async fn handle_ping_request(
+        &self,
+        request: rust_mcp_sdk::schema::PingRequest,
+        runtime: &dyn McpServer,
+    ) -> std::result::Result<McpResult, RpcError> {
+        MiddleManagerHandler::handle_ping_request(self, request, runtime).await
+    }
+
+    async fn handle_read_resource_request(
+        &self,
+        request: rust_mcp_sdk::schema::ReadResourceRequest,
+        runtime: &dyn McpServer,
+    ) -> std::result::Result<rust_mcp_sdk::schema::ReadResourceResult, RpcError> {
+        MiddleManagerHandler::handle_read_resource_request(self, request, runtime).await
+    }
+
+    async fn handle_call_tool_request(
+        &self,
+        request: rust_mcp_sdk::schema::CallToolRequest,
+        runtime: &dyn McpServer,
+    ) -> std::result::Result<rust_mcp_sdk::schema::CallToolResult, CallToolError> {
+        MiddleManagerHandler::handle_call_tool_request(self, request, runtime).await
     }
 }
 
@@ -318,7 +292,7 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
         .map_err(|e| anyhow::anyhow!("Failed to create stdio transport: {}", e))?;
 
     // Create and start server
-    let server = server_runtime_core::create_server(server_details, transport, handler);
+    let server = server_runtime::create_server(server_details, transport, handler);
     tracing::info!("Server initialized, starting...");
     server
         .start()
