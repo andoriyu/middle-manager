@@ -1,4 +1,3 @@
-use crate::adapters::conversions::{bolt_to_memory_value, memory_value_to_bolt};
 use async_trait::async_trait;
 use neo4rs::{self, Graph, Node, Query};
 use std::collections::HashMap;
@@ -6,7 +5,7 @@ use tracing::instrument;
 
 use mm_memory::{
     LabelMatchMode, MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository, MemoryResult,
-    MemoryValue, RelationshipDirection, ValidationError, ValidationErrorKind,
+    RelationshipDirection, ValidationError, ValidationErrorKind,
 };
 
 /// Configuration for connecting to Neo4j
@@ -210,12 +209,11 @@ impl Neo4jRepository {
                     let mut properties = HashMap::new();
                     if let Ok(neo4rs::BoltType::Map(props_map)) = rel_map.get("properties") {
                         for (key, value) in &props_map.value {
-                            match bolt_to_memory_value(value.clone()) {
-                                Ok(memory_value) => {
-                                    properties.insert(key.to_string(), memory_value);
+                            match <String as std::convert::TryFrom<_>>::try_from(value.clone()) {
+                                Ok(val) => {
+                                    properties.insert(key.to_string(), val);
                                 }
                                 Err(e) => {
-                                    // Property conversion errors are still logged but don't fail the whole operation
                                     tracing::error!(
                                         "Failed to convert property '{}' in relationship {}-[{}]->{}: {}",
                                         key,
@@ -284,8 +282,7 @@ impl MemoryRepository for Neo4jRepository {
             );
 
             for (k, v) in &entity.properties {
-                let bolt = memory_value_to_bolt(v)?;
-                props.insert(k.clone(), bolt);
+                props.insert(k.clone(), v.clone().into());
             }
 
             let mut row: HashMap<String, neo4rs::BoltType> = HashMap::default();
@@ -368,17 +365,16 @@ impl MemoryRepository for Neo4jRepository {
             let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
             // Extract all other properties
-            let mut properties: HashMap<String, MemoryValue> = HashMap::default();
+            let mut properties: HashMap<String, String> = HashMap::default();
             for key in node.keys() {
                 if key != "name" && key != "observations" {
-                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
+                    let value: String = node.get(key).map_err(|e| {
                         MemoryError::runtime_error_with_source(
-                            "Failed to decode node properties".to_string(),
+                            format!("Failed to decode node property for key: {}", key),
                             e,
                         )
                     })?;
-                    let mv = bolt_to_memory_value(bolt)?;
-                    properties.insert(key.to_string(), mv);
+                    properties.insert(key.to_string(), value);
                 }
             }
 
@@ -476,8 +472,7 @@ impl MemoryRepository for Neo4jRepository {
         for rel in relationships {
             let mut props: HashMap<String, neo4rs::BoltType> = HashMap::default();
             for (k, v) in &rel.properties {
-                let bolt = memory_value_to_bolt(v)?;
-                props.insert(k.clone(), bolt);
+                props.insert(k.clone(), v.clone().into());
             }
 
             let mut row: HashMap<String, neo4rs::BoltType> = HashMap::default();
@@ -564,17 +559,16 @@ impl MemoryRepository for Neo4jRepository {
 
             let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
-            let mut properties: HashMap<String, MemoryValue> = HashMap::default();
+            let mut properties: HashMap<String, String> = HashMap::default();
             for key in node.keys() {
                 if key != "name" && key != "observations" {
-                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
+                    let value: String = node.get(key).map_err(|e| {
                         MemoryError::runtime_error_with_source(
                             "Failed to decode node properties".to_string(),
                             e,
                         )
                     })?;
-                    let mv = bolt_to_memory_value(bolt)?;
-                    properties.insert(key.to_string(), mv);
+                    properties.insert(key.to_string(), value);
                 }
             }
 
@@ -669,17 +663,16 @@ impl MemoryRepository for Neo4jRepository {
 
             let labels_vec: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
-            let mut properties: HashMap<String, MemoryValue> = HashMap::default();
+            let mut properties: HashMap<String, String> = HashMap::default();
             for key in node.keys() {
                 if key != "name" && key != "observations" {
-                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
+                    let value: String = node.get(key).map_err(|e| {
                         MemoryError::runtime_error_with_source(
                             "Failed to decode node properties".to_string(),
                             e,
                         )
                     })?;
-                    let mv = bolt_to_memory_value(bolt)?;
-                    properties.insert(key.to_string(), mv);
+                    properties.insert(key.to_string(), value);
                 }
             }
 

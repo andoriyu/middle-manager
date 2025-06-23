@@ -1,4 +1,4 @@
-use crate::{MemoryEntity, MemoryRelationship, MemoryValue};
+use crate::{MemoryEntity, MemoryRelationship};
 use arbitrary::{Arbitrary, Unstructured};
 use mm_utils::prop::{NonEmptyName, small_string, small_string_map, small_string_vec};
 
@@ -31,10 +31,7 @@ pub fn prop_random_entity(
         labels.push(small_string(u)?);
     }
     let observations = small_string_vec(u, 3)?;
-    let properties = small_string_map(u, 3)?
-        .into_iter()
-        .map(|(k, v)| (k, MemoryValue::String(v)))
-        .collect();
+    let properties = small_string_map(u, 3)?;
     Ok(MemoryEntity {
         name,
         labels,
@@ -69,10 +66,7 @@ pub fn prop_random_relationship(
         Some(n) => n,
         None => small_string(u)?,
     };
-    let properties = small_string_map(u, 3)?
-        .into_iter()
-        .map(|(k, v)| (k, MemoryValue::String(v)))
-        .collect();
+    let properties = small_string_map(u, 3)?;
     Ok(MemoryRelationship {
         from,
         to,

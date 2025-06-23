@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::relationship::MemoryRelationship;
-use crate::value::MemoryValue;
 
 /// Memory entity representing a node in the knowledge graph
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, JsonSchema, Default)]
@@ -16,7 +15,7 @@ pub struct MemoryEntity {
     pub observations: Vec<String>,
     /// Additional key-value properties
     #[serde(default)]
-    pub properties: HashMap<String, MemoryValue>,
+    pub properties: HashMap<String, String>,
     /// Relationships connected to the entity
     #[serde(default)]
     pub relationships: Vec<MemoryRelationship>,
