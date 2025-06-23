@@ -1,5 +1,7 @@
 use mm_memory::{MemoryRepository, MemoryService};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
+
+use crate::RootCollection;
 
 /// Ports struct containing all required services for operations
 ///
@@ -11,14 +13,30 @@ where
 {
     /// Memory service for entity operations
     pub memory_service: Arc<MemoryService<R>>,
+    /// Collection of client-provided roots
+    pub roots: Arc<RwLock<RootCollection>>,
 }
 
 impl<R> Ports<R>
 where
     R: MemoryRepository + Send + Sync + 'static,
 {
-    /// Create a new Ports instance
+    /// Create a new Ports instance with the given memory service and roots
+    pub fn with_roots(
+        memory_service: Arc<MemoryService<R>>,
+        roots: Arc<RwLock<RootCollection>>,
+    ) -> Self {
+        Self {
+            memory_service,
+            roots,
+        }
+    }
+
+    /// Backwards-compatible constructor that creates empty roots
     pub fn new(memory_service: Arc<MemoryService<R>>) -> Self {
-        Self { memory_service }
+        Self::with_roots(
+            memory_service,
+            Arc::new(RwLock::new(RootCollection::default())),
+        )
     }
 }
