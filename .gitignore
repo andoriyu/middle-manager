@@ -32,3 +32,4 @@ config/local.toml
 ctxsvendor/
 vendor/
 ctxs/
+.amazonq

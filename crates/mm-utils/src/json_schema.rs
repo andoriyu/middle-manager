@@ -21,7 +21,12 @@ impl<T: JsonSchema> IntoJsonSchema for T {
             })
             .with_transform(RecursiveTransform(AddNullable::default()))
             .into_generator();
-        serde_json::to_value(generator.into_root_schema_for::<T>())
+
+        // Generate the full root schema which includes all definitions
+        let root_schema = generator.into_root_schema_for::<T>();
+
+        // Convert to a Value and extract as an object
+        serde_json::to_value(root_schema)
             .expect("schema serialization")
             .as_object()
             .cloned()

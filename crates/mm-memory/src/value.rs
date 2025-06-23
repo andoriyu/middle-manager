@@ -2,6 +2,7 @@ use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::collections::HashMap;
 use std::time::Duration;
 
 /// Module for custom serialization of FixedOffset
@@ -37,7 +38,10 @@ pub enum MemoryValue {
     Float(f64),
     Boolean(bool),
     Bytes(Vec<u8>),
-    List(Vec<MemoryValue>),
+    // Non-recursive list of strings to avoid self-reference
+    List(Vec<String>),
+    // Map variant for key-value pairs
+    Map(HashMap<String, String>),
     #[schemars(
         with = "String",
         title = "Date",
@@ -100,8 +104,15 @@ impl From<MemoryValue> for serde_json::Value {
                     .collect(),
             ),
             MemoryValue::List(l) => {
-                serde_json::Value::Array(l.into_iter().map(Into::into).collect())
-            }
+                serde_json::Value::Array(l.into_iter().map(serde_json::Value::String).collect())
+            },
+            MemoryValue::Map(m) => {
+                let mut map = serde_json::Map::new();
+                for (k, v) in m {
+                    map.insert(k, serde_json::Value::String(v));
+                }
+                serde_json::Value::Object(map)
+            },
             MemoryValue::Date(d) => serde_json::Value::String(d.to_string()),
             MemoryValue::Time(t) => serde_json::Value::String(t.to_string()),
             MemoryValue::OffsetTime { time, offset } => {
@@ -130,14 +141,48 @@ impl TryFrom<serde_json::Value> for MemoryValue {
                     MemoryValue::String(n.to_string())
                 }
             }
-            serde_json::Value::Array(arr) => MemoryValue::List(
-                arr.into_iter()
-                    .map(MemoryValue::try_from)
-                    .collect::<Result<_, _>>()?,
-            ),
-            serde_json::Value::Object(_) | serde_json::Value::Null => {
-                MemoryValue::String(value.to_string())
-            }
+            serde_json::Value::Array(arr) => {
+                // Convert array to list of strings
+                let strings = arr.into_iter()
+                    .map(|v| match v {
+                        serde_json::Value::String(s) => s,
+                        _ => v.to_string(),
+                    })
+                    .collect();
+                MemoryValue::List(strings)
+            },
+            serde_json::Value::Object(obj) => {
+                // Convert object to map of strings
+                let mut map = HashMap::new();
+                for (k, v) in obj {
+                    let value_str = match v {
+                        serde_json::Value::String(s) => s,
+                        _ => v.to_string(),
+                    };
+                    map.insert(k, value_str);
+                }
+                MemoryValue::Map(map)
+            },
+            serde_json::Value::Null => MemoryValue::String("null".to_string()),
         })
+    }
+}
+impl std::fmt::Display for MemoryValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MemoryValue::String(s) => write!(f, "{}", s),
+            MemoryValue::Integer(i) => write!(f, "{}", i),
+            MemoryValue::Float(fl) => write!(f, "{}", fl),
+            MemoryValue::Boolean(b) => write!(f, "{}", b),
+            MemoryValue::Bytes(bytes) => write!(f, "{:?}", bytes),
+            MemoryValue::List(items) => write!(f, "{:?}", items),
+            MemoryValue::Map(map) => write!(f, "{:?}", map),
+            MemoryValue::Date(d) => write!(f, "{}", d),
+            MemoryValue::Time(t) => write!(f, "{}", t),
+            MemoryValue::OffsetTime { time, offset } => write!(f, "{}+{}", time, offset),
+            MemoryValue::DateTime(dt) => write!(f, "{}", dt),
+            MemoryValue::LocalDateTime(dt) => write!(f, "{}", dt),
+            MemoryValue::Duration(d) => write!(f, "{:?}", d),
+        }
     }
 }

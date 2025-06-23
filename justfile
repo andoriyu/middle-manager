@@ -34,7 +34,7 @@ inspect:
 
 # Run the MCP inspector with mm-cli in debug mode using local config
 inspect-debug:
-    npx @modelcontextprotocol/inspector cargo "run -p mm-cli -- --config config/local.toml --log-level debug --logfile log.log --log-rotate"
+    npx @modelcontextprotocol/inspector cargo "run -p mm-cli -- --config config/local.toml --log-level debug --logfile log.log --rotate-logs"
 
 # Delete Neo4j data and logs volumes
 clean-neo4j:

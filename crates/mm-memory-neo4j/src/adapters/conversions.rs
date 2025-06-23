@@ -1,6 +1,7 @@
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
 use mm_memory::{MemoryError, MemoryValue};
 use neo4rs::BoltType;
+use std::collections::HashMap;
 
 /// Convert a [`MemoryValue`] directly into a [`neo4rs::BoltType`].
 ///
@@ -16,12 +17,21 @@ pub(crate) fn memory_value_to_bolt(
         MemoryValue::Boolean(b) => (*b).into(),
         MemoryValue::Bytes(bytes) => bytes.clone().into(),
         MemoryValue::List(items) => {
+            // Convert Vec<String> to Vec<BoltType>
             let bolt_items: Vec<BoltType> = items
                 .iter()
-                .map(memory_value_to_bolt)
-                .collect::<Result<_, _>>()?;
+                .map(|s| s.clone().into())
+                .collect();
             bolt_items.into()
-        }
+        },
+        MemoryValue::Map(map) => {
+            // Convert HashMap<String, String> to BoltType::Map
+            let mut bolt_map = HashMap::new();
+            for (k, v) in map {
+                bolt_map.insert(k.clone(), BoltType::String(v.clone().into()));
+            }
+            bolt_map.into()
+        },
         MemoryValue::Date(d) => (*d).into(),
         MemoryValue::Time(t) => (*t).into(),
         MemoryValue::OffsetTime { time, offset } => (*time, *offset).into(),
@@ -43,12 +53,31 @@ pub(crate) fn bolt_to_memory_value(
         BoltType::Float(f) => MemoryValue::Float(f.value),
         BoltType::Boolean(b) => MemoryValue::Boolean(b.value),
         BoltType::Bytes(b) => MemoryValue::Bytes(b.value.to_vec()),
-        BoltType::List(list) => MemoryValue::List(
-            list.value
+        BoltType::List(list) => {
+            // Convert list of BoltType to Vec<String>
+            let string_list = list.value
                 .into_iter()
-                .map(bolt_to_memory_value)
-                .collect::<Result<Vec<MemoryValue>, _>>()?,
-        ),
+                .map(|bolt_item| {
+                    match bolt_to_memory_value(bolt_item)? {
+                        MemoryValue::String(s) => Ok::<String, MemoryError<neo4rs::Error>>(s),
+                        other => Ok(other.to_string())
+                    }
+                })
+                .collect::<Result<Vec<String>, _>>()?;
+            MemoryValue::List(string_list)
+        },
+        BoltType::Map(map) => {
+            // Convert BoltType::Map to HashMap<String, String>
+            let mut string_map = HashMap::new();
+            for (k, v) in map.value {
+                let value = match bolt_to_memory_value(v)? {
+                    MemoryValue::String(s) => s,
+                    other => other.to_string(),
+                };
+                string_map.insert(k.to_string(), value);
+            }
+            MemoryValue::Map(string_map)
+        },
         BoltType::Duration(d) => MemoryValue::Duration(d.into()),
         BoltType::Date(d) => {
             let date: NaiveDate = d.try_into().map_err(|e| {
@@ -77,12 +106,6 @@ pub(crate) fn bolt_to_memory_value(
             })?;
             MemoryValue::LocalDateTime(ndt)
         }
-        BoltType::Map(map) => {
-            return Err(MemoryError::runtime_error(format!(
-                "Unsupported bolt type: Map({:?})",
-                map
-            )));
-        }
         other => {
             return Err(MemoryError::runtime_error(format!(
                 "Unsupported bolt type: {:?}",
@@ -108,7 +131,18 @@ mod tests {
 
     #[test]
     fn round_trip_list() {
-        let v = MemoryValue::List(vec![MemoryValue::Integer(1), MemoryValue::Boolean(true)]);
+        let v = MemoryValue::List(vec!["1".to_string(), "true".to_string()]);
+        let bolt = memory_value_to_bolt(&v).unwrap();
+        let back = bolt_to_memory_value(bolt).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[test]
+    fn round_trip_map() {
+        let mut map = HashMap::new();
+        map.insert("key1".to_string(), "value1".to_string());
+        map.insert("key2".to_string(), "value2".to_string());
+        let v = MemoryValue::Map(map);
         let bolt = memory_value_to_bolt(&v).unwrap();
         let back = bolt_to_memory_value(bolt).unwrap();
         assert_eq!(v, back);
