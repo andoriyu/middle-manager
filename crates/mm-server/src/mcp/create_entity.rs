@@ -102,7 +102,6 @@ mod tests {
 mod schema_tests {
     use super::*;
     use mm_utils::IntoJsonSchema;
-    use serde_json::Value;
 
     #[test]
     fn test_schema_has_no_refs() {
