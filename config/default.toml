@@ -8,6 +8,8 @@ default_relationships = true
 additional_relationships = []
 default_labels = true
 additional_labels = []
+# Default project to use when not specified
+default_project = "andoriyu:project:middle_manager"
 
 [neo4j]
 uri = "neo4j://localhost:7687"
