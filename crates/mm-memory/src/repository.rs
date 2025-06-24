@@ -44,6 +44,20 @@ pub trait MemoryRepository {
         relationships: &[MemoryRelationship],
     ) -> MemoryResult<(), Self::Error>;
 
+    async fn delete_entities(&self, names: &[String]) -> MemoryResult<(), Self::Error>;
+
+    async fn delete_relationships(
+        &self,
+        relationships: &[crate::relationship::RelationshipRef],
+    ) -> MemoryResult<(), Self::Error>;
+
+    async fn find_relationships(
+        &self,
+        from: Option<String>,
+        to: Option<String>,
+        name: Option<String>,
+    ) -> MemoryResult<Vec<MemoryRelationship>, Self::Error>;
+
     async fn find_entities_by_labels(
         &self,
         labels: &[String],

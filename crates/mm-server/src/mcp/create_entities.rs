@@ -1,25 +1,25 @@
-use mm_core::{CreateEntityCommand, MemoryEntity, create_entity};
+use mm_core::{CreateEntitiesCommand, MemoryEntity, create_entities};
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
 
 #[mcp_tool(
-    name = "create_entity",
-    description = "Create a new entity in the memory graph"
+    name = "create_entities",
+    description = "Create new entities in the memory graph"
 )]
 #[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
-pub struct CreateEntityTool {
+pub struct CreateEntitiesTool {
     /// Entities to create
     pub entities: Vec<MemoryEntity>,
 }
 
-impl CreateEntityTool {
+impl CreateEntitiesTool {
     generate_call_tool!(
         self,
-        CreateEntityCommand {
+        CreateEntitiesCommand {
             entities => self.entities.clone()
         },
-        create_entity,
+        create_entities,
         |command, _result| {
             serde_json::to_value(command.entities)
                 .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
@@ -55,7 +55,7 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let tool = CreateEntityTool {
+        let tool = CreateEntitiesTool {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
@@ -86,7 +86,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let tool = CreateEntityTool {
+        let tool = CreateEntitiesTool {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
@@ -106,7 +106,7 @@ mod schema_tests {
     #[test]
     fn test_schema_has_no_refs() {
         // Generate the schema for CreateEntityTool
-        let schema = CreateEntityTool::json_schema();
+        let schema = CreateEntitiesTool::json_schema();
 
         // Convert to a Value for easier inspection
         let schema_value =

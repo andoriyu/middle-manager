@@ -17,3 +17,14 @@ pub struct MemoryRelationship {
     #[serde(default)]
     pub properties: HashMap<String, MemoryValue>,
 }
+
+/// Reference to a relationship without properties, used for deletion
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, Hash, JsonSchema)]
+pub struct RelationshipRef {
+    /// Name of the source entity
+    pub from: String,
+    /// Name of the target entity
+    pub to: String,
+    /// Relationship type in snake_case
+    pub name: String,
+}

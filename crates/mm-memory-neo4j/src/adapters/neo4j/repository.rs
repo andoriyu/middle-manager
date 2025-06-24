@@ -1,65 +1,23 @@
-use crate::adapters::conversions::{bolt_to_memory_value, memory_value_to_bolt};
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use neo4rs::{self, Graph, Node, Query};
-use std::collections::HashMap;
 use tracing::instrument;
 
+use super::config::Neo4jConfig;
+use super::helpers::{extract_observations_from_node, parse_relationships_from_bolt};
+use crate::adapters::conversions::{bolt_to_memory_value, memory_value_to_bolt};
 use mm_memory::{
     EntityUpdate, LabelMatchMode, MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository,
     MemoryResult, MemoryValue, RelationshipDirection, RelationshipUpdate, ValidationError,
-    ValidationErrorKind,
+    ValidationErrorKind, relationship::RelationshipRef,
 };
 
-/// Configuration for connecting to Neo4j
-///
-/// This struct contains the configuration parameters needed to connect to a Neo4j database.
-#[derive(Clone, serde::Deserialize, serde::Serialize)]
-pub struct Neo4jConfig {
-    /// URI of the Neo4j server (e.g., "neo4j://localhost:7688")
-    pub uri: String,
-
-    /// Username for authentication
-    pub username: String,
-
-    /// Password for authentication
-    #[serde(skip_serializing)]
-    pub password: String,
-}
-
-impl std::fmt::Debug for Neo4jConfig {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Neo4jConfig")
-            .field("uri", &self.uri)
-            .field("username", &self.username)
-            .field("password", &"***")
-            .finish()
-    }
-}
-
-/// Neo4j implementation of the MemoryRepository
-///
-/// This adapter implements the `MemoryRepository` trait using Neo4j as the backend storage.
-/// It handles the details of connecting to Neo4j, executing Cypher queries, and
-/// converting between Neo4j nodes and domain entities.
 pub struct Neo4jRepository {
-    /// Neo4j graph connection
     graph: Graph,
 }
 
 impl Neo4jRepository {
-    /// Create a new Neo4j repository with the given configuration
-    ///
-    /// # Arguments
-    ///
-    /// * `config` - Configuration for connecting to Neo4j
-    ///
-    /// # Returns
-    ///
-    /// A new `Neo4jRepository` if the connection was successful
-    ///
-    /// # Errors
-    ///
-    /// Returns a `MemoryError` if the connection to Neo4j fails
     #[instrument(skip(config), fields(uri = %config.uri))]
     pub async fn new(config: Neo4jConfig) -> Result<Self, MemoryError<neo4rs::Error>> {
         let graph = Graph::new(&config.uri, &config.username, &config.password)
@@ -73,211 +31,12 @@ impl Neo4jRepository {
 
         Ok(Self { graph })
     }
-
-    /// Extract observations from a Neo4j BoltType
-    ///
-    /// This helper method converts a Neo4j BoltType (expected to be a List of Strings)
-    /// into a Vec<String> for observations.
-    fn extract_observations_from_bolt(
-        &self,
-        bolt: neo4rs::BoltType,
-    ) -> MemoryResult<Vec<String>, neo4rs::Error> {
-        match bolt {
-            neo4rs::BoltType::List(items) => {
-                let result: Result<Vec<String>, _> = items
-                    .into_iter()
-                    .map(|item| {
-                        if let neo4rs::BoltType::String(s) = item {
-                            Ok(s.to_string())
-                        } else {
-                            Err(MemoryError::runtime_error(format!(
-                                "Expected string in observations list, got {:?}",
-                                item
-                            )))
-                        }
-                    })
-                    .collect();
-                result
-            }
-            neo4rs::BoltType::Null(_) => Ok(Vec::new()),
-            _ => Err(MemoryError::runtime_error(format!(
-                "Expected observations to be a list, got {:?}",
-                bolt
-            ))),
-        }
-    }
-
-    /// Extract observations from a Neo4j Node
-    ///
-    /// This helper method extracts the observations property from a Neo4j Node
-    /// and converts it to a Vec<String>.
-    fn extract_observations_from_node(
-        &self,
-        node: &neo4rs::Node,
-    ) -> MemoryResult<Vec<String>, neo4rs::Error> {
-        let observations_bolt = node.get::<neo4rs::BoltType>("observations").map_err(|e| {
-            MemoryError::runtime_error_with_source(
-                "Failed to get observations property from node".to_string(),
-                e,
-            )
-        })?;
-
-        self.extract_observations_from_bolt(observations_bolt)
-    }
-
-    /// Parse relationships from Neo4j BoltType
-    ///
-    /// This function converts a Neo4j BoltType (typically a List of Maps) into a Vec of MemoryRelationship.
-    /// Each map in the list should contain 'from', 'to', 'name', and optionally 'properties'.
-    fn parse_relationships_from_bolt(
-        bolt: neo4rs::BoltType,
-    ) -> MemoryResult<Vec<MemoryRelationship>, neo4rs::Error> {
-        let mut relationships = Vec::new();
-
-        // Handle empty list or null (no relationships case)
-        if let neo4rs::BoltType::Null(_) = bolt {
-            return Ok(relationships);
-        }
-
-        if let neo4rs::BoltType::List(rel_list) = bolt {
-            // If the list is empty, return an empty vector
-            if rel_list.is_empty() {
-                return Ok(relationships);
-            }
-
-            for rel_item in rel_list {
-                if let neo4rs::BoltType::Map(rel_map) = rel_item {
-                    // Skip empty maps (no data)
-                    if rel_map.value.is_empty() {
-                        continue;
-                    }
-
-                    // Extract from (required field)
-                    let from = match rel_map.get("from") {
-                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
-                        Ok(neo4rs::BoltType::Null(_)) => {
-                            return Err(MemoryError::runtime_error(
-                                "Required field 'from' is null in relationship".to_string(),
-                            ));
-                        }
-                        Err(e) => {
-                            return Err(MemoryError::runtime_error_with_source(
-                                "Failed to get required 'from' field from relationship".to_string(),
-                                e,
-                            ));
-                        }
-                        Ok(other) => {
-                            return Err(MemoryError::runtime_error(format!(
-                                "Expected string for required 'from' field, got: {:?}",
-                                other
-                            )));
-                        }
-                    };
-
-                    // Extract to (required field)
-                    let to = match rel_map.get("to") {
-                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
-                        Ok(neo4rs::BoltType::Null(_)) => {
-                            return Err(MemoryError::runtime_error(
-                                "Required field 'to' is null in relationship".to_string(),
-                            ));
-                        }
-                        Err(e) => {
-                            return Err(MemoryError::runtime_error_with_source(
-                                "Failed to get required 'to' field from relationship".to_string(),
-                                e,
-                            ));
-                        }
-                        Ok(other) => {
-                            return Err(MemoryError::runtime_error(format!(
-                                "Expected string for required 'to' field, got: {:?}",
-                                other
-                            )));
-                        }
-                    };
-
-                    // Extract name (required field)
-                    let name = match rel_map.get("name") {
-                        Ok(neo4rs::BoltType::String(s)) => s.to_string(),
-                        Ok(neo4rs::BoltType::Null(_)) => {
-                            return Err(MemoryError::runtime_error(
-                                "Required field 'name' is null in relationship".to_string(),
-                            ));
-                        }
-                        Err(e) => {
-                            return Err(MemoryError::runtime_error_with_source(
-                                "Failed to get required 'name' field from relationship".to_string(),
-                                e,
-                            ));
-                        }
-                        Ok(other) => {
-                            return Err(MemoryError::runtime_error(format!(
-                                "Expected string for required 'name' field, got: {:?}",
-                                other
-                            )));
-                        }
-                    };
-
-                    // Extract properties (optional)
-                    let mut properties = HashMap::new();
-                    if let Ok(neo4rs::BoltType::Map(props_map)) = rel_map.get("properties") {
-                        for (key, value) in &props_map.value {
-                            match bolt_to_memory_value(value.clone()) {
-                                Ok(memory_value) => {
-                                    properties.insert(key.to_string(), memory_value);
-                                }
-                                Err(e) => {
-                                    // Property conversion errors are still logged but don't fail the whole operation
-                                    tracing::error!(
-                                        "Failed to convert property '{}' in relationship {}-[{}]->{}: {}",
-                                        key,
-                                        from,
-                                        name,
-                                        to,
-                                        e
-                                    );
-                                }
-                            }
-                        }
-                    } else {
-                        tracing::debug!(
-                            "No properties found for relationship {}-[{}]->{}",
-                            from,
-                            name,
-                            to
-                        );
-                    }
-
-                    relationships.push(MemoryRelationship {
-                        from,
-                        to,
-                        name,
-                        properties,
-                    });
-                } else if let neo4rs::BoltType::Null(_) = rel_item {
-                    // Skip null entries in the list
-                    continue;
-                } else {
-                    return Err(MemoryError::runtime_error(format!(
-                        "Expected Map for relationship, got: {:?}",
-                        rel_item
-                    )));
-                }
-            }
-        } else {
-            return Err(MemoryError::runtime_error(format!(
-                "Expected List for relationships, got: {:?}",
-                bolt
-            )));
-        }
-
-        Ok(relationships)
-    }
 }
 
 #[async_trait]
 impl MemoryRepository for Neo4jRepository {
     type Error = neo4rs::Error;
+
     #[instrument(skip(self, entities), fields(count = entities.len()))]
     async fn create_entities(&self, entities: &[MemoryEntity]) -> MemoryResult<(), Self::Error> {
         if entities.is_empty() {
@@ -288,8 +47,6 @@ impl MemoryRepository for Neo4jRepository {
         for entity in entities {
             let mut props: HashMap<String, neo4rs::BoltType> = HashMap::default();
             props.insert("name".to_string(), entity.name.clone().into());
-
-            // Store observations as a native Neo4j array/sequence
             props.insert(
                 "observations".to_string(),
                 entity.observations.clone().into(),
@@ -324,15 +81,14 @@ impl MemoryRepository for Neo4jRepository {
         &self,
         name: &str,
     ) -> MemoryResult<Option<MemoryEntity>, Self::Error> {
-        // Validate name
         if name.is_empty() {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
         let query = Query::new(
-            "MATCH (n {name: $name}) \n\
-             OPTIONAL MATCH (n)-[r]-() \n\
-             WITH n, collect(CASE WHEN r IS NOT NULL THEN {from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)} END) as rels \n\
+            "MATCH (n {name: $name}) \n \
+             OPTIONAL MATCH (n)-[r]-() \n \
+             WITH n, collect(CASE WHEN r IS NOT NULL THEN {from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)} END) as rels\n \
              RETURN n, [x IN rels WHERE x IS NOT NULL] as rels"
                 .to_string(),
         )
@@ -351,7 +107,6 @@ impl MemoryRepository for Neo4jRepository {
                 e,
             )
         })? {
-            // Get the node from the result
             let node = match row.get::<Node>("n") {
                 Ok(n) => n,
                 Err(e) => {
@@ -362,7 +117,6 @@ impl MemoryRepository for Neo4jRepository {
                 }
             };
 
-            // Get the name property
             let entity_name = match node.get::<String>("name") {
                 Ok(n) => n,
                 Err(e) => {
@@ -373,13 +127,10 @@ impl MemoryRepository for Neo4jRepository {
                 }
             };
 
-            // Get the observations using our helper method
-            let observations = self.extract_observations_from_node(&node)?;
+            let observations = extract_observations_from_node(&node)?;
 
-            // Extract labels
             let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
-            // Extract all other properties
             let mut properties: HashMap<String, MemoryValue> = HashMap::default();
             for key in node.keys() {
                 if key != "name" && key != "observations" {
@@ -394,7 +145,6 @@ impl MemoryRepository for Neo4jRepository {
                 }
             }
 
-            // Parse relationships
             let rels_bolt = row.get::<neo4rs::BoltType>("rels").map_err(|e| {
                 MemoryError::runtime_error_with_source(
                     "Failed to decode relationships".to_string(),
@@ -402,7 +152,7 @@ impl MemoryRepository for Neo4jRepository {
                 )
             })?;
 
-            let relationships = Self::parse_relationships_from_bolt(rels_bolt)?;
+            let relationships = parse_relationships_from_bolt(rels_bolt)?;
 
             Ok(Some(MemoryEntity {
                 name: entity_name,
@@ -426,7 +176,6 @@ impl MemoryRepository for Neo4jRepository {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
 
-        // Store observations as a native Neo4j array/sequence
         let query =
             Query::new("MATCH (n {name: $name}) SET n.observations = $observations".to_string())
                 .param("name", name.to_string())
@@ -537,10 +286,10 @@ impl MemoryRepository for Neo4jRepository {
         };
 
         let query_str = format!(
-            "MATCH (start {{name: $name}}) MATCH (start){}(n)\n\
-             WITH DISTINCT n\n\
-             OPTIONAL MATCH (n)-[r]-()\n\
-             WITH n, collect(CASE WHEN r IS NOT NULL THEN {{from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}} END) as rels\n\
+            "MATCH (start {{name: $name}}) MATCH (start){}(n)\n \
+             WITH DISTINCT n\n \
+             OPTIONAL MATCH (n)-[r]-()\n \
+             WITH n, collect(CASE WHEN r IS NOT NULL THEN {{from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}} END) as rels\n \
              RETURN n, [x IN rels WHERE x IS NOT NULL] as rels",
             pattern
         );
@@ -571,8 +320,7 @@ impl MemoryRepository for Neo4jRepository {
                 MemoryError::runtime_error_with_source("Failed to get name property".to_string(), e)
             })?;
 
-            // Get observations using our helper method
-            let observations = self.extract_observations_from_node(&node)?;
+            let observations = extract_observations_from_node(&node)?;
 
             let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
@@ -596,7 +344,7 @@ impl MemoryRepository for Neo4jRepository {
                     e,
                 )
             })?;
-            let relationships = Self::parse_relationships_from_bolt(rels_bolt)?;
+            let relationships = parse_relationships_from_bolt(rels_bolt)?;
 
             entities.push(MemoryEntity {
                 name: entity_name,
@@ -635,9 +383,9 @@ impl MemoryRepository for Neo4jRepository {
         };
 
         let query_str = format!(
-            "MATCH (n) {where_clause}\n\
-             OPTIONAL MATCH (n)-[r]-()\n\
-             WITH n, collect(CASE WHEN r IS NOT NULL THEN {{from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}} END) as rels\n\
+            "MATCH (n) {where_clause}\n \
+             OPTIONAL MATCH (n)-[r]-()\n \
+             WITH n, collect(CASE WHEN r IS NOT NULL THEN {{from: startNode(r).name, to: endNode(r).name, name: type(r), properties: properties(r)}} END) as rels\n \
              RETURN n, [x IN rels WHERE x IS NOT NULL] as rels",
             where_clause = where_clause
         );
@@ -676,8 +424,7 @@ impl MemoryRepository for Neo4jRepository {
                 MemoryError::runtime_error_with_source("Failed to get name property".to_string(), e)
             })?;
 
-            // Get observations using our helper method
-            let observations = self.extract_observations_from_node(&node)?;
+            let observations = extract_observations_from_node(&node)?;
 
             let labels_vec: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
 
@@ -701,7 +448,7 @@ impl MemoryRepository for Neo4jRepository {
                     e,
                 )
             })?;
-            let relationships = Self::parse_relationships_from_bolt(rels_bolt)?;
+            let relationships = parse_relationships_from_bolt(rels_bolt)?;
 
             entities.push(MemoryEntity {
                 name: entity_name,
@@ -762,13 +509,13 @@ impl MemoryRepository for Neo4jRepository {
                     })?;
                 }
             } else if let Some(set_map) = &props.set {
-                // remove existing props except name and observations
                 let mut map: HashMap<String, neo4rs::BoltType> = HashMap::new();
                 for (k, v) in set_map {
                     map.insert(k.clone(), memory_value_to_bolt(v)?);
                 }
                 let query = Query::new(
-                    "MATCH (n {name: $name}) WITH n, keys(n) AS k UNWIND [x IN k WHERE x <> 'name' AND x <> 'observations'] AS key REMOVE n[key] WITH n SET n += $props".to_string(),
+                    "MATCH (n {name: $name}) WITH n, keys(n) AS k UNWIND [x IN k WHERE x <> 'name' AND x <> 'observations'] AS key REMOVE n[key] WITH n SET n += $props"
+                        .to_string(),
                 )
                 .param("name", name.to_string())
                 .param("props", map);
@@ -886,22 +633,107 @@ impl MemoryRepository for Neo4jRepository {
         }
         Ok(())
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::Neo4jConfig;
+    async fn delete_entities(&self, names: &[String]) -> MemoryResult<(), Self::Error> {
+        if names.is_empty() {
+            return Ok(());
+        }
+        let query = Query::new("MATCH (n) WHERE n.name IN $names DETACH DELETE n".to_string())
+            .param("names", names.to_vec());
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to delete entities".to_string(), e)
+        })?;
+        Ok(())
+    }
 
-    #[test]
-    fn debug_redacts_password() {
-        let cfg = Neo4jConfig {
-            uri: "neo4j://localhost:7687".to_string(),
-            username: "user".to_string(),
-            password: "secret".to_string(),
-        };
+    async fn delete_relationships(
+        &self,
+        relationships: &[RelationshipRef],
+    ) -> MemoryResult<(), Self::Error> {
+        for rel in relationships {
+            let q = format!(
+                "MATCH (a {{name: $from}})-[r:`{}`]->(b {{name: $to}}) DELETE r",
+                rel.name
+            );
+            let query = Query::new(q)
+                .param("from", rel.from.clone())
+                .param("to", rel.to.clone());
+            self.graph.run(query).await.map_err(|e| {
+                MemoryError::query_error_with_source("Failed to delete relationship".to_string(), e)
+            })?;
+        }
+        Ok(())
+    }
 
-        let dbg = format!("{cfg:?}");
-        assert!(!dbg.contains("secret"));
-        assert!(dbg.contains("***"));
+    async fn find_relationships(
+        &self,
+        from: Option<String>,
+        to: Option<String>,
+        name: Option<String>,
+    ) -> MemoryResult<Vec<MemoryRelationship>, Self::Error> {
+        let mut query_str = String::from("MATCH (a)-[r]->(b)");
+        let mut conditions = Vec::new();
+        if from.is_some() {
+            conditions.push("a.name = $from".to_string());
+        }
+        if to.is_some() {
+            conditions.push("b.name = $to".to_string());
+        }
+        if name.is_some() {
+            conditions.push("type(r) = $type".to_string());
+        }
+        if !conditions.is_empty() {
+            query_str.push_str(&format!(" WHERE {}", conditions.join(" AND ")));
+        }
+        query_str.push_str(
+            " RETURN a.name as from, b.name as to, type(r) as name, properties(r) as props",
+        );
+
+        let mut query = Query::new(query_str);
+        if let Some(f) = from {
+            query = query.param("from", f.to_string());
+        }
+        if let Some(t) = to {
+            query = query.param("to", t.to_string());
+        }
+        if let Some(n) = name {
+            query = query.param("type", n.to_string());
+        }
+
+        let mut result = self.graph.execute(query).await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to query relationships".to_string(), e)
+        })?;
+
+        let mut rels = Vec::new();
+        while let Some(row) = result.next().await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to fetch relationships".to_string(), e)
+        })? {
+            let from = row.get::<String>("from").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to get from".to_string(), e)
+            })?;
+            let to = row.get::<String>("to").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to get to".to_string(), e)
+            })?;
+            let name = row.get::<String>("name").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to get name".to_string(), e)
+            })?;
+            let props_bolt = row.get::<neo4rs::BoltType>("props").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to decode props".to_string(), e)
+            })?;
+            let mut properties = HashMap::new();
+            if let neo4rs::BoltType::Map(map) = props_bolt {
+                for (k, v) in &map.value {
+                    let mv = bolt_to_memory_value(v.clone())?;
+                    properties.insert(k.to_string(), mv);
+                }
+            }
+            rels.push(MemoryRelationship {
+                from,
+                to,
+                name,
+                properties,
+            });
+        }
+        Ok(rels)
     }
 }
