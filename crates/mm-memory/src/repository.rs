@@ -6,6 +6,7 @@ use crate::error::MemoryResult;
 use crate::label_match_mode::LabelMatchMode;
 use crate::relationship::MemoryRelationship;
 use crate::relationship_direction::RelationshipDirection;
+use crate::update::{EntityUpdate, RelationshipUpdate};
 
 #[cfg_attr(any(test, feature = "mock"), mockall::automock(type Error = std::convert::Infallible;))]
 #[async_trait]
@@ -57,4 +58,18 @@ pub trait MemoryRepository {
         direction: Option<RelationshipDirection>,
         depth: u32,
     ) -> MemoryResult<Vec<MemoryEntity>, Self::Error>;
+
+    async fn update_entity(
+        &self,
+        name: &str,
+        update: &EntityUpdate,
+    ) -> MemoryResult<(), Self::Error>;
+
+    async fn update_relationship(
+        &self,
+        from: &str,
+        to: &str,
+        name: &str,
+        update: &RelationshipUpdate,
+    ) -> MemoryResult<(), Self::Error>;
 }

@@ -9,6 +9,8 @@ pub mod list_projects;
 pub mod remove_all_observations;
 pub mod remove_observations;
 pub mod set_observations;
+pub mod update_entity;
+pub mod update_relationship;
 
 pub use add_observations::{AddObservationsCommand, AddObservationsResult, add_observations};
 pub use create_entity::{CreateEntityCommand, CreateEntityResult, create_entity};
@@ -27,3 +29,7 @@ pub use remove_observations::{
     RemoveObservationsCommand, RemoveObservationsResult, remove_observations,
 };
 pub use set_observations::{SetObservationsCommand, SetObservationsResult, set_observations};
+pub use update_entity::{UpdateEntityCommand, UpdateEntityResult, update_entity};
+pub use update_relationship::{
+    UpdateRelationshipCommand, UpdateRelationshipResult, update_relationship,
+};
