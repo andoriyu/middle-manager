@@ -1,4 +1,6 @@
 mod common;
+mod git;
+mod tasks;
 
 pub mod create_entity; // renamed file but keep mod
 pub mod create_relationship; // rename later
@@ -33,6 +35,7 @@ pub use get_project_context::{
     GetProjectContextCommand, GetProjectContextResult, ProjectFilter, get_project_context,
 };
 pub use list_projects::{ListProjectsCommand, ListProjectsResult, list_projects};
+pub use tasks::{Priority, TaskProperties, TaskStatus, TaskType};
 pub use update_entity::{UpdateEntityCommand, UpdateEntityResult, update_entity};
 pub use update_relationship::{
     UpdateRelationshipCommand, UpdateRelationshipResult, update_relationship,
