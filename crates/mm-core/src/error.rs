@@ -19,6 +19,10 @@ where
     /// Multiple validation errors grouped by name
     #[error("Batch validation error")]
     BatchValidation(Vec<(String, mm_memory::ValidationError)>),
+
+    /// Error when a project name is required but not provided
+    #[error("No project specified")]
+    MissingProject,
 }
 
 /// Result type for mm-core
