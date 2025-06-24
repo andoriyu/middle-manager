@@ -274,24 +274,6 @@ impl Neo4jRepository {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::Neo4jConfig;
-
-    #[test]
-    fn debug_redacts_password() {
-        let cfg = Neo4jConfig {
-            uri: "neo4j://localhost:7687".to_string(),
-            username: "user".to_string(),
-            password: "secret".to_string(),
-        };
-
-        let dbg = format!("{cfg:?}");
-        assert!(!dbg.contains("secret"));
-        assert!(dbg.contains("***"));
-    }
-}
-
 #[async_trait]
 impl MemoryRepository for Neo4jRepository {
     type Error = neo4rs::Error;
@@ -730,5 +712,23 @@ impl MemoryRepository for Neo4jRepository {
         }
 
         Ok(entities)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Neo4jConfig;
+
+    #[test]
+    fn debug_redacts_password() {
+        let cfg = Neo4jConfig {
+            uri: "neo4j://localhost:7687".to_string(),
+            username: "user".to_string(),
+            password: "secret".to_string(),
+        };
+
+        let dbg = format!("{cfg:?}");
+        assert!(!dbg.contains("secret"));
+        assert!(dbg.contains("***"));
     }
 }
