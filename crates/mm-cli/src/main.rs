@@ -37,9 +37,9 @@ struct Args {
     #[arg(short = 'r', long, default_value_t = true)]
     rotate_logs: bool,
 
-    /// Path to config file
-    #[arg(short, long, value_name = "FILE")]
-    config: Option<PathBuf>,
+    /// Paths to config files
+    #[arg(short, long, value_name = "FILE", required = true, num_args = 1.., value_delimiter = ',')]
+    config: Vec<PathBuf>,
 }
 
 /// Log level for the application
@@ -108,15 +108,8 @@ async fn run(args: Args) -> anyhow::Result<()> {
         subscriber.init();
     }
 
-    // Determine config paths
-    let config_paths: Vec<PathBuf> = if let Some(config_path) = args.config {
-        vec![config_path]
-    } else {
-        vec![
-            PathBuf::from("config/default.toml"),
-            PathBuf::from("config/local.toml"),
-        ]
-    };
+    // Use the specified config paths directly
+    let config_paths: Vec<PathBuf> = args.config;
 
     match args.command.unwrap_or(Command::Server) {
         Command::Server => mm_server_lib::run_server(&config_paths).await?,
