@@ -1,4 +1,4 @@
-use mm_core::{FindEntitiesByLabelsCommand, FindEntitiesByLabelsResult, find_entities_by_labels};
+use mm_core::{FindEntitiesByLabelsCommand, find_entities_by_labels};
 use mm_memory::LabelMatchMode;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
@@ -24,7 +24,7 @@ impl FindEntitiesByLabelsTool {
             required_label => self.required_label.clone()
         },
         find_entities_by_labels,
-        |_cmd, res: FindEntitiesByLabelsResult| {
+        |_cmd, res| {
             serde_json::to_value(res.entities)
                 .map(|j| rust_mcp_sdk::schema::CallToolResult::text_content(j.to_string(), None))
                 .map_err(|e| rust_mcp_sdk::schema::schema_utils::CallToolError::new(crate::mcp::error::ToolError::from(e)))

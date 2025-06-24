@@ -53,9 +53,9 @@ pub trait MemoryRepository {
 
     async fn find_relationships(
         &self,
-        from: Option<&str>,
-        to: Option<&str>,
-        name: Option<&str>,
+        from: Option<String>,
+        to: Option<String>,
+        name: Option<String>,
     ) -> MemoryResult<Vec<MemoryRelationship>, Self::Error>;
 
     async fn find_entities_by_labels(

@@ -920,9 +920,9 @@ impl MemoryRepository for Neo4jRepository {
 
     async fn find_relationships(
         &self,
-        from: Option<&str>,
-        to: Option<&str>,
-        name: Option<&str>,
+        from: Option<String>,
+        to: Option<String>,
+        name: Option<String>,
     ) -> MemoryResult<Vec<MemoryRelationship>, Self::Error> {
         let mut query_str = String::from("MATCH (a)-[r]->(b)");
         let mut conditions = Vec::new();

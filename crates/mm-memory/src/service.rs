@@ -332,9 +332,7 @@ where
         to: Option<String>,
         name: Option<String>,
     ) -> MemoryResult<Vec<MemoryRelationship>, R::Error> {
-        self.repository
-            .find_relationships(from.as_deref(), to.as_deref(), name.as_deref())
-            .await
+        self.repository.find_relationships(from, to, name).await
     }
 
     /// Find entities related to the given entity
