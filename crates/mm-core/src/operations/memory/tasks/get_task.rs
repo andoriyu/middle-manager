@@ -2,6 +2,7 @@ use super::types::TaskProperties;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
+use mm_git::GitRepository;
 use mm_memory::{MemoryEntity, MemoryRepository};
 use tracing::instrument;
 
@@ -13,10 +14,14 @@ pub struct GetTaskCommand {
 pub type GetTaskResult<E> = CoreResult<Option<MemoryEntity<TaskProperties>>, E>;
 
 #[instrument(skip(ports), fields(name = %command.name))]
-pub async fn get_task<R>(ports: &Ports<R>, command: GetTaskCommand) -> GetTaskResult<R::Error>
+pub async fn get_task<MR, GR>(
+    ports: &Ports<MR, GR>,
+    command: GetTaskCommand,
+) -> GetTaskResult<MR::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    MR: MemoryRepository + Send + Sync,
+    MR::Error: std::error::Error + Send + Sync + 'static,
+    GR: GitRepository + Send + Sync,
 {
     validate_name!(command.name);
 
@@ -30,6 +35,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::sync::Arc;
@@ -47,7 +53,7 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let cmd = GetTaskCommand {
             name: "task:1".into(),
@@ -61,7 +67,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_find_entity_by_name().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let cmd = GetTaskCommand {
             name: String::new(),

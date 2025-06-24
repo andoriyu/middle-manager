@@ -13,6 +13,7 @@ use std::sync::Arc;
 use anyhow::Result as AnyResult;
 
 use mm_core::Ports;
+use mm_core::mm_git::GitService;
 use mm_memory::{MemoryRepository, MemoryService};
 use mm_memory_neo4j::{create_neo4j_service, neo4rs};
 
@@ -61,7 +62,7 @@ pub struct MiddleManagerHandler<R>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
 {
-    ports: Arc<Ports<R>>,
+    ports: Arc<Ports<R, ()>>,
 }
 
 impl<R> MiddleManagerHandler<R>
@@ -70,7 +71,7 @@ where
 {
     /// Create a new Middle Manager MCP server handler
     pub fn new(service: MemoryService<R>) -> Self {
-        let ports = Arc::new(Ports::new(Arc::new(service)));
+        let ports = Arc::new(Ports::new(Arc::new(service), Arc::new(GitService::new(()))));
         Self { ports }
     }
 
@@ -308,7 +309,7 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
     // Load configuration
     let config = Config::load(config_paths)?;
     let service = create_neo4j_service(config.neo4j, config.memory).await?;
-    let ports = Ports::new(Arc::new(service));
+    let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
     match command {
         ToolsCommand::List => {

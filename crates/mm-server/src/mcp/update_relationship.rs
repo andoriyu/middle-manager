@@ -43,6 +43,7 @@ impl UpdateRelationshipTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
@@ -53,7 +54,7 @@ mod tests {
             .withf(|f, t, n, _| f == "a" && t == "b" && n == "rel")
             .returning(|_, _, _, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
         let tool = UpdateRelationshipTool {
             from: "a".into(),
             to: "b".into(),

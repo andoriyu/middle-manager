@@ -1,5 +1,6 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use mm_git::GitRepository;
 use mm_memory::{MemoryRelationship, MemoryRepository};
 use tracing::instrument;
 
@@ -11,13 +12,14 @@ pub struct CreateRelationshipsCommand {
 pub type CreateRelationshipsResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(relationships_count = command.relationships.len()))]
-pub async fn create_relationships<R>(
-    ports: &Ports<R>,
+pub async fn create_relationships<MR, GR>(
+    ports: &Ports<MR, GR>,
     command: CreateRelationshipsCommand,
-) -> CreateRelationshipsResult<R::Error>
+) -> CreateRelationshipsResult<MR::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    MR: MemoryRepository + Send + Sync,
+    MR::Error: std::error::Error + Send + Sync + 'static,
+    GR: GitRepository + Send + Sync,
 {
     let errors = ports
         .memory_service
@@ -35,6 +37,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mm_git::GitService;
     use mm_memory::ValidationErrorKind;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::collections::HashMap;
@@ -48,7 +51,7 @@ mod tests {
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
@@ -68,7 +71,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_relationships().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
@@ -91,7 +94,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_relationships().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
@@ -114,7 +117,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_relationships().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
@@ -138,7 +141,7 @@ mod tests {
         mock.expect_create_relationships().never();
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = CreateRelationshipsCommand {
             relationships: vec![

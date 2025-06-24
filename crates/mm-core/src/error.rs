@@ -3,12 +3,16 @@ use thiserror::Error;
 
 /// Error type for mm-core
 #[derive(Error, Debug)]
-pub enum CoreError<E>
+pub enum CoreError<ME, GE>
 where
-    E: StdError + Send + Sync + 'static,
+    ME: StdError + Send + Sync + 'static,
+    GE: StdError + Send + Sync + 'static,
 {
     #[error("Memory error")]
-    Memory(#[from] mm_memory::MemoryError<E>),
+    Memory(#[from] mm_memory::MemoryError<ME>),
+
+    #[error("Git error")]
+    Git(#[from] mm_git::GitError<GE>),
 
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
@@ -26,4 +30,4 @@ where
 }
 
 /// Result type for mm-core
-pub type CoreResult<T, E> = std::result::Result<T, CoreError<E>>;
+pub type CoreResult<T, E> = std::result::Result<T, CoreError<E, E>>;

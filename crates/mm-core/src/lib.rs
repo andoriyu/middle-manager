@@ -16,4 +16,5 @@ pub use ports::Ports;
 pub use root::{Root, RootCollection};
 
 // Re-export the mm-memory crate for easy access to memory types and services
+pub use mm_git;
 pub use mm_memory;

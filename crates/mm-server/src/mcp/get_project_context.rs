@@ -53,6 +53,7 @@ impl GetProjectContextTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use serde_json::Value;
@@ -109,7 +110,7 @@ mod tests {
 
         // Create service and ports
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         // Create and call tool
         let tool = GetProjectContextTool {
@@ -130,7 +131,7 @@ mod tests {
     async fn test_call_tool_missing_parameters() {
         let mock = MockMemoryRepository::new();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = GetProjectContextTool {
             project_name: None,

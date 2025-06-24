@@ -2,6 +2,7 @@ use super::types::TaskProperties;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
+use mm_git::GitRepository;
 use mm_memory::MemoryRepository;
 use mm_memory::{MemoryEntity, MemoryRelationship};
 use std::collections::HashMap;
@@ -16,13 +17,14 @@ pub struct CreateTaskCommand {
 pub type CreateTaskResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(task_name = %command.task.name))]
-pub async fn create_task<R>(
-    ports: &Ports<R>,
+pub async fn create_task<MR, GR>(
+    ports: &Ports<MR, GR>,
     command: CreateTaskCommand,
-) -> CreateTaskResult<R::Error>
+) -> CreateTaskResult<MR::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    MR: MemoryRepository + Send + Sync,
+    MR::Error: std::error::Error + Send + Sync + 'static,
+    GR: GitRepository + Send + Sync,
 {
     validate_name!(command.task.name);
 
@@ -70,6 +72,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
     use std::sync::Arc;
 
@@ -95,7 +98,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let cmd = CreateTaskCommand {
             task: MemoryEntity::<TaskProperties> {
@@ -117,7 +120,7 @@ mod tests {
         mock.expect_create_relationships().never();
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let cmd = CreateTaskCommand {
             task: MemoryEntity::<TaskProperties> {
@@ -145,7 +148,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let cmd = CreateTaskCommand {
             task: MemoryEntity::<TaskProperties> {

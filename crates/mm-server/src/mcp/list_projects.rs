@@ -36,6 +36,7 @@ impl ListProjectsTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use serde_json::Value;
@@ -70,7 +71,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = ListProjectsTool { name_filter: None };
 
@@ -110,7 +111,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = ListProjectsTool {
             name_filter: Some("flakes".to_string()),

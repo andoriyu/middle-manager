@@ -37,6 +37,7 @@ impl CreateEntitiesTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryError, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
@@ -55,7 +56,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = CreateEntitiesTool {
             entities: vec![MemoryEntity {
@@ -86,7 +87,7 @@ mod tests {
             .returning(|_| Err(MemoryError::runtime_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = CreateEntitiesTool {
             entities: vec![MemoryEntity {

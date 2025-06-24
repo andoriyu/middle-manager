@@ -40,11 +40,12 @@ impl StdError for ToolError {
     }
 }
 
-impl<E> From<CoreError<E>> for ToolError
+impl<ME, GE> From<CoreError<ME, GE>> for ToolError
 where
-    E: StdError + Send + Sync + 'static,
+    ME: StdError + Send + Sync + 'static,
+    GE: StdError + Send + Sync + 'static,
 {
-    fn from(error: CoreError<E>) -> Self {
+    fn from(error: CoreError<ME, GE>) -> Self {
         let message = match &error {
             CoreError::Memory(e) => e.to_string(),
             CoreError::Serialization(e) => e.to_string(),
@@ -54,6 +55,7 @@ where
                 .map(|(name, err)| format!("{}: {}", name, err))
                 .collect::<Vec<_>>()
                 .join("; "),
+            CoreError::Git(e) => e.to_string(),
             CoreError::MissingProject => "No project specified".to_string(),
         };
         Self::with_source(message, error)

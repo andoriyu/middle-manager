@@ -1420,6 +1420,7 @@ dependencies = [
  "arbtest",
  "async-trait",
  "chrono",
+ "mm-git",
  "mm-memory",
  "mm-utils",
  "mockall",
@@ -1429,6 +1430,18 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "mm-git"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "mockall",
+ "schemars",
+ "serde",
+ "thiserror 1.0.69",
+ "tokio",
 ]
 
 [[package]]

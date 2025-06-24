@@ -5,6 +5,7 @@ use tracing::instrument;
 
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use mm_git::GitRepository;
 
 /// Command for listing projects
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema)]
@@ -22,13 +23,14 @@ pub struct ListProjectsResult {
 
 /// List all available projects
 #[instrument(skip(ports), err)]
-pub async fn list_projects<R>(
-    ports: &Ports<R>,
+pub async fn list_projects<MR, GR>(
+    ports: &Ports<MR, GR>,
     command: ListProjectsCommand,
-) -> CoreResult<ListProjectsResult, R::Error>
+) -> CoreResult<ListProjectsResult, MR::Error>
 where
-    R: mm_memory::MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    MR: mm_memory::MemoryRepository + Send + Sync,
+    MR::Error: std::error::Error + Send + Sync + 'static,
+    GR: GitRepository + Send + Sync,
 {
     // Find all projects
     let mut projects = ports
@@ -51,6 +53,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::collections::HashMap;
@@ -88,7 +91,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = ListProjectsCommand { name_filter: None };
 
@@ -131,7 +134,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = ListProjectsCommand {
             name_filter: Some("flakes".to_string()),
@@ -159,7 +162,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let command = ListProjectsCommand { name_filter: None };
 

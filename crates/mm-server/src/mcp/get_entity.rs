@@ -43,6 +43,7 @@ impl GetEntityTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::mm_git::GitService;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryError, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use serde_json::Value;
@@ -62,7 +63,7 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = GetEntityTool {
             name: "test:entity".to_string(),
@@ -82,7 +83,7 @@ mod tests {
             .returning(|_| Err(MemoryError::query_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = GetEntityTool {
             name: "test:entity".to_string(),
@@ -100,7 +101,7 @@ mod tests {
             .returning(|_| Ok(None));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
 
         let tool = GetEntityTool {
             name: "missing".to_string(),
