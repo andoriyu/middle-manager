@@ -50,6 +50,7 @@ mod tests {
             mock,
             MemoryConfig {
                 default_labels: false,
+                agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
         );

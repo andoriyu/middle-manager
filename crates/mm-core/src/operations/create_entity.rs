@@ -65,6 +65,7 @@ mod tests {
             MemoryConfig {
                 default_label: None,
                 default_labels: false,
+                agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
         );
@@ -92,6 +93,7 @@ mod tests {
             MemoryConfig {
                 default_label: None,
                 default_labels: false,
+                agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
         );
@@ -127,6 +129,7 @@ mod tests {
             MemoryConfig {
                 default_label: None,
                 default_labels: false,
+                agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
         );
@@ -155,6 +158,7 @@ mod tests {
             MemoryConfig {
                 default_label: None,
                 default_labels: false,
+                agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
         );

@@ -71,6 +71,7 @@ mod tests {
         let config_content = r#"
 [memory]
 default_label = "TestTag"
+agent_name = "tester"
 [neo4j]
 uri = "neo4j://testhost:7687"
 username = "test_user"
@@ -86,6 +87,7 @@ password = "test_password"
         assert_eq!(config.neo4j.username, "test_user");
         assert_eq!(config.neo4j.password, "test_password");
         assert_eq!(config.memory.default_label, Some("TestTag".to_string()));
+        assert_eq!(config.memory.agent_name, "tester".to_string());
         assert!(config.memory.default_relationships);
     }
 
@@ -104,6 +106,7 @@ password = "test_password"
                 default_labels: true,
                 additional_labels: std::collections::HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         };
 

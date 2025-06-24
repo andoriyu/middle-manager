@@ -36,6 +36,7 @@ async fn test_find_nonexistent_entity() {
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await
@@ -66,6 +67,7 @@ async fn test_create_and_find_entity() {
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await
@@ -124,6 +126,7 @@ async fn test_validation_errors() {
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await
@@ -169,6 +172,7 @@ async fn test_set_observations() {
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await
@@ -217,6 +221,7 @@ async fn test_add_and_remove_observations() {
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await
@@ -286,6 +291,7 @@ async fn test_create_relationship() {
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await
@@ -357,6 +363,7 @@ async fn test_find_related_entities() {
             default_labels: true,
             additional_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await
@@ -432,6 +439,7 @@ async fn test_find_entities_by_labels() {
                 .into_iter()
                 .collect(),
             default_project: None,
+            agent_name: "test".to_string(),
         },
     )
     .await

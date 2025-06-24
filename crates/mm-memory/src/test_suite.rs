@@ -24,6 +24,7 @@ where
         default_labels: true,
         additional_labels: std::iter::once("Example".to_string()).collect(),
         default_project: None,
+        agent_name: "test".to_string(),
     };
 
     let service = MemoryService::new(repository, config);
