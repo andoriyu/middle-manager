@@ -1,4 +1,4 @@
-use mm_core::{GetEntityCommand, get_entity};
+use mm_core::operations::memory::{GetEntityCommand, get_entity};
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};

@@ -1,7 +1,7 @@
-use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
+use mm_memory::MemoryEntity;
 use mm_memory::MemoryRepository;
 use tracing::instrument;
 

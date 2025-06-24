@@ -1,4 +1,4 @@
-use mm_core::{FindRelationshipsCommand, find_relationships};
+use mm_core::operations::memory::{FindRelationshipsCommand, find_relationships};
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};

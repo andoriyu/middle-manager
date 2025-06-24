@@ -1,4 +1,4 @@
-use mm_core::{FindEntitiesByLabelsCommand, find_entities_by_labels};
+use mm_core::operations::memory::{FindEntitiesByLabelsCommand, find_entities_by_labels};
 use mm_memory::LabelMatchMode;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;

@@ -1,4 +1,4 @@
-use mm_core::{UpdateRelationshipCommand, update_relationship};
+use mm_core::operations::memory::{UpdateRelationshipCommand, update_relationship};
 use mm_memory::RelationshipUpdate;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;

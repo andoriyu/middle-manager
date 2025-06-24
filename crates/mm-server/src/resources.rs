@@ -1,4 +1,5 @@
-use mm_core::{GetEntityCommand, Ports, get_entity};
+use mm_core::Ports;
+use mm_core::operations::memory::{GetEntityCommand, get_entity};
 use mm_memory::MemoryRepository;
 use rust_mcp_sdk::schema::{
     ListResourceTemplatesResult, ListResourcesResult, ReadResourceResult,
