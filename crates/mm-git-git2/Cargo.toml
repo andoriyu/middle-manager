@@ -1,0 +1,15 @@
+[package]
+name = "mm-git-git2"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+
+[dependencies]
+mm-git = { path = "../mm-git" }
+async-trait = { workspace = true }
+tokio = { workspace = true, features = ["rt"] }
+git2 = "0.18"
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { workspace = true, features = ["full", "test-util"] }

@@ -5,6 +5,7 @@ members = [
     "crates/mm-memory",
     "crates/mm-memory-neo4j",
     "crates/mm-git",
+    "crates/mm-git-git2",
     "crates/mm-server",
     "crates/mm-utils",
 ]
