@@ -14,8 +14,6 @@ use mm_server_lib::ToolsCommand;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[command(subcommand)]
-    command: Option<Command>,
     /// Log level
     #[arg(short, long, value_enum, default_value_t = LogLevel::Info)]
     log_level: LogLevel,
@@ -37,9 +35,12 @@ struct Args {
     #[arg(short = 'r', long, default_value_t = true)]
     rotate_logs: bool,
 
-    /// Paths to config files
-    #[arg(short, long, value_name = "FILE", required = true, num_args = 1.., value_delimiter = ',')]
+    /// Path to config file (can be specified multiple times)
+    #[arg(short, long, value_name = "FILE", required = true, action = clap::ArgAction::Append)]
     config: Vec<PathBuf>,
+
+    #[command(subcommand)]
+    command: Option<Command>,
 }
 
 /// Log level for the application
@@ -57,8 +58,31 @@ enum Command {
     /// Start the MCP server
     Server,
     /// Interact with tools
+    Tools(ToolsSubcommand),
+}
+
+#[derive(Parser, Debug)]
+struct ToolsSubcommand {
     #[command(subcommand)]
-    Tools(ToolsCommand),
+    command: ToolsSubcommandType,
+}
+
+#[derive(Subcommand, Debug)]
+enum ToolsSubcommandType {
+    /// List available tools
+    List,
+    /// Call a tool with JSON input
+    Call {
+        /// Name of the tool to call
+        tool_name: String,
+        /// JSON input for the tool
+        tool_input: String,
+    },
+    /// Print the JSON schema for a tool
+    Schema {
+        /// Name of the tool
+        tool_name: String,
+    },
 }
 
 impl From<LogLevel> for Level {
@@ -113,8 +137,36 @@ async fn run(args: Args) -> anyhow::Result<()> {
 
     match args.command.unwrap_or(Command::Server) {
         Command::Server => mm_server_lib::run_server(&config_paths).await?,
-        Command::Tools(tool_cmd) => {
-            mm_server_lib::run_tools(tool_cmd, &config_paths).await?;
+        Command::Tools(tools_subcommand) => {
+            match tools_subcommand.command {
+                ToolsSubcommandType::List => {
+                    mm_server_lib::run_tools(ToolsCommand::List, &config_paths).await?
+                }
+                ToolsSubcommandType::Call {
+                    tool_name,
+                    tool_input,
+                } => {
+                    mm_server_lib::run_tools(
+                        ToolsCommand::Call {
+                            tool_name,
+                            tool_input,
+                        },
+                        &config_paths,
+                    )
+                    .await?
+                }
+                ToolsSubcommandType::Schema { tool_name } => {
+                    // Always use "MMTools" as the toolbox name (hardcoded)
+                    mm_server_lib::run_tools(
+                        ToolsCommand::Schema {
+                            toolbox: "MMTools".to_string(),
+                            tool_name,
+                        },
+                        &config_paths,
+                    )
+                    .await?
+                }
+            }
         }
     }
 

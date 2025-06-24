@@ -49,11 +49,18 @@ pub enum ToolsCommand {
     List,
     /// Call a tool with JSON input
     Call {
+        /// Name of the tool to call
         tool_name: String,
+        /// JSON input for the tool
         tool_input: String,
     },
     /// Print the JSON schema for a tool
-    Schema { toolbox: String, tool_name: String },
+    Schema {
+        /// Name of the toolbox (e.g., "MMTools")
+        toolbox: String,
+        /// Name of the tool
+        tool_name: String,
+    },
 }
 
 /// Middle Manager MCP server handler

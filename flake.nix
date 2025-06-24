@@ -62,6 +62,7 @@
               openssl.dev
               nodejs
               cargo-nextest
+              tokei
             ];
             
             # Set environment variables for OpenSSL
