@@ -12,7 +12,7 @@ use mm_memory::{
 /// Configuration for connecting to Neo4j
 ///
 /// This struct contains the configuration parameters needed to connect to a Neo4j database.
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct Neo4jConfig {
     /// URI of the Neo4j server (e.g., "neo4j://localhost:7688")
     pub uri: String,
@@ -21,7 +21,18 @@ pub struct Neo4jConfig {
     pub username: String,
 
     /// Password for authentication
+    #[serde(skip_serializing)]
     pub password: String,
+}
+
+impl std::fmt::Debug for Neo4jConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Neo4jConfig")
+            .field("uri", &self.uri)
+            .field("username", &self.username)
+            .field("password", &"***")
+            .finish()
+    }
 }
 
 /// Neo4j implementation of the MemoryRepository
@@ -260,6 +271,24 @@ impl Neo4jRepository {
         }
 
         Ok(relationships)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Neo4jConfig;
+
+    #[test]
+    fn debug_redacts_password() {
+        let cfg = Neo4jConfig {
+            uri: "neo4j://localhost:7687".to_string(),
+            username: "user".to_string(),
+            password: "secret".to_string(),
+        };
+
+        let dbg = format!("{cfg:?}");
+        assert!(!dbg.contains("secret"));
+        assert!(dbg.contains("***"));
     }
 }
 
