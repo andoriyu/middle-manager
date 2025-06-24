@@ -8,7 +8,7 @@ use crate::RootCollection;
 ///
 /// This struct serves as a dependency injection container for all operations.
 /// Each operation function will receive this struct to access the services it needs.
-pub struct Ports<MR, GR>
+pub struct Ports<MR, GR = ()>
 where
     MR: MemoryRepository + Send + Sync + 'static,
     GR: GitRepository + Send + Sync + 'static,
