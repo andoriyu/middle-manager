@@ -22,11 +22,12 @@ fmt:
 
 # Run clippy lints
 clippy:
+    find . -name "*.rs" -type f -exec touch {} \;
     cargo clippy -- -D warnings
 
 # Check the project
 check:
-    cargo check
+    cargo check --workspace --tests
 
 # Run the MCP inspector with mm-cli using local config
 inspect:
@@ -41,10 +42,8 @@ clean-neo4j:
     docker compose down
     docker volume rm middle-manager_neo4j_data middle-manager_neo4j_logs
 
-# Validate code with lints, formatting, and unit tests
-validate:
-    just fmt
-    cargo clean
-    just clippy
+unit-tests:
     cargo test --workspace --lib
-    cargo check --workspace --tests
+
+# Validate code with lints, formatting, and unit tests
+validate: fmt check clippy unit-tests
