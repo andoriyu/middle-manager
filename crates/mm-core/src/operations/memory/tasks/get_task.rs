@@ -2,8 +2,7 @@ use super::types::TaskProperties;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
-use mm_memory::MemoryEntity;
-use mm_memory::MemoryRepository;
+use mm_memory::{MemoryEntity, MemoryRepository};
 use tracing::instrument;
 
 #[derive(Debug, Clone)]
