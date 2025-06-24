@@ -154,7 +154,7 @@ curl -L https://install.determinate.systems/nix | sh -s -- --no-confirm
 
 ## Running
 
-Run `cargo run -p mm-cli` to start the CLI.
+Run `cargo run -p mm-cli -- --config config/default.toml,config/local.toml` to start the CLI.
 Use the `tools` subcommand to interact with MCP tools.
 
 ### CLI Options
@@ -167,7 +167,7 @@ OPTIONS:
     -l, --log-level <LOG_LEVEL>    Log level [default: info] [possible values: error, warn, info, debug, trace]
     -f, --logfile <FILE>           Path to log file (required if log level is specified)
     -r, --rotate-logs              Rotate logs (clear log file if it exists) [default: true]
-    -c, --config <FILE>            Path to config file
+    -c, --config <FILE>            Paths to config files (comma-separated, required)
     -h, --help                     Print help
     -V, --version                  Print version
 
@@ -178,10 +178,9 @@ COMMANDS:
 
 ### Configuration
 
-Configuration search order:
-1. Custom config file specified with `-c` or `--config`
-2. `config/default.toml`
-3. `config/local.toml` (gitignored for local overrides)
+Configuration is loaded from the files specified with `-c` or `--config`.
+Multiple paths can be provided separated by commas, allowing layered
+configuration (for example `-c config/default.toml,config/local.toml`).
 
 Example configuration:
 
@@ -199,25 +198,25 @@ With `docker-compose.yml`, Neo4j runs on port `7688`. Update `config/local.toml`
 List available tools:
 
 ```bash
-cargo run -p mm-cli -- tools list --config config/local.toml --log-level debug
+cargo run -p mm-cli -- tools list --config config/default.toml,config/local.toml --log-level debug
 ```
 
 Call a tool (example adds an observation):
 
 ```bash
-cargo run -p mm-cli -- tools call add_observations '{"name":"example","observations":["demo"]}'
+cargo run -p mm-cli -- tools call add_observations '{"name":"example","observations":["demo"]}' --config config/default.toml,config/local.toml
 ```
 
 Call the built-in `tools/list` operation:
 
 ```bash
-cargo run -p mm-cli -- tools call tools/list '{}'
+cargo run -p mm-cli -- tools call tools/list '{}' --config config/default.toml,config/local.toml
 ```
 
 View the JSON schema for a tool:
 
 ```bash
-cargo run -p mm-cli -- tools schema MemoryTools add_observations
+cargo run -p mm-cli -- tools schema MemoryTools add_observations --config config/default.toml,config/local.toml
 ```
 
 
