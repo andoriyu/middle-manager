@@ -177,10 +177,6 @@ where
             MemoryTools::GetEntityTool(get_entity_tool) => {
                 get_entity_tool.call_tool(&self.ports).await?
             }
-            MemoryTools::SetObservationsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::AddObservationsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::RemoveAllObservationsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::RemoveObservationsTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::GetProjectContextTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::UpdateEntityTool(tool) => tool.call_tool(&self.ports).await?,
@@ -362,10 +358,6 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                     MemoryTools::FindEntitiesByLabelsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::FindRelationshipsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::GetEntityTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::SetObservationsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::AddObservationsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::RemoveAllObservationsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::RemoveObservationsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::GetProjectContextTool(t) => t.call_tool(&ports).await,
                     MemoryTools::ListProjectsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::UpdateEntityTool(t) => t.call_tool(&ports).await,
@@ -387,10 +379,6 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 "find_entities_by_labels" => mcp::FindEntitiesByLabelsTool::json_schema(),
                 "find_relationships" => mcp::FindRelationshipsTool::json_schema(),
                 "get_entity" => mcp::GetEntityTool::json_schema(),
-                "set_observations" => mcp::SetObservationsTool::json_schema(),
-                "add_observations" => mcp::AddObservationsTool::json_schema(),
-                "remove_all_observations" => mcp::RemoveAllObservationsTool::json_schema(),
-                "remove_observations" => mcp::RemoveObservationsTool::json_schema(),
                 "get_project_context" => mcp::GetProjectContextTool::json_schema(),
                 "list_projects" => mcp::ListProjectsTool::json_schema(),
                 "update_entity" => mcp::UpdateEntityTool::json_schema(),
