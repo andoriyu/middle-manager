@@ -219,7 +219,10 @@ mod tests {
             .returning(move |_, _, _, _| Ok(vec![project_entity2.clone(), related_entity.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Name("andoriyu:project:middle_manager".to_string()),
@@ -311,7 +314,10 @@ mod tests {
             .returning(move |_, _, _, _| Ok(vec![project_entity2.clone(), related_entity.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Repository("andoriyu/middle-manager".to_string()),
@@ -338,7 +344,10 @@ mod tests {
             .returning(|_| Ok(None));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Name("nonexistent:project".to_string()),
@@ -375,7 +384,10 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Name("tech:language:rust".to_string()),
@@ -407,7 +419,10 @@ mod tests {
             .returning(|_, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Repository("nonexistent/repo".to_string()),
@@ -459,7 +474,10 @@ mod tests {
             .returning(|_, _, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Repository("andoriyu/no-project".to_string()),

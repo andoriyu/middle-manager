@@ -48,3 +48,20 @@ where
         }
     }
 }
+
+#[cfg(any(test, feature = "mock"))]
+impl Ports<mm_memory::MockMemoryRepository, mm_git::repository::MockGitRepository> {
+    /// Create a new `Ports` instance using noop mock repositories.
+    ///
+    /// This helper is useful in tests where only a subset of services are
+    /// needed. The returned instance provides mock services that do nothing
+    /// unless expectations are explicitly set.
+    pub fn new_noop() -> Self {
+        let memory_service = Arc::new(MemoryService::new(
+            mm_memory::MockMemoryRepository::new(),
+            mm_memory::MemoryConfig::default(),
+        ));
+        let git_service = Arc::new(GitService::new(mm_git::repository::MockGitRepository::new()));
+        Self::new(memory_service, git_service)
+    }
+}

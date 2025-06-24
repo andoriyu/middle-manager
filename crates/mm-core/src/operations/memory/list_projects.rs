@@ -91,7 +91,10 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = ListProjectsCommand { name_filter: None };
 
@@ -134,7 +137,10 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = ListProjectsCommand {
             name_filter: Some("flakes".to_string()),
@@ -162,7 +168,10 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = ListProjectsCommand { name_filter: None };
 

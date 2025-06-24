@@ -47,7 +47,10 @@ mod tests {
             .returning(|_, _| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let cmd = UpdateTaskCommand {
             name: "task:1".into(),
@@ -62,7 +65,10 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_update_entity().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
         let cmd = UpdateTaskCommand {
             name: String::new(),
             update: EntityUpdate::default(),

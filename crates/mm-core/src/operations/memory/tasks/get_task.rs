@@ -53,7 +53,10 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let cmd = GetTaskCommand {
             name: "task:1".into(),
@@ -67,7 +70,10 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_find_entity_by_name().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let cmd = GetTaskCommand {
             name: String::new(),

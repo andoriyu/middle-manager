@@ -98,7 +98,10 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let cmd = CreateTaskCommand {
             task: MemoryEntity::<TaskProperties> {
@@ -120,7 +123,10 @@ mod tests {
         mock.expect_create_relationships().never();
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let cmd = CreateTaskCommand {
             task: MemoryEntity::<TaskProperties> {
@@ -148,7 +154,10 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let cmd = CreateTaskCommand {
             task: MemoryEntity::<TaskProperties> {

@@ -47,11 +47,10 @@ mod tests {
             })
         });
         let git_service = Arc::new(GitService::new(mock));
-        let memory_service = Arc::new(MemoryService::new(
-            MockMemoryRepository::new(),
-            MemoryConfig::default(),
-        ));
-        let ports = Ports::new(memory_service, git_service.clone());
+        let ports = Ports {
+            git_service: git_service.clone(),
+            ..Ports::new_noop()
+        };
 
         let command = GetGitStatusCommand {
             path: PathBuf::from("/tmp"),

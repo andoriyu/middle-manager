@@ -49,7 +49,10 @@ mod tests {
             .withf(|f, t, n, _| f == "a" && t == "b" && n == "rel")
             .returning(|_, _, _, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
         let cmd = UpdateRelationshipCommand {
             from: "a".into(),
             to: "b".into(),
@@ -65,7 +68,10 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_update_relationship().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
         let cmd = UpdateRelationshipCommand {
             from: "".into(),
             to: "b".into(),

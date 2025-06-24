@@ -51,7 +51,10 @@ mod tests {
             .withf(|n| n.len() == 1 && n[0] == "task:1")
             .returning(|_| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
         let cmd = DeleteTaskCommand {
             name: "task:1".into(),
         };
@@ -64,7 +67,10 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_delete_entities().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
         let cmd = DeleteTaskCommand {
             name: String::new(),
         };

@@ -15,6 +15,9 @@ async-trait = { workspace = true }
 schemars = { workspace = true }
 chrono = { workspace = true }
 
+[features]
+mock = ["mm-memory/mock", "mm-git/mock"]
+
 [dev-dependencies]
 mockall = { workspace = true }
 tokio = { workspace = true, features = ["full", "test-util"] }

@@ -72,7 +72,10 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = CreateEntitiesCommand {
             entities: vec![MemoryEntity {
@@ -100,7 +103,10 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = CreateEntitiesCommand {
             entities: vec![MemoryEntity {
@@ -136,7 +142,10 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = CreateEntitiesCommand {
             entities: vec![MemoryEntity {
@@ -165,7 +174,10 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service), Arc::new(GitService::new(())));
+        let ports = Ports {
+            memory_service: Arc::new(service),
+            ..Ports::new_noop()
+        };
 
         let command = CreateEntitiesCommand {
             entities: vec![
