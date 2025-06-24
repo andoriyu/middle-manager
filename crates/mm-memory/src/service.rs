@@ -17,6 +17,84 @@ const MIN_TRAVERSAL_DEPTH: u32 = 1;
 /// Maximum allowed traversal depth for related entity queries
 const MAX_TRAVERSAL_DEPTH: u32 = 5;
 
+fn to_default_entity<P>(entity: MemoryEntity<P>) -> MemoryEntity
+where
+    P: JsonSchema
+        + Into<HashMap<String, MemoryValue>>
+        + From<HashMap<String, MemoryValue>>
+        + Clone
+        + std::fmt::Debug
+        + Default,
+{
+    MemoryEntity {
+        name: entity.name,
+        labels: entity.labels,
+        observations: entity.observations,
+        properties: entity.properties.into(),
+        relationships: entity
+            .relationships
+            .into_iter()
+            .map(to_default_relationship)
+            .collect(),
+    }
+}
+
+fn to_default_relationship<P>(rel: MemoryRelationship<P>) -> MemoryRelationship
+where
+    P: JsonSchema
+        + Into<HashMap<String, MemoryValue>>
+        + From<HashMap<String, MemoryValue>>
+        + Clone
+        + std::fmt::Debug
+        + Default,
+{
+    MemoryRelationship {
+        from: rel.from,
+        to: rel.to,
+        name: rel.name,
+        properties: rel.properties.into(),
+    }
+}
+
+fn from_default_entity<P>(entity: MemoryEntity) -> MemoryEntity<P>
+where
+    P: JsonSchema
+        + Into<HashMap<String, MemoryValue>>
+        + From<HashMap<String, MemoryValue>>
+        + Clone
+        + std::fmt::Debug
+        + Default,
+{
+    MemoryEntity {
+        name: entity.name,
+        labels: entity.labels,
+        observations: entity.observations,
+        properties: P::from(entity.properties),
+        relationships: entity
+            .relationships
+            .into_iter()
+            .map(from_default_relationship::<P>)
+            .collect(),
+    }
+}
+
+fn from_default_relationship<P>(rel: MemoryRelationship) -> MemoryRelationship<P>
+where
+    P: JsonSchema
+        + Into<HashMap<String, MemoryValue>>
+        + From<HashMap<String, MemoryValue>>
+        + Clone
+        + std::fmt::Debug
+        + Default,
+{
+    MemoryRelationship {
+        from: rel.from,
+        to: rel.to,
+        name: rel.name,
+        properties: P::from(rel.properties),
+    }
+}
+
 /// Service for memory operations
 ///
 /// This service provides a high-level API for interacting with the memory store.
@@ -98,25 +176,7 @@ where
         }
 
         if !valid.is_empty() {
-            let mapped: Vec<MemoryEntity> = valid
-                .into_iter()
-                .map(|e| MemoryEntity {
-                    name: e.name,
-                    labels: e.labels,
-                    observations: e.observations,
-                    properties: e.properties.into(),
-                    relationships: e
-                        .relationships
-                        .into_iter()
-                        .map(|r| MemoryRelationship {
-                            from: r.from,
-                            to: r.to,
-                            name: r.name,
-                            properties: r.properties.into(),
-                        })
-                        .collect(),
-                })
-                .collect();
+            let mapped: Vec<MemoryEntity> = valid.into_iter().map(to_default_entity).collect();
             self.repository.create_entities(&mapped).await?;
         }
 
@@ -148,22 +208,7 @@ where
             + Default,
     {
         let result = self.repository.find_entity_by_name(name).await?;
-        Ok(result.map(|e| MemoryEntity {
-            name: e.name,
-            labels: e.labels,
-            observations: e.observations,
-            properties: P::from(e.properties),
-            relationships: e
-                .relationships
-                .into_iter()
-                .map(|r| MemoryRelationship {
-                    from: r.from,
-                    to: r.to,
-                    name: r.name,
-                    properties: P::from(r.properties),
-                })
-                .collect(),
-        }))
+        Ok(result.map(from_default_entity::<P>))
     }
 
     /// Find an entity by name using the default HashMap property type
@@ -256,15 +301,8 @@ where
         }
 
         if !valid.is_empty() {
-            let mapped: Vec<MemoryRelationship> = valid
-                .into_iter()
-                .map(|r| MemoryRelationship {
-                    from: r.from,
-                    to: r.to,
-                    name: r.name,
-                    properties: r.properties.into(),
-                })
-                .collect();
+            let mapped: Vec<MemoryRelationship> =
+                valid.into_iter().map(to_default_relationship).collect();
             self.repository.create_relationships(&mapped).await?;
         }
 
@@ -310,25 +348,7 @@ where
             .find_related_entities(name, relationship_type.clone(), direction, depth)
             .await?;
 
-        let mapped = raw
-            .into_iter()
-            .map(|e| MemoryEntity {
-                name: e.name,
-                labels: e.labels,
-                observations: e.observations,
-                properties: P::from(e.properties),
-                relationships: e
-                    .relationships
-                    .into_iter()
-                    .map(|r| MemoryRelationship {
-                        from: r.from,
-                        to: r.to,
-                        name: r.name,
-                        properties: P::from(r.properties),
-                    })
-                    .collect(),
-            })
-            .collect();
+        let mapped = raw.into_iter().map(from_default_entity::<P>).collect();
 
         Ok(mapped)
     }
@@ -373,25 +393,7 @@ where
             .find_entities_by_labels(labels, match_mode, effective_required)
             .await?;
 
-        let mapped = raw
-            .into_iter()
-            .map(|e| MemoryEntity {
-                name: e.name,
-                labels: e.labels,
-                observations: e.observations,
-                properties: P::from(e.properties),
-                relationships: e
-                    .relationships
-                    .into_iter()
-                    .map(|r| MemoryRelationship {
-                        from: r.from,
-                        to: r.to,
-                        name: r.name,
-                        properties: P::from(r.properties),
-                    })
-                    .collect(),
-            })
-            .collect();
+        let mapped = raw.into_iter().map(from_default_entity::<P>).collect();
 
         Ok(mapped)
     }
