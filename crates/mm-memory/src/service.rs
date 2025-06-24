@@ -31,28 +31,7 @@ where
         labels: entity.labels,
         observations: entity.observations,
         properties: entity.properties.into(),
-        relationships: entity
-            .relationships
-            .into_iter()
-            .map(to_default_relationship)
-            .collect(),
-    }
-}
-
-fn to_default_relationship<P>(rel: MemoryRelationship<P>) -> MemoryRelationship
-where
-    P: JsonSchema
-        + Into<HashMap<String, MemoryValue>>
-        + From<HashMap<String, MemoryValue>>
-        + Clone
-        + std::fmt::Debug
-        + Default,
-{
-    MemoryRelationship {
-        from: rel.from,
-        to: rel.to,
-        name: rel.name,
-        properties: rel.properties.into(),
+        relationships: entity.relationships,
     }
 }
 
@@ -70,28 +49,7 @@ where
         labels: entity.labels,
         observations: entity.observations,
         properties: P::from(entity.properties),
-        relationships: entity
-            .relationships
-            .into_iter()
-            .map(from_default_relationship::<P>)
-            .collect(),
-    }
-}
-
-fn from_default_relationship<P>(rel: MemoryRelationship) -> MemoryRelationship<P>
-where
-    P: JsonSchema
-        + Into<HashMap<String, MemoryValue>>
-        + From<HashMap<String, MemoryValue>>
-        + Clone
-        + std::fmt::Debug
-        + Default,
-{
-    MemoryRelationship {
-        from: rel.from,
-        to: rel.to,
-        name: rel.name,
-        properties: P::from(rel.properties),
+        relationships: entity.relationships,
     }
 }
 
@@ -261,18 +219,10 @@ where
 
     /// Create multiple relationships in a batch
     #[instrument(skip(self, relationships), fields(relationships_count = relationships.len()))]
-    pub async fn create_relationships_typed<P>(
+    pub async fn create_relationships(
         &self,
-        relationships: &[MemoryRelationship<P>],
-    ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error>
-    where
-        P: JsonSchema
-            + Into<HashMap<String, MemoryValue>>
-            + From<HashMap<String, MemoryValue>>
-            + Clone
-            + std::fmt::Debug
-            + Default,
-    {
+        relationships: &[MemoryRelationship],
+    ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
         let mut errors = Vec::default();
         let mut valid = Vec::default();
 
@@ -301,22 +251,10 @@ where
         }
 
         if !valid.is_empty() {
-            let mapped: Vec<MemoryRelationship> =
-                valid.into_iter().map(to_default_relationship).collect();
-            self.repository.create_relationships(&mapped).await?;
+            self.repository.create_relationships(&valid).await?;
         }
 
         Ok(errors)
-    }
-
-    /// Create relationships using the default HashMap property type
-    #[instrument(skip(self, relationships), fields(relationships_count = relationships.len()))]
-    pub async fn create_relationships(
-        &self,
-        relationships: &[MemoryRelationship],
-    ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
-        self.create_relationships_typed::<HashMap<String, MemoryValue>>(relationships)
-            .await
     }
 
     /// Find entities related to the given entity

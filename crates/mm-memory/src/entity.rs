@@ -27,5 +27,5 @@ where
     pub properties: P,
     /// Relationships connected to the entity
     #[serde(default)]
-    pub relationships: Vec<MemoryRelationship<P>>,
+    pub relationships: Vec<MemoryRelationship>,
 }
