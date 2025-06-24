@@ -30,3 +30,4 @@ pub use root::{Root, RootCollection};
 
 // Re-export types from mm-memory
 pub use mm_memory::{MemoryEntity, MemoryRelationship, ProjectContext};
+pub use operations::{Priority, TaskProperties, TaskStatus, TaskType};
