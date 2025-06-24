@@ -192,7 +192,7 @@ cargo run -p mm-cli -- tools call tools/list '{}' --config config/default.toml,c
 View the JSON schema for a tool:
 
 ```bash
-cargo run -p mm-cli -- tools schema MemoryTools add_observations --config config/default.toml,config/local.toml
+cargo run -p mm-cli -- tools schema MMTools add_observations --config config/default.toml,config/local.toml
 ```
 
 
