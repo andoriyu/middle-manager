@@ -1,4 +1,4 @@
-use mm_core::{DeleteRelationshipsCommand, delete_relationships};
+use mm_core::operations::memory::{DeleteRelationshipsCommand, delete_relationships};
 use mm_memory::relationship::RelationshipRef;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;

@@ -1,4 +1,5 @@
-use mm_core::{CreateRelationshipsCommand, MemoryRelationship, create_relationships};
+use mm_core::operations::memory::{CreateRelationshipsCommand, create_relationships};
+use mm_memory::MemoryRelationship;
 use mm_memory::MemoryValue;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;

@@ -12,8 +12,8 @@ use std::sync::Arc;
 
 use anyhow::Result as AnyResult;
 
-use mm_core::{MemoryService, Ports};
-use mm_memory::MemoryRepository;
+use mm_core::Ports;
+use mm_memory::{MemoryRepository, MemoryService};
 use mm_memory_neo4j::{create_neo4j_service, neo4rs};
 
 mod config;

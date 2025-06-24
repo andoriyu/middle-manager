@@ -2,8 +2,8 @@ use super::types::TaskProperties;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
-use crate::{MemoryEntity, MemoryRelationship};
 use mm_memory::MemoryRepository;
+use mm_memory::{MemoryEntity, MemoryRelationship};
 use std::collections::HashMap;
 use tracing::instrument;
 

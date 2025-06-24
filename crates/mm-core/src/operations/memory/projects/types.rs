@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use mm_memory::MemoryEntity;
 
-use crate::operations::{git::types::GitRepositoryProperties, tasks::TaskProperties};
+use crate::operations::memory::{git::types::GitRepositoryProperties, tasks::TaskProperties};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
