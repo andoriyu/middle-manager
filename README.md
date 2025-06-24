@@ -19,10 +19,6 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 | `create_entity` | Create one or more entities |
 | `create_relationship` | Create relationships between entities |
 | `get_entity` | Retrieve an entity by name |
-| `set_observations` | Replace all observations for an entity |
-| `add_observations` | Append observations to an entity |
-| `remove_observations` | Remove specific observations from an entity |
-| `remove_all_observations` | Delete all observations from an entity |
 
 ## Project Structure
 
@@ -55,10 +51,6 @@ graph TD
         subgraph "mcp"
             create_tool["CreateEntityTool::call_tool"]
             create_rel_tool["CreateRelationshipTool::call_tool"]
-            set_obs_tool["SetObservationsTool::call_tool"]
-            add_obs_tool["AddObservationsTool::call_tool"]
-            remove_obs_tool["RemoveObservationsTool::call_tool"]
-            remove_all_obs_tool["RemoveAllObservationsTool::call_tool"]
             get_tool["GetEntityTool::call_tool"]
         end
         subgraph "resources"
@@ -68,10 +60,6 @@ graph TD
         end
         create_handler --> create_tool
         create_handler --> create_rel_tool
-        create_handler --> set_obs_tool
-        create_handler --> add_obs_tool
-        create_handler --> remove_obs_tool
-        create_handler --> remove_all_obs_tool
         create_handler --> get_tool
         create_handler --> list_res
         create_handler --> list_tmpl
@@ -82,17 +70,9 @@ graph TD
     subgraph "mm-core"
         create_op["create_entity"]
         create_rel_op["create_relationship"]
-        set_obs_op["set_observations"]
-        add_obs_op["add_observations"]
-        remove_obs_op["remove_observations"]
-        remove_all_obs_op["remove_all_observations"]
         get_op["get_entity"]
         create_op --> memory_service["MemoryService Struct"]
         create_rel_op --> memory_service
-        set_obs_op --> memory_service
-        add_obs_op --> memory_service
-        remove_obs_op --> memory_service
-        remove_all_obs_op --> memory_service
         get_op --> memory_service
     end
 
@@ -112,10 +92,6 @@ graph TD
     %% Flow connections
     create_tool --> create_op
     create_rel_tool --> create_rel_op
-    set_obs_tool --> set_obs_op
-    add_obs_tool --> add_obs_op
-    remove_obs_tool --> remove_obs_op
-    remove_all_obs_tool --> remove_all_obs_op
     get_tool --> get_op
     read_res --> get_op
 ```
