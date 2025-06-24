@@ -166,10 +166,14 @@ where
 
         // Match the tool variant and execute its corresponding logic
         let result = match tool_params {
-            MemoryTools::CreateEntityTool(create_entity_tool) => {
+            MemoryTools::CreateEntitiesTool(create_entity_tool) => {
                 create_entity_tool.call_tool(&self.ports).await?
             }
-            MemoryTools::CreateRelationshipTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::CreateRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::DeleteEntitiesTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::DeleteRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::FindEntitiesByLabelsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::FindRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::GetEntityTool(get_entity_tool) => {
                 get_entity_tool.call_tool(&self.ports).await?
             }
@@ -351,8 +355,12 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 let tool =
                     MemoryTools::try_from(params).map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
                 let result = match tool {
-                    MemoryTools::CreateEntityTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::CreateRelationshipTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::CreateEntitiesTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::CreateRelationshipsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::DeleteEntitiesTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::DeleteRelationshipsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::FindEntitiesByLabelsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::FindRelationshipsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::GetEntityTool(t) => t.call_tool(&ports).await,
                     MemoryTools::SetObservationsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::AddObservationsTool(t) => t.call_tool(&ports).await,
@@ -372,8 +380,12 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 anyhow::bail!("Unknown toolbox: {}", toolbox);
             }
             let schema = match tool_name.as_str() {
-                "create_entity" => mcp::CreateEntityTool::json_schema(),
-                "create_relationship" => mcp::CreateRelationshipTool::json_schema(),
+                "create_entities" => mcp::CreateEntitiesTool::json_schema(),
+                "create_relationships" => mcp::CreateRelationshipsTool::json_schema(),
+                "delete_entities" => mcp::DeleteEntitiesTool::json_schema(),
+                "delete_relationships" => mcp::DeleteRelationshipsTool::json_schema(),
+                "find_entities_by_labels" => mcp::FindEntitiesByLabelsTool::json_schema(),
+                "find_relationships" => mcp::FindRelationshipsTool::json_schema(),
                 "get_entity" => mcp::GetEntityTool::json_schema(),
                 "set_observations" => mcp::SetObservationsTool::json_schema(),
                 "add_observations" => mcp::AddObservationsTool::json_schema(),

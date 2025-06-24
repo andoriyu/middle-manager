@@ -4,17 +4,17 @@ use mm_memory::{MemoryRelationship, MemoryRepository};
 use tracing::instrument;
 
 #[derive(Debug, Clone)]
-pub struct CreateRelationshipCommand {
+pub struct CreateRelationshipsCommand {
     pub relationships: Vec<MemoryRelationship>,
 }
 
-pub type CreateRelationshipResult<E> = CoreResult<(), E>;
+pub type CreateRelationshipsResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(relationships_count = command.relationships.len()))]
-pub async fn create_relationship<R>(
+pub async fn create_relationships<R>(
     ports: &Ports<R>,
-    command: CreateRelationshipCommand,
-) -> CreateRelationshipResult<R::Error>
+    command: CreateRelationshipsCommand,
+) -> CreateRelationshipsResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
@@ -50,7 +50,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateRelationshipCommand {
+        let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
                 from: "a".to_string(),
                 to: "b".to_string(),
@@ -59,7 +59,7 @@ mod tests {
             }],
         };
 
-        let result = create_relationship(&ports, command).await;
+        let result = create_relationships(&ports, command).await;
         assert!(result.is_ok());
     }
 
@@ -70,7 +70,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateRelationshipCommand {
+        let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
                 from: "a".to_string(),
                 to: "b".to_string(),
@@ -79,7 +79,7 @@ mod tests {
             }],
         };
 
-        let result = create_relationship(&ports, command).await;
+        let result = create_relationships(&ports, command).await;
         assert!(matches!(
             result,
             Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n.is_empty() && e.0.contains(&ValidationErrorKind::UnknownRelationship("".to_string())))
@@ -93,7 +93,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateRelationshipCommand {
+        let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
                 from: "a".to_string(),
                 to: "b".to_string(),
@@ -102,7 +102,7 @@ mod tests {
             }],
         };
 
-        let result = create_relationship(&ports, command).await;
+        let result = create_relationships(&ports, command).await;
         assert!(matches!(
             result,
             Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n == "InvalidFormat" && e.0.contains(&ValidationErrorKind::InvalidRelationshipFormat("InvalidFormat".to_string())))
@@ -116,7 +116,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateRelationshipCommand {
+        let command = CreateRelationshipsCommand {
             relationships: vec![MemoryRelationship {
                 from: "a".to_string(),
                 to: "b".to_string(),
@@ -125,7 +125,7 @@ mod tests {
             }],
         };
 
-        let result = create_relationship(&ports, command).await;
+        let result = create_relationships(&ports, command).await;
         assert!(matches!(
             result,
             Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n == "custom_rel" && e.0.contains(&ValidationErrorKind::UnknownRelationship("custom_rel".to_string())))
@@ -140,7 +140,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateRelationshipCommand {
+        let command = CreateRelationshipsCommand {
             relationships: vec![
                 MemoryRelationship {
                     from: "a".to_string(),
@@ -157,7 +157,7 @@ mod tests {
             ],
         };
 
-        let result = create_relationship(&ports, command).await;
+        let result = create_relationships(&ports, command).await;
 
         if let Err(CoreError::BatchValidation(errs)) = result {
             assert_eq!(errs.len(), 2);

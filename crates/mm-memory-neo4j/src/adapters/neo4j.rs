@@ -7,7 +7,7 @@ use tracing::instrument;
 use mm_memory::{
     EntityUpdate, LabelMatchMode, MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository,
     MemoryResult, MemoryValue, RelationshipDirection, RelationshipUpdate, ValidationError,
-    ValidationErrorKind,
+    ValidationErrorKind, relationship::RelationshipRef,
 };
 
 /// Configuration for connecting to Neo4j
@@ -885,6 +885,109 @@ impl MemoryRepository for Neo4jRepository {
             }
         }
         Ok(())
+    }
+
+    async fn delete_entities(&self, names: &[String]) -> MemoryResult<(), Self::Error> {
+        if names.is_empty() {
+            return Ok(());
+        }
+        let query = Query::new("MATCH (n) WHERE n.name IN $names DETACH DELETE n".to_string())
+            .param("names", names.to_vec());
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to delete entities".to_string(), e)
+        })?;
+        Ok(())
+    }
+
+    async fn delete_relationships(
+        &self,
+        relationships: &[RelationshipRef],
+    ) -> MemoryResult<(), Self::Error> {
+        for rel in relationships {
+            let q = format!(
+                "MATCH (a {{name: $from}})-[r:`{}`]->(b {{name: $to}}) DELETE r",
+                rel.name
+            );
+            let query = Query::new(q)
+                .param("from", rel.from.clone())
+                .param("to", rel.to.clone());
+            self.graph.run(query).await.map_err(|e| {
+                MemoryError::query_error_with_source("Failed to delete relationship".to_string(), e)
+            })?;
+        }
+        Ok(())
+    }
+
+    async fn find_relationships(
+        &self,
+        from: Option<&str>,
+        to: Option<&str>,
+        name: Option<&str>,
+    ) -> MemoryResult<Vec<MemoryRelationship>, Self::Error> {
+        let mut query_str = String::from("MATCH (a)-[r]->(b)");
+        let mut conditions = Vec::new();
+        if from.is_some() {
+            conditions.push("a.name = $from".to_string());
+        }
+        if to.is_some() {
+            conditions.push("b.name = $to".to_string());
+        }
+        if name.is_some() {
+            conditions.push("type(r) = $type".to_string());
+        }
+        if !conditions.is_empty() {
+            query_str.push_str(&format!(" WHERE {}", conditions.join(" AND ")));
+        }
+        query_str.push_str(
+            " RETURN a.name as from, b.name as to, type(r) as name, properties(r) as props",
+        );
+
+        let mut query = Query::new(query_str);
+        if let Some(f) = from {
+            query = query.param("from", f.to_string());
+        }
+        if let Some(t) = to {
+            query = query.param("to", t.to_string());
+        }
+        if let Some(n) = name {
+            query = query.param("type", n.to_string());
+        }
+
+        let mut result = self.graph.execute(query).await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to query relationships".to_string(), e)
+        })?;
+
+        let mut rels = Vec::new();
+        while let Some(row) = result.next().await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to fetch relationships".to_string(), e)
+        })? {
+            let from = row.get::<String>("from").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to get from".to_string(), e)
+            })?;
+            let to = row.get::<String>("to").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to get to".to_string(), e)
+            })?;
+            let name = row.get::<String>("name").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to get name".to_string(), e)
+            })?;
+            let props_bolt = row.get::<neo4rs::BoltType>("props").map_err(|e| {
+                MemoryError::runtime_error_with_source("Failed to decode props".to_string(), e)
+            })?;
+            let mut properties = HashMap::new();
+            if let neo4rs::BoltType::Map(map) = props_bolt {
+                for (k, v) in &map.value {
+                    let mv = bolt_to_memory_value(v.clone())?;
+                    properties.insert(k.to_string(), mv);
+                }
+            }
+            rels.push(MemoryRelationship {
+                from,
+                to,
+                name,
+                properties,
+            });
+        }
+        Ok(rels)
     }
 }
 

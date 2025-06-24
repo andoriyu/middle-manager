@@ -4,14 +4,14 @@ use crate::ports::Ports;
 use mm_memory::MemoryRepository;
 use tracing::instrument;
 
-/// Command to create a new entity
+/// Command to create new entities
 #[derive(Debug, Clone)]
-pub struct CreateEntityCommand {
+pub struct CreateEntitiesCommand {
     pub entities: Vec<MemoryEntity>,
 }
 
-/// Result type for the create_entity operation
-pub type CreateEntityResult<E> = CoreResult<(), E>;
+/// Result type for the create_entities operation
+pub type CreateEntitiesResult<E> = CoreResult<(), E>;
 
 /// Create a new entity
 ///
@@ -24,10 +24,10 @@ pub type CreateEntityResult<E> = CoreResult<(), E>;
 ///
 /// Ok(()) if the entity was created successfully, or an error
 #[instrument(skip(ports), fields(entities_count = command.entities.len()))]
-pub async fn create_entity<R>(
+pub async fn create_entities<R>(
     ports: &Ports<R>,
-    command: CreateEntityCommand,
-) -> CreateEntityResult<R::Error>
+    command: CreateEntitiesCommand,
+) -> CreateEntitiesResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
@@ -53,7 +53,7 @@ mod tests {
     use std::sync::Arc;
 
     #[tokio::test]
-    async fn test_create_entity_success() {
+    async fn test_create_entities_success() {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo
             .expect_create_entities()
@@ -70,7 +70,7 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateEntityCommand {
+        let command = CreateEntitiesCommand {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
@@ -78,12 +78,12 @@ mod tests {
             }],
         };
 
-        let result = create_entity(&ports, command).await;
+        let result = create_entities(&ports, command).await;
         assert!(result.is_ok());
     }
 
     #[tokio::test]
-    async fn test_create_entity_empty_name() {
+    async fn test_create_entities_empty_name() {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo.expect_create_entities().never();
 
@@ -97,7 +97,7 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateEntityCommand {
+        let command = CreateEntitiesCommand {
             entities: vec![MemoryEntity {
                 name: "".to_string(),
                 labels: vec!["Test".to_string()],
@@ -105,7 +105,7 @@ mod tests {
             }],
         };
 
-        let result = create_entity(&ports, command).await;
+        let result = create_entities(&ports, command).await;
         assert!(matches!(
             result,
             Err(CoreError::BatchValidation(ref errs)) if errs.iter().any(|(n, e)| n.is_empty() && e.0.contains(&ValidationErrorKind::EmptyEntityName))
@@ -113,7 +113,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_create_entity_repository_error() {
+    async fn test_create_entities_repository_error() {
         use mm_memory::MemoryError;
 
         let mut mock_repo = MockMemoryRepository::new();
@@ -132,7 +132,7 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateEntityCommand {
+        let command = CreateEntitiesCommand {
             entities: vec![MemoryEntity {
                 name: "test:entity".to_string(),
                 labels: vec!["Test".to_string()],
@@ -140,13 +140,13 @@ mod tests {
             }],
         };
 
-        let result = create_entity(&ports, command).await;
+        let result = create_entities(&ports, command).await;
 
         assert!(matches!(result, Err(CoreError::Memory(_))));
     }
 
     #[tokio::test]
-    async fn test_create_entity_multiple_errors() {
+    async fn test_create_entities_multiple_errors() {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo.expect_create_entities().never();
 
@@ -160,7 +160,7 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let command = CreateEntityCommand {
+        let command = CreateEntitiesCommand {
             entities: vec![
                 MemoryEntity {
                     name: "".to_string(),
@@ -173,7 +173,7 @@ mod tests {
             ],
         };
 
-        let result = create_entity(&ports, command).await;
+        let result = create_entities(&ports, command).await;
 
         if let Err(CoreError::BatchValidation(errs)) = result {
             assert_eq!(errs.len(), 2);

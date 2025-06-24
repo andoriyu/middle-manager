@@ -1,4 +1,4 @@
-use mm_core::{CreateRelationshipCommand, MemoryRelationship, create_relationship};
+use mm_core::{CreateRelationshipsCommand, MemoryRelationship, create_relationships};
 use mm_memory::MemoryValue;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
@@ -26,25 +26,25 @@ impl RelationshipInput {
 }
 
 #[mcp_tool(
-    name = "create_relationship",
-    description = "Create a relationship between two entities"
+    name = "create_relationships",
+    description = "Create relationships between entities"
 )]
 #[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
-pub struct CreateRelationshipTool {
+pub struct CreateRelationshipsTool {
     pub relationships: Vec<RelationshipInput>,
 }
 
-impl CreateRelationshipTool {
+impl CreateRelationshipsTool {
     generate_call_tool!(
         self,
-        CreateRelationshipCommand {
+        CreateRelationshipsCommand {
             relationships => self
                 .relationships
                 .iter()
                 .map(RelationshipInput::to_memory_relationship)
                 .collect(),
         },
-        create_relationship,
+        create_relationships,
         |_cmd, _res| {
             Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
                 "Relationships created".to_string(),
@@ -71,7 +71,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let tool = CreateRelationshipTool {
+        let tool = CreateRelationshipsTool {
             relationships: vec![RelationshipInput {
                 from: "a".to_string(),
                 to: "b".to_string(),
@@ -94,7 +94,7 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let tool = CreateRelationshipTool {
+        let tool = CreateRelationshipsTool {
             relationships: vec![RelationshipInput {
                 from: "a".to_string(),
                 to: "b".to_string(),
@@ -115,7 +115,7 @@ mod schema_tests {
     #[test]
     fn test_schema_has_no_refs() {
         // Generate the schema for CreateRelationshipTool
-        let schema = CreateRelationshipTool::json_schema();
+        let schema = CreateRelationshipsTool::json_schema();
 
         // Convert to a string to check for $defs
         let schema_str =

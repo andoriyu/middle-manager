@@ -4,7 +4,7 @@ use crate::value::MemoryValue;
 use crate::{
     DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, EntityUpdate, LabelMatchMode, MemoryConfig,
     MemoryEntity, MemoryRelationship, MemoryRepository, MemoryResult, RelationshipDirection,
-    RelationshipUpdate, ValidationError, ValidationErrorKind,
+    RelationshipUpdate, ValidationError, ValidationErrorKind, relationship::RelationshipRef,
 };
 use mm_utils::is_snake_case;
 use schemars::JsonSchema;
@@ -255,6 +255,86 @@ where
         }
 
         Ok(errors)
+    }
+
+    /// Delete entities by name
+    #[instrument(skip(self, names), fields(names_count = names.len()))]
+    pub async fn delete_entities(
+        &self,
+        names: &[String],
+    ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
+        let mut errors = Vec::default();
+        let mut valid = Vec::default();
+
+        for name in names {
+            if name.is_empty() {
+                errors.push((
+                    name.clone(),
+                    ValidationError(vec![ValidationErrorKind::EmptyEntityName]),
+                ));
+            } else {
+                valid.push(name.clone());
+            }
+        }
+
+        if !valid.is_empty() {
+            self.repository.delete_entities(&valid).await?;
+        }
+
+        Ok(errors)
+    }
+
+    /// Delete relationships
+    #[instrument(skip(self, relationships), fields(rel_count = relationships.len()))]
+    pub async fn delete_relationships(
+        &self,
+        relationships: &[RelationshipRef],
+    ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
+        let mut errors = Vec::default();
+        let mut valid = Vec::default();
+
+        for rel in relationships {
+            let mut errs = Vec::default();
+            if rel.from.is_empty() || rel.to.is_empty() {
+                errs.push(ValidationErrorKind::EmptyEntityName);
+            }
+            if !is_snake_case(&rel.name) {
+                errs.push(ValidationErrorKind::InvalidRelationshipFormat(
+                    rel.name.clone(),
+                ));
+            }
+            if self.config.default_relationships
+                && !DEFAULT_RELATIONSHIPS.contains(&rel.name.as_str())
+                && !self.config.additional_relationships.contains(&rel.name)
+            {
+                errs.push(ValidationErrorKind::UnknownRelationship(rel.name.clone()));
+            }
+
+            if errs.is_empty() {
+                valid.push(rel.clone());
+            } else {
+                errors.push((rel.name.clone(), ValidationError(errs)));
+            }
+        }
+
+        if !valid.is_empty() {
+            self.repository.delete_relationships(&valid).await?;
+        }
+
+        Ok(errors)
+    }
+
+    /// Find relationships
+    #[instrument(skip(self))]
+    pub async fn find_relationships(
+        &self,
+        from: Option<String>,
+        to: Option<String>,
+        name: Option<String>,
+    ) -> MemoryResult<Vec<MemoryRelationship>, R::Error> {
+        self.repository
+            .find_relationships(from.as_deref(), to.as_deref(), name.as_deref())
+            .await
     }
 
     /// Find entities related to the given entity
