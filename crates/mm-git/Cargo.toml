@@ -1,0 +1,19 @@
+[package]
+name = "mm-git"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+
+[features]
+mock = ["mockall"]
+
+[dependencies]
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+schemars = { workspace = true }
+mockall = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+mockall = { workspace = true }
