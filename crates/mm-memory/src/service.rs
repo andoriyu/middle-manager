@@ -531,6 +531,7 @@ mod tests {
                 default_labels: false,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
         let entity = MemoryEntity {
@@ -562,6 +563,7 @@ mod tests {
                 default_labels: false,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
         let entity = MemoryEntity {
@@ -597,6 +599,7 @@ mod tests {
                 default_labels: false,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -627,6 +630,7 @@ mod tests {
                 default_labels: false,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -663,6 +667,7 @@ mod tests {
                 default_labels: true,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -693,6 +698,7 @@ mod tests {
                 default_labels: true,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -726,6 +732,7 @@ mod tests {
                 default_labels: true,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -756,6 +763,7 @@ mod tests {
                 default_labels: true,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -793,6 +801,7 @@ mod tests {
                 default_labels: false,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -821,6 +830,7 @@ mod tests {
                 default_labels: true,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -931,6 +941,7 @@ mod tests {
                 default_labels: true,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 
@@ -960,6 +971,7 @@ mod tests {
                 default_labels: true,
                 additional_labels: HashSet::default(),
                 default_project: None,
+                agent_name: "test".to_string(),
             },
         );
 

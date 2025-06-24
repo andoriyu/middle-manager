@@ -27,6 +27,10 @@ pub struct MemoryConfig {
     /// Optional default project name to use when not explicitly specified
     #[serde(default)]
     pub default_project: Option<String>,
+
+    /// Name of the agent using this configuration
+    #[serde(default)]
+    pub agent_name: String,
 }
 
 /// Default label used when none is specified in the configuration
@@ -130,6 +134,7 @@ impl Default for MemoryConfig {
             default_labels: true,
             additional_labels: HashSet::default(),
             default_project: None,
+            agent_name: "unknown".to_string(),
         }
     }
 }
