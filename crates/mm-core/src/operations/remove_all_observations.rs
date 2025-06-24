@@ -1,6 +1,7 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
+use mm_git::GitServiceTrait;
 use mm_memory::MemoryRepository;
 use tracing::instrument;
 
@@ -12,13 +13,14 @@ pub struct RemoveAllObservationsCommand {
 pub type RemoveAllObservationsResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(name = %command.name))]
-pub async fn remove_all_observations<R>(
-    ports: &Ports<R>,
+pub async fn remove_all_observations<R, G>(
+    ports: &Ports<R, G>,
     command: RemoveAllObservationsCommand,
 ) -> RemoveAllObservationsResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync,
 {
     validate_name!(command.name);
 
@@ -44,7 +46,7 @@ mod tests {
             .withf(|name| name == "test:entity")
             .returning(|_| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let command = RemoveAllObservationsCommand {
             name: "test:entity".to_string(),
         };
@@ -57,7 +59,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_remove_all_observations().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let command = RemoveAllObservationsCommand {
             name: "".to_string(),
         };
@@ -75,7 +77,7 @@ mod tests {
             .withf(|name| name == "test:entity")
             .returning(|_| Err(MemoryError::runtime_error("fail")));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let command = RemoveAllObservationsCommand {
             name: "test:entity".to_string(),
         };
@@ -96,7 +98,7 @@ mod tests {
                 .withf(move |n| n == name_clone)
                 .returning(|_| Ok(()));
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let ports = Ports::new(Arc::new(service));
+            let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
             let command = RemoveAllObservationsCommand { name };
             let result = rt.block_on(remove_all_observations(&ports, command));
             assert!(result.is_ok());
@@ -110,7 +112,7 @@ mod tests {
             let mut mock = MockMemoryRepository::new();
             mock.expect_remove_all_observations().never();
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let ports = Ports::new(Arc::new(service));
+            let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
             let command = RemoveAllObservationsCommand {
                 name: String::default(),
             };

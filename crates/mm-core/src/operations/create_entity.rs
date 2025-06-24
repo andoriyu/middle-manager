@@ -1,6 +1,7 @@
 use crate::MemoryEntity;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use mm_git::GitServiceTrait;
 use mm_memory::MemoryRepository;
 use tracing::instrument;
 
@@ -24,13 +25,14 @@ pub type CreateEntityResult<E> = CoreResult<(), E>;
 ///
 /// Ok(()) if the entity was created successfully, or an error
 #[instrument(skip(ports), fields(entities_count = command.entities.len()))]
-pub async fn create_entity<R>(
-    ports: &Ports<R>,
+pub async fn create_entity<R, G>(
+    ports: &Ports<R, G>,
     command: CreateEntityCommand,
 ) -> CreateEntityResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync,
 {
     let errors = ports
         .memory_service
@@ -68,7 +70,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = CreateEntityCommand {
             entities: vec![MemoryEntity {
@@ -95,7 +97,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = CreateEntityCommand {
             entities: vec![MemoryEntity {
@@ -130,7 +132,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = CreateEntityCommand {
             entities: vec![MemoryEntity {
@@ -158,7 +160,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = CreateEntityCommand {
             entities: vec![

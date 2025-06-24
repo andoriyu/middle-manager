@@ -54,6 +54,8 @@ where
                 .map(|(name, err)| format!("{}: {}", name, err))
                 .collect::<Vec<_>>()
                 .join("; "),
+            CoreError::Git(e) => e.to_string(),
+            CoreError::GitNotConfigured => "Git service not configured".to_string(),
         };
         Self::with_source(message, error)
     }

@@ -1,3 +1,4 @@
+use mm_git::GitServiceTrait;
 use mm_memory::{LabelMatchMode, MemoryEntity};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -22,13 +23,14 @@ pub struct ListProjectsResult {
 
 /// List all available projects
 #[instrument(skip(ports), err)]
-pub async fn list_projects<R>(
-    ports: &Ports<R>,
+pub async fn list_projects<R, G>(
+    ports: &Ports<R, G>,
     command: ListProjectsCommand,
 ) -> CoreResult<ListProjectsResult, R::Error>
 where
     R: mm_memory::MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync,
 {
     // Find all projects
     let mut projects = ports
@@ -88,7 +90,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = ListProjectsCommand { name_filter: None };
 
@@ -131,7 +133,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = ListProjectsCommand {
             name_filter: Some("flakes".to_string()),
@@ -159,7 +161,7 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = ListProjectsCommand { name_filter: None };
 

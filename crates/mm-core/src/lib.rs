@@ -16,16 +16,20 @@ pub use mm_memory::MemoryService;
 pub use operations::{
     AddObservationsCommand, AddObservationsResult, CreateEntityCommand, CreateEntityResult,
     CreateRelationshipCommand, CreateRelationshipResult, GetEntityCommand, GetEntityResult,
-    GetProjectContextCommand, GetProjectContextResult, ListProjectsCommand, ListProjectsResult,
-    ProjectFilter, RemoveAllObservationsCommand, RemoveAllObservationsResult,
-    RemoveObservationsCommand, RemoveObservationsResult, SetObservationsCommand,
-    SetObservationsResult, UpdateEntityCommand, UpdateEntityResult, UpdateRelationshipCommand,
-    UpdateRelationshipResult, add_observations, create_entity, create_relationship, get_entity,
-    get_project_context, list_projects, remove_all_observations, remove_observations,
-    set_observations, update_entity, update_relationship,
+    GetGitStatusCommand, GetGitStatusResult, GetProjectContextCommand, GetProjectContextResult,
+    ListProjectsCommand, ListProjectsResult, ProjectFilter, RemoveAllObservationsCommand,
+    RemoveAllObservationsResult, RemoveObservationsCommand, RemoveObservationsResult,
+    SetObservationsCommand, SetObservationsResult, UpdateEntityCommand, UpdateEntityResult,
+    UpdateRelationshipCommand, UpdateRelationshipResult, add_observations, create_entity,
+    create_relationship, get_entity, get_git_status, get_project_context, list_projects,
+    remove_all_observations, remove_observations, set_observations, update_entity,
+    update_relationship,
 };
 pub use ports::Ports;
 pub use root::{Root, RootCollection};
+
+// Re-export types from mm-git
+pub use mm_git::RepositoryStatus;
 
 // Re-export types from mm-memory
 pub use mm_memory::{MemoryEntity, MemoryRelationship, ProjectContext};

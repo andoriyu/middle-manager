@@ -16,6 +16,12 @@ where
     #[error("Validation error")]
     Validation(#[from] mm_memory::ValidationError),
 
+    #[error("Git error")]
+    Git(#[from] mm_git::GitError),
+
+    #[error("Git service not configured")]
+    GitNotConfigured,
+
     /// Multiple validation errors grouped by name
     #[error("Batch validation error")]
     BatchValidation(Vec<(String, mm_memory::ValidationError)>),
@@ -23,3 +29,12 @@ where
 
 /// Result type for mm-core
 pub type CoreResult<T, E> = std::result::Result<T, CoreError<E>>;
+
+impl<E> CoreError<E>
+where
+    E: StdError + Send + Sync + 'static,
+{
+    pub fn git_not_configured() -> Self {
+        CoreError::GitNotConfigured
+    }
+}

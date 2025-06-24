@@ -36,7 +36,7 @@ mod tests {
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let tool = RemoveAllObservationsTool {
             name: "test:entity".to_string(),
@@ -55,7 +55,7 @@ mod tests {
             .returning(|_| Err(MemoryError::runtime_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let tool = RemoveAllObservationsTool {
             name: "test:entity".to_string(),

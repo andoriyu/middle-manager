@@ -33,10 +33,11 @@ macro_rules! generate_call_tool {
 
     // Custom success block version that provides both the command and the result
     ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $operation:path, |$cmd_ident:ident, $res_ident:ident| $success_block:block) => {
-        pub async fn call_tool<R>(&$self_ident, ports: &mm_core::Ports<R>) -> Result<rust_mcp_sdk::schema::CallToolResult, rust_mcp_sdk::schema::schema_utils::CallToolError>
+        pub async fn call_tool<R, G>(&$self_ident, ports: &mm_core::Ports<R, G>) -> Result<rust_mcp_sdk::schema::CallToolResult, rust_mcp_sdk::schema::schema_utils::CallToolError>
         where
             R: mm_memory::MemoryRepository + Send + Sync,
             R::Error: std::error::Error + Send + Sync + 'static,
+            G: mm_git::GitServiceTrait + Send + Sync,
         {
             use tracing::Instrument;
 

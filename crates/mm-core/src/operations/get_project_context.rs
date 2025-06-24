@@ -1,3 +1,4 @@
+use mm_git::GitServiceTrait;
 use mm_memory::{LabelMatchMode, MemoryEntity, MemoryError, ProjectContext, RelationshipDirection};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -33,13 +34,14 @@ pub struct GetProjectContextResult {
 
 /// Get project context by name or repository
 #[instrument(skip(ports), err)]
-pub async fn get_project_context<R>(
-    ports: &Ports<R>,
+pub async fn get_project_context<R, G>(
+    ports: &Ports<R, G>,
     command: GetProjectContextCommand,
 ) -> CoreResult<GetProjectContextResult, R::Error>
 where
     R: mm_memory::MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync,
 {
     match command.filter {
         ProjectFilter::Name(name) => {
@@ -122,13 +124,14 @@ where
 }
 
 /// Build a project context for a specific project entity
-async fn build_project_context<R>(
-    ports: &Ports<R>,
+async fn build_project_context<R, G>(
+    ports: &Ports<R, G>,
     project: MemoryEntity,
 ) -> CoreResult<ProjectContext, R::Error>
 where
     R: mm_memory::MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync,
 {
     let mut context = ProjectContext::new(project.clone());
 
@@ -215,7 +218,7 @@ mod tests {
             .returning(move |_, _, _, _| Ok(vec![project_entity2.clone(), related_entity.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Name("andoriyu:project:middle_manager".to_string()),
@@ -307,7 +310,7 @@ mod tests {
             .returning(move |_, _, _, _| Ok(vec![project_entity2.clone(), related_entity.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Repository("andoriyu/middle-manager".to_string()),
@@ -334,7 +337,7 @@ mod tests {
             .returning(|_| Ok(None));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Name("nonexistent:project".to_string()),
@@ -371,7 +374,7 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Name("tech:language:rust".to_string()),
@@ -403,7 +406,7 @@ mod tests {
             .returning(|_, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Repository("nonexistent/repo".to_string()),
@@ -455,7 +458,7 @@ mod tests {
             .returning(|_, _, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let command = GetProjectContextCommand {
             filter: ProjectFilter::Repository("andoriyu/no-project".to_string()),

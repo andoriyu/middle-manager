@@ -5,6 +5,8 @@ members = [
     "crates/mm-memory",
     "crates/mm-memory-neo4j",
     "crates/mm-server",
+    "crates/mm-git",
+    "crates/mm-git-libgit2",
     "crates/mm-utils",
 ]
 resolver = "3"

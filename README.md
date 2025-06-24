@@ -23,6 +23,7 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 | `add_observations` | Append observations to an entity |
 | `remove_observations` | Remove specific observations from an entity |
 | `remove_all_observations` | Delete all observations from an entity |
+| `git_status` | Retrieve repository status information |
 
 ## Project Structure
 
@@ -131,6 +132,10 @@ graph TD
 
 - Fetch any entity with `memory://{name}`; `list_resource_templates` advertises this
 - Configurable logging
+
+### Git
+
+- Retrieve Git repository status with `git_status`
 
 ## Building
 

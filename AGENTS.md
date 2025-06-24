@@ -199,7 +199,7 @@ async fn test_get_entity_success() {
             properties: HashMap::default(),
         })));
     
-    let ports = Ports::new(Arc::new(mock));
+    let ports = Ports::new(Arc::new(mock), Arc::new(mm_git::NoopGitService));
     
     let command = GetEntityCommand {
         name: "test:entity".to_string(),

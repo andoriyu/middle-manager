@@ -4,6 +4,7 @@ pub mod add_observations;
 pub mod create_entity;
 pub mod create_relationship;
 pub mod get_entity;
+pub mod get_git_status;
 pub mod get_project_context;
 pub mod list_projects;
 pub mod remove_all_observations;
@@ -18,6 +19,7 @@ pub use create_relationship::{
     CreateRelationshipCommand, CreateRelationshipResult, create_relationship,
 };
 pub use get_entity::{GetEntityCommand, GetEntityResult, get_entity};
+pub use get_git_status::{GetGitStatusCommand, GetGitStatusResult, get_git_status};
 pub use get_project_context::{
     GetProjectContextCommand, GetProjectContextResult, ProjectFilter, get_project_context,
 };

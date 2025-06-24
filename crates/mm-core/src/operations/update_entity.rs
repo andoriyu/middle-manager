@@ -1,6 +1,7 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
+use mm_git::GitServiceTrait;
 use mm_memory::{EntityUpdate, MemoryRepository};
 use tracing::instrument;
 
@@ -13,13 +14,14 @@ pub struct UpdateEntityCommand {
 pub type UpdateEntityResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(name = %command.name))]
-pub async fn update_entity<R>(
-    ports: &Ports<R>,
+pub async fn update_entity<R, G>(
+    ports: &Ports<R, G>,
     command: UpdateEntityCommand,
 ) -> UpdateEntityResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync,
 {
     validate_name!(command.name);
 
@@ -43,7 +45,7 @@ mod tests {
             .withf(|n, _| n == "test:entity")
             .returning(|_, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let cmd = UpdateEntityCommand {
             name: "test:entity".into(),
             update: EntityUpdate::default(),
@@ -57,7 +59,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_update_entity().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let cmd = UpdateEntityCommand {
             name: "".into(),
             update: EntityUpdate::default(),

@@ -109,7 +109,7 @@ mod tests {
 
         // Create service and ports
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         // Create and call tool
         let tool = GetProjectContextTool {
@@ -130,7 +130,7 @@ mod tests {
     async fn test_call_tool_missing_parameters() {
         let mock = MockMemoryRepository::new();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
 
         let tool = GetProjectContextTool {
             project_name: None,

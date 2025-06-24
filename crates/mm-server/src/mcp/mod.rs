@@ -6,6 +6,7 @@ pub mod create_relationship;
 pub mod error;
 pub mod get_entity;
 pub mod get_project_context;
+pub mod git_status;
 pub mod list_projects;
 pub mod remove_all_observations;
 pub mod remove_observations;
@@ -20,6 +21,7 @@ pub use create_entity::CreateEntityTool;
 pub use create_relationship::CreateRelationshipTool;
 pub use get_entity::GetEntityTool;
 pub use get_project_context::GetProjectContextTool;
+pub use git_status::GitStatusTool;
 pub use list_projects::ListProjectsTool;
 pub use remove_all_observations::RemoveAllObservationsTool;
 pub use remove_observations::RemoveObservationsTool;
@@ -41,6 +43,7 @@ tool_box!(
         GetProjectContextTool,
         ListProjectsTool,
         UpdateEntityTool,
-        UpdateRelationshipTool
+        UpdateRelationshipTool,
+        GitStatusTool
     ]
 );

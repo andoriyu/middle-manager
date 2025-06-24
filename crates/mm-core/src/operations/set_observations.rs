@@ -1,6 +1,7 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
+use mm_git::GitServiceTrait;
 use mm_memory::MemoryRepository;
 use tracing::instrument;
 
@@ -13,13 +14,14 @@ pub struct SetObservationsCommand {
 pub type SetObservationsResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(name = %command.name, observations_count = command.observations.len()))]
-pub async fn set_observations<R>(
-    ports: &Ports<R>,
+pub async fn set_observations<R, G>(
+    ports: &Ports<R, G>,
     command: SetObservationsCommand,
 ) -> SetObservationsResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync,
 {
     validate_name!(command.name);
 
@@ -45,7 +47,7 @@ mod tests {
             .withf(|name, obs| name == "test:entity" && obs.len() == 1)
             .returning(|_, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let command = SetObservationsCommand {
             name: "test:entity".to_string(),
             observations: vec!["obs".to_string()],
@@ -59,7 +61,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_set_observations().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let command = SetObservationsCommand {
             name: "".to_string(),
             observations: vec![],
@@ -78,7 +80,7 @@ mod tests {
             .withf(|name, _| name == "test:entity")
             .returning(|_, _| Err(MemoryError::runtime_error("fail")));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let command = SetObservationsCommand {
             name: "test:entity".to_string(),
             observations: vec!["obs".to_string()],
@@ -102,7 +104,7 @@ mod tests {
                 .withf(move |n, o| n == name_clone && o == obs_clone.as_slice())
                 .returning(|_, _| Ok(()));
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let ports = Ports::new(Arc::new(service));
+            let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
             let command = SetObservationsCommand { name, observations };
             let result = rt.block_on(set_observations(&ports, command));
             assert!(result.is_ok());
@@ -117,7 +119,7 @@ mod tests {
             let mut mock = MockMemoryRepository::new();
             mock.expect_set_observations().never();
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let ports = Ports::new(Arc::new(service));
+            let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
             let command = SetObservationsCommand {
                 name: String::default(),
                 observations,

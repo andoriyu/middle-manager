@@ -13,6 +13,8 @@ use std::sync::Arc;
 use anyhow::Result as AnyResult;
 
 use mm_core::{MemoryService, Ports};
+use mm_git::{GitService, GitServiceTrait};
+use mm_git_libgit2::LibGit2Repository;
 use mm_memory::MemoryRepository;
 use mm_memory_neo4j::{create_neo4j_service, neo4rs};
 
@@ -57,20 +59,22 @@ pub enum ToolsCommand {
 }
 
 /// Middle Manager MCP server handler
-pub struct MiddleManagerHandler<R>
+pub struct MiddleManagerHandler<R, G>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync + 'static,
 {
-    ports: Arc<Ports<R>>,
+    ports: Arc<Ports<R, G>>,
 }
 
-impl<R> MiddleManagerHandler<R>
+impl<R, G> MiddleManagerHandler<R, G>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync + 'static,
 {
     /// Create a new Middle Manager MCP server handler
-    pub fn new(service: MemoryService<R>) -> Self {
-        let ports = Arc::new(Ports::new(Arc::new(service)));
+    pub fn new(service: MemoryService<R>, git_service: G) -> Self {
+        let ports = Arc::new(Ports::new(Arc::new(service), Arc::new(git_service)));
         Self { ports }
     }
 
@@ -181,23 +185,29 @@ where
             MemoryTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::UpdateEntityTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::UpdateRelationshipTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::GitStatusTool(tool) => tool.call_tool(&self.ports).await?,
         };
         Ok(result)
     }
 }
 
 /// Create a Middle Manager MCP server handler with the given memory service
-pub fn create_handler<R>(memory_service: MemoryService<R>) -> MiddleManagerHandler<R>
+pub fn create_handler<R, G>(
+    memory_service: MemoryService<R>,
+    git_service: G,
+) -> MiddleManagerHandler<R, G>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync + 'static,
 {
-    MiddleManagerHandler::new(memory_service)
+    MiddleManagerHandler::new(memory_service, git_service)
 }
 
 #[async_trait]
-impl<R> ServerHandler for MiddleManagerHandler<R>
+impl<R, G> ServerHandler for MiddleManagerHandler<R, G>
 where
     R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    G: GitServiceTrait + Send + Sync + 'static,
 {
     async fn on_initialized(&self, runtime: &dyn McpServer) {
         self.update_client_roots(runtime).await;
@@ -268,7 +278,7 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
         .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
 
     // Create server handler
-    let handler = create_handler(memory_service);
+    let handler = create_handler(memory_service, GitService::new(LibGit2Repository::new()));
 
     // Create server details
     let server_details = InitializeResult {
@@ -308,7 +318,8 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
     // Load configuration
     let config = Config::load(config_paths)?;
     let service = create_neo4j_service(config.neo4j, config.memory).await?;
-    let ports = Ports::new(Arc::new(service));
+    let git_service = GitService::new(LibGit2Repository::new());
+    let ports = Ports::new(Arc::new(service), Arc::new(git_service));
 
     match command {
         ToolsCommand::List => {
@@ -362,6 +373,7 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                     MemoryTools::ListProjectsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::UpdateEntityTool(t) => t.call_tool(&ports).await,
                     MemoryTools::UpdateRelationshipTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::GitStatusTool(t) => t.call_tool(&ports).await,
                 }
                 .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
                 println!("{}", serde_json::to_string_pretty(&result)?);

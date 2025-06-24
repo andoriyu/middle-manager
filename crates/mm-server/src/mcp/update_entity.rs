@@ -36,7 +36,7 @@ mod tests {
             .withf(|n, _| n == "e")
             .returning(|_, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::new(Arc::new(service), Arc::new(mm_git::NoopGitService));
         let tool = UpdateEntityTool {
             name: "e".into(),
             update: EntityUpdate::default(),

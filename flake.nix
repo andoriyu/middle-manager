@@ -29,6 +29,7 @@
             buildInputs = with pkgs; [
               openssl
               openssl.dev
+              libgit2
             ];
             overrideMain = old: {
               preConfigure = (old.preConfigure or "") + ''
@@ -51,13 +52,16 @@
         in
         {
           default = pkgs.mkShell {
+            nativeBuildInputs = with pkgs; [
+              libgit2
+              pkg-config
+            ];
             buildInputs = with pkgs; [
               rustToolchain
               rust-analyzer
               clippy
               rustfmt
               cmake
-              pkg-config
               openssl
               openssl.dev
               nodejs
