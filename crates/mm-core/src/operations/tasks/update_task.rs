@@ -34,7 +34,6 @@ where
 mod tests {
     use super::*;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
-    use mockall::predicate::*;
     use std::sync::Arc;
 
     #[tokio::test]

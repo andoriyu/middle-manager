@@ -71,7 +71,6 @@ where
 mod tests {
     use super::*;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
-    use mockall::predicate::*;
     use std::sync::Arc;
 
     #[tokio::test]
