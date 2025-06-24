@@ -54,6 +54,7 @@ where
                 .map(|(name, err)| format!("{}: {}", name, err))
                 .collect::<Vec<_>>()
                 .join("; "),
+            CoreError::MissingProject => "No project specified".to_string(),
         };
         Self::with_source(message, error)
     }
