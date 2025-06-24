@@ -1,48 +1,34 @@
-use mm_core::operations::memory::{CreateTaskCommand, TaskProperties, create_task};
+use mm_core::operations::memory::{CreateTasksCommand, TaskProperties, create_tasks};
 use mm_memory::MemoryEntity;
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
 
 #[mcp_tool(
-    name = "create_task",
-    description = "Create a task and associate it with a project"
+    name = "create_tasks",
+    description = "Create tasks and associate them with a project"
 )]
 #[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
-pub struct CreateTaskTool {
-    /// Unique task name
-    pub task_name: String,
-    /// Labels for the task
-    pub labels: Vec<String>,
-    /// Observations describing the task
-    #[serde(default)]
-    pub observations: Vec<String>,
-    /// Task properties
-    #[serde(default)]
-    pub properties: Option<TaskProperties>,
+pub struct CreateTasksTool {
+    /// Tasks to create
+    pub tasks: Vec<MemoryEntity<TaskProperties>>,
     /// Project to associate with
     pub project_name: Option<String>,
 }
 
-impl CreateTaskTool {
+impl CreateTasksTool {
     generate_call_tool!(
         self,
-        CreateTaskCommand {
-            task => MemoryEntity::<TaskProperties> {
-                name: self.task_name.clone(),
-                labels: self.labels.clone(),
-                observations: self.observations.clone(),
-                properties: self.properties.clone().unwrap_or_default(),
-                relationships: Vec::new(),
-            },
-            project_name
-        },
-        create_task,
+        CreateTasksCommand { tasks => self.tasks.clone(), project_name },
+        create_tasks,
         |command, _result| {
-            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                command.task.name,
-                None,
-            ))
+            serde_json::to_value(command.tasks)
+                .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
+                .map_err(|e| {
+                    rust_mcp_sdk::schema::schema_utils::CallToolError::new(
+                        crate::mcp::error::ToolError::from(e),
+                    )
+                })
         }
     );
 }
@@ -73,16 +59,17 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let tool = CreateTaskTool {
-            task_name: "task:1".into(),
-            labels: vec!["Task".into()],
-            observations: vec![],
-            properties: None,
+        let tool = CreateTasksTool {
+            tasks: vec![MemoryEntity::<TaskProperties> {
+                name: "task:1".into(),
+                labels: vec!["Task".into()],
+                ..Default::default()
+            }],
             project_name: None,
         };
 
         let result = tool.call_tool(&ports).await.unwrap();
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        assert_eq!(text, "task:1");
+        assert!(text.contains("task:1"));
     }
 }

@@ -1,31 +1,28 @@
 use super::types::TaskProperties;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use crate::validate_name;
 use mm_memory::MemoryRepository;
 use mm_memory::{MemoryEntity, MemoryRelationship};
 use std::collections::HashMap;
 use tracing::instrument;
 
 #[derive(Debug, Clone)]
-pub struct CreateTaskCommand {
-    pub task: MemoryEntity<TaskProperties>,
+pub struct CreateTasksCommand {
+    pub tasks: Vec<MemoryEntity<TaskProperties>>,
     pub project_name: Option<String>,
 }
 
-pub type CreateTaskResult<E> = CoreResult<(), E>;
+pub type CreateTasksResult<E> = CoreResult<(), E>;
 
-#[instrument(skip(ports), fields(task_name = %command.task.name))]
-pub async fn create_task<R>(
+#[instrument(skip(ports), fields(tasks_count = command.tasks.len()))]
+pub async fn create_tasks<R>(
     ports: &Ports<R>,
-    command: CreateTaskCommand,
-) -> CreateTaskResult<R::Error>
+    command: CreateTasksCommand,
+) -> CreateTasksResult<R::Error>
 where
     R: MemoryRepository + Send + Sync,
     R::Error: std::error::Error + Send + Sync + 'static,
 {
-    validate_name!(command.task.name);
-
     let project_name = match command
         .project_name
         .or_else(|| ports.memory_service.memory_config().default_project.clone())
@@ -34,12 +31,12 @@ where
         None => return Err(CoreError::MissingProject),
     };
 
-    let task = command.task;
-    let task_name = task.name.clone();
+    let tasks = command.tasks;
+    let task_names: Vec<String> = tasks.iter().map(|t| t.name.clone()).collect();
 
     let errors = ports
         .memory_service
-        .create_entities_typed(std::slice::from_ref(&task))
+        .create_entities_typed(&tasks)
         .await
         .map_err(CoreError::from)?;
 
@@ -47,16 +44,19 @@ where
         return Err(CoreError::BatchValidation(errors));
     }
 
-    let relationship = MemoryRelationship {
-        from: project_name,
-        to: task_name,
-        name: "contains".to_string(),
-        properties: HashMap::default(),
-    };
+    let relationships: Vec<MemoryRelationship> = task_names
+        .into_iter()
+        .map(|task_name| MemoryRelationship {
+            from: project_name.clone(),
+            to: task_name,
+            name: "contains".to_string(),
+            properties: HashMap::default(),
+        })
+        .collect();
 
     let errors = ports
         .memory_service
-        .create_relationships(std::slice::from_ref(&relationship))
+        .create_relationships(&relationships)
         .await
         .map_err(CoreError::from)?;
 
@@ -74,7 +74,7 @@ mod tests {
     use std::sync::Arc;
 
     #[tokio::test]
-    async fn test_create_task_success() {
+    async fn test_create_tasks_success() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities()
             .withf(|e| e.len() == 1 && e[0].name == "task:1")
@@ -97,21 +97,21 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let cmd = CreateTaskCommand {
-            task: MemoryEntity::<TaskProperties> {
+        let cmd = CreateTasksCommand {
+            tasks: vec![MemoryEntity::<TaskProperties> {
                 name: "task:1".into(),
                 labels: vec!["Task".into()],
                 ..Default::default()
-            },
+            }],
             project_name: None,
         };
 
-        let res = create_task(&ports, cmd).await;
+        let res = create_tasks(&ports, cmd).await;
         assert!(res.is_ok());
     }
 
     #[tokio::test]
-    async fn test_create_task_missing_project() {
+    async fn test_create_tasks_missing_project() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities().never();
         mock.expect_create_relationships().never();
@@ -119,21 +119,21 @@ mod tests {
         let service = MemoryService::new(mock, MemoryConfig::default());
         let ports = Ports::new(Arc::new(service));
 
-        let cmd = CreateTaskCommand {
-            task: MemoryEntity::<TaskProperties> {
+        let cmd = CreateTasksCommand {
+            tasks: vec![MemoryEntity::<TaskProperties> {
                 name: "task:1".into(),
                 labels: vec!["Task".into()],
                 ..Default::default()
-            },
+            }],
             project_name: None,
         };
 
-        let res = create_task(&ports, cmd).await;
+        let res = create_tasks(&ports, cmd).await;
         assert!(matches!(res, Err(CoreError::MissingProject)));
     }
 
     #[tokio::test]
-    async fn test_create_task_empty_name() {
+    async fn test_create_tasks_empty_name() {
         let mut mock = MockMemoryRepository::new();
         mock.expect_create_entities().never();
         mock.expect_create_relationships().never();
@@ -147,18 +147,20 @@ mod tests {
         );
         let ports = Ports::new(Arc::new(service));
 
-        let cmd = CreateTaskCommand {
-            task: MemoryEntity::<TaskProperties> {
+        let cmd = CreateTasksCommand {
+            tasks: vec![MemoryEntity::<TaskProperties> {
                 name: String::new(),
                 labels: vec!["Task".into()],
                 ..Default::default()
-            },
+            }],
             project_name: None,
         };
 
-        let res = create_task(&ports, cmd).await;
-        assert!(
-            matches!(res, Err(CoreError::Validation(ref e)) if e.0.contains(&ValidationErrorKind::EmptyEntityName))
-        );
+        let res = create_tasks(&ports, cmd).await;
+        assert!(matches!(
+            res,
+            Err(CoreError::BatchValidation(ref errs))
+                if errs.iter().any(|(_, e)| e.0.contains(&ValidationErrorKind::EmptyEntityName))
+        ));
     }
 }

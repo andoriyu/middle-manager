@@ -2,7 +2,7 @@
 mod macros;
 pub mod create_entities;
 pub mod create_relationships;
-pub mod create_task;
+pub mod create_tasks;
 pub mod delete_entities;
 pub mod delete_relationships;
 pub mod delete_task;
@@ -21,7 +21,7 @@ use rust_mcp_sdk::tool_box;
 
 pub use create_entities::CreateEntitiesTool;
 pub use create_relationships::CreateRelationshipsTool;
-pub use create_task::CreateTaskTool;
+pub use create_tasks::CreateTasksTool;
 pub use delete_entities::DeleteEntitiesTool;
 pub use delete_relationships::DeleteRelationshipsTool;
 pub use delete_task::DeleteTaskTool;
@@ -45,7 +45,7 @@ tool_box!(
         DeleteRelationshipsTool,
         FindEntitiesByLabelsTool,
         FindRelationshipsTool,
-        CreateTaskTool,
+        CreateTasksTool,
         GetTaskTool,
         UpdateTaskTool,
         DeleteTaskTool,
