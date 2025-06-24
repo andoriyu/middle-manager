@@ -136,30 +136,36 @@ async fn run(args: Args) -> anyhow::Result<()> {
     let config_paths: Vec<PathBuf> = args.config;
 
     match args.command.unwrap_or(Command::Server) {
-        Command::Server => {
-            mm_server_lib::run_server(&config_paths).await?
-        },
+        Command::Server => mm_server_lib::run_server(&config_paths).await?,
         Command::Tools(tools_subcommand) => {
             match tools_subcommand.command {
                 ToolsSubcommandType::List => {
                     mm_server_lib::run_tools(ToolsCommand::List, &config_paths).await?
-                },
-                ToolsSubcommandType::Call { tool_name, tool_input } => {
+                }
+                ToolsSubcommandType::Call {
+                    tool_name,
+                    tool_input,
+                } => {
                     mm_server_lib::run_tools(
-                        ToolsCommand::Call { tool_name, tool_input },
-                        &config_paths
-                    ).await?
-                },
+                        ToolsCommand::Call {
+                            tool_name,
+                            tool_input,
+                        },
+                        &config_paths,
+                    )
+                    .await?
+                }
                 ToolsSubcommandType::Schema { tool_name } => {
                     // Always use "MMTools" as the toolbox name (hardcoded)
                     mm_server_lib::run_tools(
-                        ToolsCommand::Schema { 
-                            toolbox: "MMTools".to_string(), 
-                            tool_name 
+                        ToolsCommand::Schema {
+                            toolbox: "MMTools".to_string(),
+                            tool_name,
                         },
-                        &config_paths
-                    ).await?
-                },
+                        &config_paths,
+                    )
+                    .await?
+                }
             }
         }
     }

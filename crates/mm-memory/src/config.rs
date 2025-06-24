@@ -54,6 +54,7 @@ pub const DEFAULT_RELATIONSHIPS: &[&str] = &[
     "references",
     "tagged_with",
     "example_of",
+    "depends_on",
 ];
 
 /// Default set of allowed label names derived from the schema
