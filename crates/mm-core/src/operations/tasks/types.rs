@@ -125,7 +125,7 @@ impl From<HashMap<String, MemoryValue>> for TaskProperties {
             Some(MemoryValue::String(s)) => {
                 serde_json::from_str(&format!("\"{}\"", s)).unwrap_or(Priority::Low)
             }
-            _ => Priority::Low,
+            _ => TaskProperties::default().priority,
         };
 
         TaskProperties {
