@@ -33,7 +33,7 @@ use rust_mcp_sdk::{
 use tracing::{debug, error};
 
 pub mod mcp;
-use mcp::MemoryTools;
+use mcp::MMTools;
 mod resources;
 mod roots;
 
@@ -109,7 +109,7 @@ where
         Ok(ListToolsResult {
             meta: None,
             next_cursor: None,
-            tools: MemoryTools::tools(),
+            tools: MMTools::tools(),
         })
     }
 
@@ -160,27 +160,31 @@ where
         let tool_name = request.tool_name().to_string();
         debug!("Handling call tool request: {}", tool_name);
 
-        // Attempt to convert request parameters into MemoryTools enum
-        let tool_params = MemoryTools::try_from(request.params)
+        // Attempt to convert request parameters into MMTools enum
+        let tool_params = MMTools::try_from(request.params)
             .map_err(|_| CallToolError::unknown_tool(tool_name.clone()))?;
 
         // Match the tool variant and execute its corresponding logic
         let result = match tool_params {
-            MemoryTools::CreateEntitiesTool(create_entity_tool) => {
+            MMTools::CreateEntitiesTool(create_entity_tool) => {
                 create_entity_tool.call_tool(&self.ports).await?
             }
-            MemoryTools::CreateRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::DeleteEntitiesTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::DeleteRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::FindEntitiesByLabelsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::FindRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::GetEntityTool(get_entity_tool) => {
+            MMTools::CreateRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::DeleteEntitiesTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::DeleteRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::FindEntitiesByLabelsTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::FindRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::CreateTaskTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::GetTaskTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::UpdateTaskTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::DeleteTaskTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::GetEntityTool(get_entity_tool) => {
                 get_entity_tool.call_tool(&self.ports).await?
             }
-            MemoryTools::GetProjectContextTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::UpdateEntityTool(tool) => tool.call_tool(&self.ports).await?,
-            MemoryTools::UpdateRelationshipTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::GetProjectContextTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::UpdateEntityTool(tool) => tool.call_tool(&self.ports).await?,
+            MMTools::UpdateRelationshipTool(tool) => tool.call_tool(&self.ports).await?,
         };
         Ok(result)
     }
@@ -312,8 +316,8 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
 
     match command {
         ToolsCommand::List => {
-            println!("MemoryTools:");
-            for tool in MemoryTools::tools() {
+            println!("MMTools:");
+            for tool in MMTools::tools() {
                 let desc = tool.description.unwrap_or_default();
                 println!("  {} - {}", tool.name, desc);
             }
@@ -326,7 +330,7 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 let result = ListToolsResult {
                     meta: None,
                     next_cursor: None,
-                    tools: MemoryTools::tools(),
+                    tools: MMTools::tools(),
                 };
                 println!("{}", serde_json::to_string_pretty(&result)?);
             }
@@ -349,26 +353,30 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                     arguments: Some(map),
                 };
                 let tool =
-                    MemoryTools::try_from(params).map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
+                    MMTools::try_from(params).map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
                 let result = match tool {
-                    MemoryTools::CreateEntitiesTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::CreateRelationshipsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::DeleteEntitiesTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::DeleteRelationshipsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::FindEntitiesByLabelsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::FindRelationshipsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::GetEntityTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::GetProjectContextTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::ListProjectsTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::UpdateEntityTool(t) => t.call_tool(&ports).await,
-                    MemoryTools::UpdateRelationshipTool(t) => t.call_tool(&ports).await,
+                    MMTools::CreateEntitiesTool(t) => t.call_tool(&ports).await,
+                    MMTools::CreateRelationshipsTool(t) => t.call_tool(&ports).await,
+                    MMTools::DeleteEntitiesTool(t) => t.call_tool(&ports).await,
+                    MMTools::DeleteRelationshipsTool(t) => t.call_tool(&ports).await,
+                    MMTools::FindEntitiesByLabelsTool(t) => t.call_tool(&ports).await,
+                    MMTools::FindRelationshipsTool(t) => t.call_tool(&ports).await,
+                    MMTools::CreateTaskTool(t) => t.call_tool(&ports).await,
+                    MMTools::GetTaskTool(t) => t.call_tool(&ports).await,
+                    MMTools::UpdateTaskTool(t) => t.call_tool(&ports).await,
+                    MMTools::DeleteTaskTool(t) => t.call_tool(&ports).await,
+                    MMTools::GetEntityTool(t) => t.call_tool(&ports).await,
+                    MMTools::GetProjectContextTool(t) => t.call_tool(&ports).await,
+                    MMTools::ListProjectsTool(t) => t.call_tool(&ports).await,
+                    MMTools::UpdateEntityTool(t) => t.call_tool(&ports).await,
+                    MMTools::UpdateRelationshipTool(t) => t.call_tool(&ports).await,
                 }
                 .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
                 println!("{}", serde_json::to_string_pretty(&result)?);
             }
         },
         ToolsCommand::Schema { toolbox, tool_name } => {
-            if toolbox != "MemoryTools" {
+            if toolbox != "MMTools" {
                 anyhow::bail!("Unknown toolbox: {}", toolbox);
             }
             let schema = match tool_name.as_str() {
@@ -378,6 +386,10 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 "delete_relationships" => mcp::DeleteRelationshipsTool::json_schema(),
                 "find_entities_by_labels" => mcp::FindEntitiesByLabelsTool::json_schema(),
                 "find_relationships" => mcp::FindRelationshipsTool::json_schema(),
+                "create_task" => mcp::CreateTaskTool::json_schema(),
+                "get_task" => mcp::GetTaskTool::json_schema(),
+                "update_task" => mcp::UpdateTaskTool::json_schema(),
+                "delete_task" => mcp::DeleteTaskTool::json_schema(),
                 "get_entity" => mcp::GetEntityTool::json_schema(),
                 "get_project_context" => mcp::GetProjectContextTool::json_schema(),
                 "list_projects" => mcp::ListProjectsTool::json_schema(),
