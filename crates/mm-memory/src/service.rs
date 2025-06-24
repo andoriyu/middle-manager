@@ -81,6 +81,11 @@ where
         Self { repository, config }
     }
 
+    /// Get a reference to the service configuration
+    pub fn memory_config(&self) -> &MemoryConfig {
+        &self.config
+    }
+
     /// Create multiple entities in a batch
     #[instrument(skip(self, entities), fields(entities_count = entities.len()))]
     pub async fn create_entities_typed<P>(
