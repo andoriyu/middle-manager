@@ -73,6 +73,14 @@ jobs:
         run: |
           mkdir -p coverage
           cargo llvm-cov nextest --workspace --all-targets --profile ci --no-fail-fast --lcov --output-path coverage/lcov.info
+      - name: Test CLI tools command
+        run: |
+          # Run the CLI command and check if it returns valid JSON
+          output=$(cargo run -p mm-cli -- --config config/default.toml tools call tools/list '{}')
+          echo "CLI output: $output"
+          
+          # Check if the output is valid JSON
+          echo "$output" | jq . || (echo "CLI command did not return valid JSON" && exit 1)
       - name: Upload junit report
         uses: actions/upload-artifact@v4
         with:
