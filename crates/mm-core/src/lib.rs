@@ -19,9 +19,10 @@ pub use operations::{
     GetProjectContextCommand, GetProjectContextResult, ListProjectsCommand, ListProjectsResult,
     ProjectFilter, RemoveAllObservationsCommand, RemoveAllObservationsResult,
     RemoveObservationsCommand, RemoveObservationsResult, SetObservationsCommand,
-    SetObservationsResult, add_observations, create_entity, create_relationship, get_entity,
+    SetObservationsResult, UpdateEntityCommand, UpdateEntityResult, UpdateRelationshipCommand,
+    UpdateRelationshipResult, add_observations, create_entity, create_relationship, get_entity,
     get_project_context, list_projects, remove_all_observations, remove_observations,
-    set_observations,
+    set_observations, update_entity, update_relationship,
 };
 pub use ports::Ports;
 pub use root::{Root, RootCollection};

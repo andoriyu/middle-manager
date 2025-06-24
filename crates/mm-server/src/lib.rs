@@ -179,6 +179,8 @@ where
             MemoryTools::RemoveObservationsTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::GetProjectContextTool(tool) => tool.call_tool(&self.ports).await?,
             MemoryTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::UpdateEntityTool(tool) => tool.call_tool(&self.ports).await?,
+            MemoryTools::UpdateRelationshipTool(tool) => tool.call_tool(&self.ports).await?,
         };
         Ok(result)
     }
@@ -358,6 +360,8 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                     MemoryTools::RemoveObservationsTool(t) => t.call_tool(&ports).await,
                     MemoryTools::GetProjectContextTool(t) => t.call_tool(&ports).await,
                     MemoryTools::ListProjectsTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::UpdateEntityTool(t) => t.call_tool(&ports).await,
+                    MemoryTools::UpdateRelationshipTool(t) => t.call_tool(&ports).await,
                 }
                 .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
                 println!("{}", serde_json::to_string_pretty(&result)?);
@@ -377,6 +381,8 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 "remove_observations" => mcp::RemoveObservationsTool::json_schema(),
                 "get_project_context" => mcp::GetProjectContextTool::json_schema(),
                 "list_projects" => mcp::ListProjectsTool::json_schema(),
+                "update_entity" => mcp::UpdateEntityTool::json_schema(),
+                "update_relationship" => mcp::UpdateRelationshipTool::json_schema(),
                 _ => anyhow::bail!("Unknown tool: {}", tool_name),
             };
             println!("{}", serde_json::to_string_pretty(&schema)?);

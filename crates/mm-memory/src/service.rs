@@ -1,7 +1,9 @@
+#[cfg(test)]
+use crate::ObservationsUpdate;
 use crate::{
-    DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, LabelMatchMode, MemoryConfig, MemoryEntity,
-    MemoryRelationship, MemoryRepository, MemoryResult, RelationshipDirection, ValidationError,
-    ValidationErrorKind,
+    DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, EntityUpdate, LabelMatchMode, MemoryConfig,
+    MemoryEntity, MemoryRelationship, MemoryRepository, MemoryResult, RelationshipDirection,
+    RelationshipUpdate, ValidationError, ValidationErrorKind,
 };
 use mm_utils::is_snake_case;
 use tracing::instrument;
@@ -210,6 +212,82 @@ where
         let effective_required = required_label.or_else(|| self.config.default_label.clone());
         self.repository
             .find_entities_by_labels(labels, match_mode, effective_required)
+            .await
+    }
+
+    /// Update aspects of an entity
+    #[instrument(skip(self, update), fields(name))]
+    pub async fn update_entity(
+        &self,
+        name: &str,
+        update: &EntityUpdate,
+    ) -> MemoryResult<(), R::Error> {
+        if name.is_empty() {
+            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
+        }
+
+        if let Some(obs) = &update.observations {
+            let count =
+                obs.add.is_some() as u8 + obs.remove.is_some() as u8 + obs.set.is_some() as u8;
+            if count > 1 {
+                return Err(
+                    ValidationError::from(ValidationErrorKind::ConflictingOperations(
+                        "observations",
+                    ))
+                    .into(),
+                );
+            }
+        }
+        if let Some(props) = &update.properties {
+            let count = props.add.is_some() as u8
+                + props.remove.is_some() as u8
+                + props.set.is_some() as u8;
+            if count > 1 {
+                return Err(
+                    ValidationError::from(ValidationErrorKind::ConflictingOperations("properties"))
+                        .into(),
+                );
+            }
+        }
+        if let Some(labels) = &update.labels {
+            let count = labels.add.is_some() as u8 + labels.remove.is_some() as u8;
+            if count > 1 {
+                return Err(
+                    ValidationError::from(ValidationErrorKind::ConflictingOperations("labels"))
+                        .into(),
+                );
+            }
+        }
+
+        self.repository.update_entity(name, update).await
+    }
+
+    /// Update a relationship's properties
+    #[instrument(skip(self, update), fields(from, to, name))]
+    pub async fn update_relationship(
+        &self,
+        from: &str,
+        to: &str,
+        name: &str,
+        update: &RelationshipUpdate,
+    ) -> MemoryResult<(), R::Error> {
+        if from.is_empty() || to.is_empty() {
+            return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
+        }
+        if let Some(props) = &update.properties {
+            let count = props.add.is_some() as u8
+                + props.remove.is_some() as u8
+                + props.set.is_some() as u8;
+            if count > 1 {
+                return Err(
+                    ValidationError::from(ValidationErrorKind::ConflictingOperations("properties"))
+                        .into(),
+                );
+            }
+        }
+
+        self.repository
+            .update_relationship(from, to, name, update)
             .await
     }
 }
@@ -674,6 +752,47 @@ mod tests {
             .find_entities_by_labels(&[], LabelMatchMode::All, Some("Explicit".to_string()))
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_update_entity_conflict() {
+        let mock = MockMemoryRepository::new();
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let update = EntityUpdate {
+            observations: Some(ObservationsUpdate {
+                add: Some(vec!["a".to_string()]),
+                remove: Some(vec!["b".to_string()]),
+                set: None,
+            }),
+            properties: None,
+            labels: None,
+        };
+        let err = service.update_entity("e", &update).await.unwrap_err();
+        assert!(matches!(err, crate::MemoryError::ValidationError(_)));
+    }
+
+    #[tokio::test]
+    async fn test_update_entity_calls_repo() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_update_entity()
+            .withf(|name, _| name == "e")
+            .returning(|_, _| Ok(()));
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let update = EntityUpdate::default();
+        let result = service.update_entity("e", &update).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_update_relationship_calls_repo() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_update_relationship()
+            .withf(|from, to, name, _| from == "a" && to == "b" && name == "rel")
+            .returning(|_, _, _, _| Ok(()));
+        let service = MemoryService::new(mock, MemoryConfig::default());
+        let update = RelationshipUpdate::default();
+        let result = service.update_relationship("a", "b", "rel", &update).await;
+        assert!(result.is_ok());
     }
 
     mod prop_tests {

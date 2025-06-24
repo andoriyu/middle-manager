@@ -8,6 +8,7 @@ pub mod relationship;
 pub mod relationship_direction;
 pub mod repository;
 pub mod service;
+pub mod update;
 pub mod validation_error;
 pub mod value;
 
@@ -23,6 +24,9 @@ pub use repository::MemoryRepository;
 #[cfg(any(test, feature = "mock"))]
 pub use repository::MockMemoryRepository;
 pub use service::MemoryService;
+pub use update::{
+    EntityUpdate, LabelsUpdate, ObservationsUpdate, PropertiesUpdate, RelationshipUpdate,
+};
 pub use validation_error::{ValidationError, ValidationErrorKind};
 pub use value::MemoryValue;
 

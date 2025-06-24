@@ -10,6 +10,8 @@ pub mod list_projects;
 pub mod remove_all_observations;
 pub mod remove_observations;
 pub mod set_observations;
+pub mod update_entity;
+pub mod update_relationship;
 
 use rust_mcp_sdk::tool_box;
 
@@ -22,6 +24,8 @@ pub use list_projects::ListProjectsTool;
 pub use remove_all_observations::RemoveAllObservationsTool;
 pub use remove_observations::RemoveObservationsTool;
 pub use set_observations::SetObservationsTool;
+pub use update_entity::UpdateEntityTool;
+pub use update_relationship::UpdateRelationshipTool;
 
 // Generate an enum with all tools
 tool_box!(
@@ -35,6 +39,8 @@ tool_box!(
         RemoveAllObservationsTool,
         RemoveObservationsTool,
         GetProjectContextTool,
-        ListProjectsTool
+        ListProjectsTool,
+        UpdateEntityTool,
+        UpdateRelationshipTool
     ]
 );

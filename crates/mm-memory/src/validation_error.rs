@@ -26,6 +26,10 @@ pub enum ValidationErrorKind {
     /// Error when traversal depth is invalid
     #[error("Traversal depth '{0}' is out of range (1-5)")]
     InvalidDepth(u32),
+
+    /// Error when multiple operations are specified for the same field
+    #[error("Conflicting operations for {0}")]
+    ConflictingOperations(&'static str),
 }
 
 /// Collection of validation errors
