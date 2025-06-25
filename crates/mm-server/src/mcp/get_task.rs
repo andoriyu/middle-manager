@@ -53,7 +53,7 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = GetTaskTool {
             task_name: "task:1".into(),

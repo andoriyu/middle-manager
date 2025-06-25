@@ -14,12 +14,15 @@ pub struct CreateTasksTool {
     pub tasks: Vec<MemoryEntity<TaskProperties>>,
     /// Project to associate with
     pub project_name: Option<String>,
+    /// Tasks this task depends on
+    #[serde(default)]
+    pub depends_on: Vec<String>,
 }
 
 impl CreateTasksTool {
     generate_call_tool!(
         self,
-        CreateTasksCommand { tasks => self.tasks.clone(), project_name },
+        CreateTasksCommand { tasks => self.tasks.clone(), project_name, depends_on },
         create_tasks,
         |command, _result| {
             serde_json::to_value(command.tasks)
@@ -37,6 +40,7 @@ impl CreateTasksTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
@@ -57,7 +61,9 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
 
         let tool = CreateTasksTool {
             tasks: vec![MemoryEntity::<TaskProperties> {
@@ -66,6 +72,7 @@ mod tests {
                 ..Default::default()
             }],
             project_name: None,
+            depends_on: vec![],
         };
 
         let result = tool.call_tool(&ports).await.unwrap();

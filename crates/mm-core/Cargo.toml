@@ -4,8 +4,12 @@ version = "0.1.0"
 edition = "2024"
 license = "MPL-2.0"
 
+[features]
+mock = ["mm-git/mock", "mm-memory/mock"]
+
 [dependencies]
 mm-memory = { path = "../mm-memory" }
+mm-git = { path = "../mm-git" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
@@ -13,11 +17,13 @@ tracing = { workspace = true }
 async-trait = { workspace = true }
 schemars = { workspace = true }
 chrono = { workspace = true }
+futures = { workspace = true }
 
 [dev-dependencies]
 mockall = { workspace = true }
 tokio = { workspace = true, features = ["full", "test-util"] }
 mm-memory = { path = "../mm-memory", features = ["mock"] }
+mm-git = { path = "../mm-git", features = ["mock"] }
 arbitrary = { workspace = true }
 arbtest = { workspace = true }
 mm-utils = { path = "../mm-utils" }

@@ -62,7 +62,7 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = GetEntityTool {
             name: "test:entity".to_string(),
@@ -82,7 +82,7 @@ mod tests {
             .returning(|_| Err(MemoryError::query_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = GetEntityTool {
             name: "test:entity".to_string(),
@@ -100,7 +100,7 @@ mod tests {
             .returning(|_| Ok(None));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = GetEntityTool {
             name: "missing".to_string(),

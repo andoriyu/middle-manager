@@ -10,6 +10,7 @@ pub mod error;
 pub mod find_entities_by_labels;
 pub mod find_relationships;
 pub mod get_entity;
+pub mod get_git_status;
 pub mod get_project_context;
 pub mod get_task;
 pub mod list_projects;
@@ -28,6 +29,7 @@ pub use delete_task::DeleteTaskTool;
 pub use find_entities_by_labels::FindEntitiesByLabelsTool;
 pub use find_relationships::FindRelationshipsTool;
 pub use get_entity::GetEntityTool;
+pub use get_git_status::GetGitStatusTool;
 pub use get_project_context::GetProjectContextTool;
 pub use get_task::GetTaskTool;
 pub use list_projects::ListProjectsTool;
@@ -50,6 +52,7 @@ tool_box!(
         UpdateTaskTool,
         DeleteTaskTool,
         GetEntityTool,
+        GetGitStatusTool,
         GetProjectContextTool,
         ListProjectsTool,
         UpdateEntityTool,

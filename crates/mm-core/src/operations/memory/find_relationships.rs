@@ -1,5 +1,6 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use mm_git::GitRepository;
 use mm_memory::{MemoryRelationship, MemoryRepository};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -20,13 +21,15 @@ pub struct FindRelationshipsResult {
 pub type FindRelationshipsResultType<E> = CoreResult<FindRelationshipsResult, E>;
 
 #[instrument(skip(ports))]
-pub async fn find_relationships<R>(
-    ports: &Ports<R>,
+pub async fn find_relationships<M, G>(
+    ports: &Ports<M, G>,
     command: FindRelationshipsCommand,
-) -> FindRelationshipsResultType<R::Error>
+) -> FindRelationshipsResultType<M::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync,
+    G: GitRepository + Send + Sync,
+    M::Error: std::error::Error + Send + Sync + 'static,
+    G::Error: std::error::Error + Send + Sync + 'static,
 {
     let rels = ports
         .memory_service

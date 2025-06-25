@@ -12,6 +12,12 @@ impl Git2Repository {
     }
 }
 
+impl Default for Git2Repository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl GitRepository for Git2Repository {
     type Error = git2::Error;

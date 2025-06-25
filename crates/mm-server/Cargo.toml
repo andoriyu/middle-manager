@@ -13,6 +13,8 @@ path = "src/lib.rs"
 mm-core = { path = "../mm-core" }
 mm-memory-neo4j = { path = "../mm-memory-neo4j" }
 mm-memory = { path = "../mm-memory" }
+mm-git = { path = "../mm-git" }
+mm-git-git2 = { path = "../mm-git-git2" }
 mm-utils = { path = "../mm-utils" }
 tokio = { workspace = true, features = ["full"] }
 rust-mcp-sdk = { workspace = true }
@@ -27,6 +29,8 @@ schemars = { workspace = true }
 
 [dev-dependencies]
 mm-memory = { path = "../mm-memory", features = ["mock"] }
+mm-git = { path = "../mm-git", features = ["mock"] }
+mm-core = { path = "../mm-core", features = ["mock"] }
 tokio = { workspace = true, features = ["full", "test-util"] }
 mockall = { workspace = true }
 mm-utils = { path = "../mm-utils" }

@@ -13,6 +13,8 @@ use std::sync::Arc;
 use anyhow::Result as AnyResult;
 
 use mm_core::Ports;
+use mm_git::{GitRepository, GitService};
+use mm_git_git2::create_git_service;
 use mm_memory::{MemoryRepository, MemoryService};
 use mm_memory_neo4j::{create_neo4j_service, neo4rs};
 
@@ -64,20 +66,24 @@ pub enum ToolsCommand {
 }
 
 /// Middle Manager MCP server handler
-pub struct MiddleManagerHandler<R>
+pub struct MiddleManagerHandler<M, G>
 where
-    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync + 'static,
+    G: GitRepository + Send + Sync + 'static,
+    M::Error: From<neo4rs::Error> + Send + Sync + 'static,
 {
-    ports: Arc<Ports<R>>,
+    ports: Arc<Ports<M, G>>,
 }
 
-impl<R> MiddleManagerHandler<R>
+impl<M, G> MiddleManagerHandler<M, G>
 where
-    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync + 'static,
+    G: GitRepository + Send + Sync + 'static,
+    M::Error: From<neo4rs::Error> + Send + Sync + 'static,
 {
     /// Create a new Middle Manager MCP server handler
-    pub fn new(service: MemoryService<R>) -> Self {
-        let ports = Arc::new(Ports::new(Arc::new(service)));
+    pub fn new(memory_service: MemoryService<M>, git_service: GitService<G>) -> Self {
+        let ports = Arc::new(Ports::new(Arc::new(memory_service), Arc::new(git_service)));
         Self { ports }
     }
 
@@ -188,6 +194,7 @@ where
             MMTools::GetEntityTool(get_entity_tool) => {
                 get_entity_tool.call_tool(&self.ports).await?
             }
+            MMTools::GetGitStatusTool(tool) => tool.call_tool(&self.ports).await?,
             MMTools::GetProjectContextTool(tool) => tool.call_tool(&self.ports).await?,
             MMTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
             MMTools::UpdateEntityTool(tool) => tool.call_tool(&self.ports).await?,
@@ -198,17 +205,24 @@ where
 }
 
 /// Create a Middle Manager MCP server handler with the given memory service
-pub fn create_handler<R>(memory_service: MemoryService<R>) -> MiddleManagerHandler<R>
+pub fn create_handler<M, G>(
+    memory_service: MemoryService<M>,
+    git_service: GitService<G>,
+) -> MiddleManagerHandler<M, G>
 where
-    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync + 'static,
+    G: GitRepository + Send + Sync + 'static,
+    M::Error: From<neo4rs::Error> + Send + Sync + 'static,
 {
-    MiddleManagerHandler::new(memory_service)
+    MiddleManagerHandler::new(memory_service, git_service)
 }
 
 #[async_trait]
-impl<R> ServerHandler for MiddleManagerHandler<R>
+impl<M, G> ServerHandler for MiddleManagerHandler<M, G>
 where
-    R: MemoryRepository<Error = neo4rs::Error> + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync + 'static,
+    G: GitRepository + Send + Sync + 'static,
+    M::Error: From<neo4rs::Error> + Send + Sync + 'static,
 {
     async fn on_initialized(&self, runtime: &dyn McpServer) {
         self.update_client_roots(runtime).await;
@@ -278,8 +292,11 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
         .await
         .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
 
+    // Create git service
+    let git_service = create_git_service();
+
     // Create server handler
-    let handler = create_handler(memory_service);
+    let handler = create_handler(memory_service, git_service);
 
     // Create server details
     let server_details = InitializeResult {
@@ -318,8 +335,9 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
 pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]) -> AnyResult<()> {
     // Load configuration
     let config = Config::load(config_paths)?;
-    let service = create_neo4j_service(config.neo4j, config.memory).await?;
-    let ports = Ports::new(Arc::new(service));
+    let memory_service = create_neo4j_service(config.neo4j, config.memory).await?;
+    let git_service = create_git_service();
+    let ports = Ports::new(Arc::new(memory_service), Arc::new(git_service));
 
     match command {
         ToolsCommand::List => {
@@ -373,6 +391,7 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                     MMTools::UpdateTaskTool(t) => t.call_tool(&ports).await,
                     MMTools::DeleteTaskTool(t) => t.call_tool(&ports).await,
                     MMTools::GetEntityTool(t) => t.call_tool(&ports).await,
+                    MMTools::GetGitStatusTool(t) => t.call_tool(&ports).await,
                     MMTools::GetProjectContextTool(t) => t.call_tool(&ports).await,
                     MMTools::ListProjectsTool(t) => t.call_tool(&ports).await,
                     MMTools::UpdateEntityTool(t) => t.call_tool(&ports).await,
@@ -398,6 +417,7 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 "update_task" => mcp::UpdateTaskTool::json_schema(),
                 "delete_task" => mcp::DeleteTaskTool::json_schema(),
                 "get_entity" => mcp::GetEntityTool::json_schema(),
+                "get_git_status" => mcp::GetGitStatusTool::json_schema(),
                 "get_project_context" => mcp::GetProjectContextTool::json_schema(),
                 "list_projects" => mcp::ListProjectsTool::json_schema(),
                 "update_entity" => mcp::UpdateEntityTool::json_schema(),

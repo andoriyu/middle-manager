@@ -55,7 +55,7 @@ mod tests {
                 ..MemoryConfig::default()
             },
         );
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = CreateEntitiesTool {
             entities: vec![MemoryEntity {
@@ -86,7 +86,7 @@ mod tests {
             .returning(|_| Err(MemoryError::runtime_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = CreateEntitiesTool {
             entities: vec![MemoryEntity {

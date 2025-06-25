@@ -1,6 +1,7 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
+use mm_git::GitRepository;
 use mm_memory::{EntityUpdate, MemoryRepository};
 use tracing::instrument;
 
@@ -13,13 +14,15 @@ pub struct UpdateEntityCommand {
 pub type UpdateEntityResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(name = %command.name))]
-pub async fn update_entity<R>(
-    ports: &Ports<R>,
+pub async fn update_entity<M, G>(
+    ports: &Ports<M, G>,
     command: UpdateEntityCommand,
-) -> UpdateEntityResult<R::Error>
+) -> UpdateEntityResult<M::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync,
+    G: GitRepository + Send + Sync,
+    M::Error: std::error::Error + Send + Sync + 'static,
+    G::Error: std::error::Error + Send + Sync + 'static,
 {
     validate_name!(command.name);
 
@@ -33,6 +36,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
@@ -43,7 +47,9 @@ mod tests {
             .withf(|n, _| n == "test:entity")
             .returning(|_, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
         let cmd = UpdateEntityCommand {
             name: "test:entity".into(),
             update: EntityUpdate::default(),
@@ -57,7 +63,9 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_update_entity().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
         let cmd = UpdateEntityCommand {
             name: "".into(),
             update: EntityUpdate::default(),

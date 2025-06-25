@@ -1,5 +1,6 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use mm_git::GitRepository;
 use mm_memory::{LabelMatchMode, MemoryEntity, MemoryRepository};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -20,13 +21,15 @@ pub struct FindEntitiesByLabelsResult {
 pub type FindEntitiesByLabelsResultType<E> = CoreResult<FindEntitiesByLabelsResult, E>;
 
 #[instrument(skip(ports), fields(label_count = command.labels.len()))]
-pub async fn find_entities_by_labels<R>(
-    ports: &Ports<R>,
+pub async fn find_entities_by_labels<M, G>(
+    ports: &Ports<M, G>,
     command: FindEntitiesByLabelsCommand,
-) -> FindEntitiesByLabelsResultType<R::Error>
+) -> FindEntitiesByLabelsResultType<M::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync,
+    G: GitRepository + Send + Sync,
+    M::Error: std::error::Error + Send + Sync + 'static,
+    G::Error: std::error::Error + Send + Sync + 'static,
 {
     let entities = ports
         .memory_service
