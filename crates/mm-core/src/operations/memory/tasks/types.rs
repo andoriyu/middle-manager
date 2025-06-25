@@ -4,9 +4,11 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
+use strum_macros::{AsRefStr, EnumString};
 
 /// Priority level for a task
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq, EnumString, AsRefStr)]
+#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum Priority {
     Low,
     Medium,
@@ -14,70 +16,26 @@ pub enum Priority {
     Critical,
 }
 
-impl FromStr for Priority {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.eq_ignore_ascii_case("low") {
-            Ok(Priority::Low)
-        } else if s.eq_ignore_ascii_case("medium") {
-            Ok(Priority::Medium)
-        } else if s.eq_ignore_ascii_case("high") {
-            Ok(Priority::High)
-        } else if s.eq_ignore_ascii_case("critical") {
-            Ok(Priority::Critical)
-        } else {
-            Err(())
-        }
-    }
-}
-
 /// Status of a task
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq, EnumString, AsRefStr)]
+#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum TaskStatus {
     Todo,
+    #[strum(serialize = "inprogress", serialize = "in_progress")]
     InProgress,
     Blocked,
     Done,
     Cancelled,
 }
 
-impl FromStr for TaskStatus {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_ascii_lowercase().as_str() {
-            "todo" => Ok(TaskStatus::Todo),
-            "inprogress" | "in_progress" => Ok(TaskStatus::InProgress),
-            "blocked" => Ok(TaskStatus::Blocked),
-            "done" => Ok(TaskStatus::Done),
-            "cancelled" => Ok(TaskStatus::Cancelled),
-            _ => Err(()),
-        }
-    }
-}
-
 /// Type of task
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq, EnumString, AsRefStr)]
+#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum TaskType {
     Feature,
     Bug,
     Chore,
     Improvement,
-}
-
-impl FromStr for TaskType {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_ascii_lowercase().as_str() {
-            "feature" => Ok(TaskType::Feature),
-            "bug" => Ok(TaskType::Bug),
-            "chore" => Ok(TaskType::Chore),
-            "improvement" => Ok(TaskType::Improvement),
-            _ => Err(()),
-        }
-    }
 }
 
 /// Properties for Task entities
@@ -203,15 +161,15 @@ impl From<TaskProperties> for HashMap<String, MemoryValue> {
         }
         map.insert(
             "task_type".to_string(),
-            MemoryValue::String(format!("{:?}", props.task_type).to_lowercase()),
+            MemoryValue::String(props.task_type.as_ref().to_string()),
         );
         map.insert(
             "status".to_string(),
-            MemoryValue::String(format!("{:?}", props.status).to_lowercase()),
+            MemoryValue::String(props.status.as_ref().to_string()),
         );
         map.insert(
             "priority".to_string(),
-            MemoryValue::String(format!("{:?}", props.priority).to_lowercase()),
+            MemoryValue::String(props.priority.as_ref().to_string()),
         );
         map
     }
