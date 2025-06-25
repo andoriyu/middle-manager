@@ -233,12 +233,21 @@ impl MemoryRepository for Neo4jRepository {
         name: &str,
         observations: &[String],
     ) -> MemoryResult<(), Self::Error> {
-        let mut current = match self.find_entity_by_name(name).await? {
-            Some(e) => e.observations,
-            None => Vec::default(),
-        };
-        current.extend_from_slice(observations);
-        self.set_observations(name, &current).await
+        let query = Query::new(
+            "MATCH (n {name: $name}) SET n.observations = coalesce(n.observations, []) + $observations"
+                .to_string(),
+        )
+        .param("name", name.to_string())
+        .param("observations", observations.to_vec());
+
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source(
+                format!("Failed to add observations for {}", name),
+                e,
+            )
+        })?;
+
+        Ok(())
     }
 
     #[instrument(skip(self), fields(name = %name))]
@@ -252,12 +261,21 @@ impl MemoryRepository for Neo4jRepository {
         name: &str,
         observations: &[String],
     ) -> MemoryResult<(), Self::Error> {
-        let mut current = match self.find_entity_by_name(name).await? {
-            Some(e) => e.observations,
-            None => Vec::default(),
-        };
-        current.retain(|o| !observations.contains(o));
-        self.set_observations(name, &current).await
+        let query = Query::new(
+            "MATCH (n {name: $name}) SET n.observations = [o IN n.observations WHERE NOT o IN $remove]"
+                .to_string(),
+        )
+        .param("name", name.to_string())
+        .param("remove", observations.to_vec());
+
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source(
+                format!("Failed to remove observations for {}", name),
+                e,
+            )
+        })?;
+
+        Ok(())
     }
 
     #[instrument(skip(self, relationships), fields(count = relationships.len()))]
