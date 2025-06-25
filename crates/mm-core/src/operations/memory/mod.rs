@@ -1,9 +1,12 @@
+#[macro_use]
 mod common;
 mod generic;
 mod git;
 // Re-export label constants from the memory crate
 pub use mm_memory::labels;
 mod tasks;
+
+pub(crate) use validate_name;
 
 pub mod create_entity;
 pub mod create_relationship;

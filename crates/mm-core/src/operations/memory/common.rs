@@ -1,4 +1,3 @@
-#[macro_export]
 macro_rules! validate_name {
     ($name:expr) => {
         if $name.is_empty() {

@@ -15,6 +15,8 @@ pub use error::{CoreError, CoreResult};
 pub use ports::Ports;
 pub use root::{Root, RootCollection};
 
+pub(crate) use operations::memory::validate_name;
+
 // Re-export the mm-memory crate for easy access to memory types and services
 pub use mm_memory;
 
