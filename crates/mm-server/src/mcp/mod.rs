@@ -14,6 +14,8 @@ pub mod get_git_status;
 pub mod get_project_context;
 pub mod get_task;
 pub mod list_projects;
+#[cfg(test)]
+pub mod tests;
 pub mod update_entity;
 pub mod update_relationship;
 pub mod update_task;
