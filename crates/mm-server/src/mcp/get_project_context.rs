@@ -53,6 +53,7 @@ impl GetProjectContextTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::operations::memory::{PROJECT_LABEL, TECHNOLOGY_LABEL};
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use serde_json::Value;
@@ -64,7 +65,7 @@ mod tests {
         // Create test entities
         let project_entity = MemoryEntity {
             name: "andoriyu:project:middle_manager".to_string(),
-            labels: vec!["Memory".to_string(), "Project".to_string()],
+            labels: vec!["Memory".to_string(), PROJECT_LABEL.to_string()],
             observations: vec!["A project for managing memory".to_string()],
             properties: HashMap::new(),
             relationships: Vec::new(),
@@ -74,7 +75,7 @@ mod tests {
             name: "tech:language:rust".to_string(),
             labels: vec![
                 "Memory".to_string(),
-                "Technology".to_string(),
+                TECHNOLOGY_LABEL.to_string(),
                 "Language".to_string(),
             ],
             observations: vec!["A systems programming language".to_string()],

@@ -1,4 +1,5 @@
 use mm_git::GitRepository;
+use mm_memory::labels::PROJECT_LABEL;
 use mm_memory::{LabelMatchMode, MemoryEntity, MemoryRepository};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -36,7 +37,7 @@ where
     // Find all projects
     let mut projects = ports
         .memory_service
-        .find_entities_by_labels(&["Project".to_string()], LabelMatchMode::All, None)
+        .find_entities_by_labels(&[PROJECT_LABEL.to_string()], LabelMatchMode::All, None)
         .await
         .map_err(CoreError::from)?;
 
@@ -67,7 +68,7 @@ mod tests {
         // Setup mock for find_entities_by_labels
         let project1 = MemoryEntity {
             name: "andoriyu:project:middle_manager".to_string(),
-            labels: vec!["Memory".to_string(), "Project".to_string()],
+            labels: vec!["Memory".to_string(), PROJECT_LABEL.to_string()],
             observations: vec!["A project for managing memory".to_string()],
             properties: HashMap::new(),
             relationships: Vec::new(),
@@ -75,7 +76,7 @@ mod tests {
 
         let project2 = MemoryEntity {
             name: "andoriyu:project:flakes".to_string(),
-            labels: vec!["Memory".to_string(), "Project".to_string()],
+            labels: vec!["Memory".to_string(), PROJECT_LABEL.to_string()],
             observations: vec!["A project for managing Nix flakes".to_string()],
             properties: HashMap::new(),
             relationships: Vec::new(),
@@ -84,7 +85,7 @@ mod tests {
         mock_repo
             .expect_find_entities_by_labels()
             .with(
-                eq(vec!["Project".to_string()]),
+                eq(vec![PROJECT_LABEL.to_string()]),
                 eq(LabelMatchMode::All),
                 always(),
             )
@@ -112,7 +113,7 @@ mod tests {
         // Setup mock for find_entities_by_labels
         let project1 = MemoryEntity {
             name: "andoriyu:project:middle_manager".to_string(),
-            labels: vec!["Memory".to_string(), "Project".to_string()],
+            labels: vec!["Memory".to_string(), PROJECT_LABEL.to_string()],
             observations: vec!["A project for managing memory".to_string()],
             properties: HashMap::new(),
             relationships: Vec::new(),
@@ -120,7 +121,7 @@ mod tests {
 
         let project2 = MemoryEntity {
             name: "andoriyu:project:flakes".to_string(),
-            labels: vec!["Memory".to_string(), "Project".to_string()],
+            labels: vec!["Memory".to_string(), PROJECT_LABEL.to_string()],
             observations: vec!["A project for managing Nix flakes".to_string()],
             properties: HashMap::new(),
             relationships: Vec::new(),
@@ -129,7 +130,7 @@ mod tests {
         mock_repo
             .expect_find_entities_by_labels()
             .with(
-                eq(vec!["Project".to_string()]),
+                eq(vec![PROJECT_LABEL.to_string()]),
                 eq(LabelMatchMode::All),
                 always(),
             )
@@ -159,7 +160,7 @@ mod tests {
         mock_repo
             .expect_find_entities_by_labels()
             .with(
-                eq(vec!["Project".to_string()]),
+                eq(vec![PROJECT_LABEL.to_string()]),
                 eq(LabelMatchMode::All),
                 always(),
             )

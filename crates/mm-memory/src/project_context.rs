@@ -2,6 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::entity::MemoryEntity;
+use crate::labels::*;
 
 /// Comprehensive context information about a project and its related entities
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, JsonSchema, Default)]
@@ -42,17 +43,17 @@ impl ProjectContext {
     pub fn add_related_entity(&mut self, entity: MemoryEntity) {
         let labels: Vec<&str> = entity.labels.iter().map(|s| s.as_str()).collect();
 
-        if labels.contains(&"Technology")
-            || labels.contains(&"Framework")
-            || labels.contains(&"Library")
-            || labels.contains(&"Language")
+        if labels.contains(&TECHNOLOGY_LABEL)
+            || labels.contains(&FRAMEWORK_LABEL)
+            || labels.contains(&LIBRARY_LABEL)
+            || labels.contains(&LANGUAGE_LABEL)
         {
             self.technologies.push(entity);
-        } else if labels.contains(&"Note") {
+        } else if labels.contains(&NOTE_LABEL) {
             self.notes.push(entity);
-        } else if labels.contains(&"Component") {
+        } else if labels.contains(&COMPONENT_LABEL) {
             self.components.push(entity);
-        } else if labels.contains(&"Task") {
+        } else if labels.contains(&TASK_LABEL) {
             self.tasks.push(entity);
         } else {
             self.other_related_entities.push(entity);

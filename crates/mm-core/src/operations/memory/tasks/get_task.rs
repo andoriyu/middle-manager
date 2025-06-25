@@ -30,6 +30,7 @@ where
 mod tests {
     use super::*;
     use mm_git::repository::MockGitRepository;
+    use mm_memory::labels::TASK_LABEL;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::sync::Arc;
@@ -39,7 +40,7 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         let entity = MemoryEntity {
             name: "task:1".into(),
-            labels: vec!["Task".into()],
+            labels: vec![TASK_LABEL.to_string()],
             ..Default::default()
         };
         mock.expect_find_entity_by_name()
