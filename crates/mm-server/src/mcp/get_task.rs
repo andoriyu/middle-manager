@@ -16,18 +16,7 @@ impl GetTaskTool {
     generate_call_tool!(
         self,
         GetTaskCommand { name => self.task_name.clone() },
-        get_task,
-        |command, result| {
-            match result {
-                Some(entity) => serde_json::to_value(entity)
-                    .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
-                    .map_err(|e| rust_mcp_sdk::schema::schema_utils::CallToolError::new(crate::mcp::error::ToolError::from(e))),
-                None => Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                    format!("Task '{}' not found", command.name),
-                    None,
-                )),
-            }
-        }
+        get_task
     );
 }
 

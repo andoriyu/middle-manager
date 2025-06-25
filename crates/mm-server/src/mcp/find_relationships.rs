@@ -22,11 +22,6 @@ impl FindRelationshipsTool {
             to => self.to.clone(),
             name => self.name.clone()
         },
-        find_relationships,
-        |_cmd, res| {
-            serde_json::to_value(res.relationships)
-                .map(|j| rust_mcp_sdk::schema::CallToolResult::text_content(j.to_string(), None))
-                .map_err(|e| rust_mcp_sdk::schema::schema_utils::CallToolError::new(crate::mcp::error::ToolError::from(e)))
-        }
+        find_relationships
     );
 }

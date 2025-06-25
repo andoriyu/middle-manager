@@ -22,26 +22,7 @@ pub struct GetGitStatusResponse {
 }
 
 impl GetGitStatusTool {
-    generate_call_tool!(
-        self,
-        GetGitStatusCommand { path },
-        get_git_status,
-        |_command, result| {
-            // The result here is already unwrapped by map_result in the macro
-            let response = GetGitStatusResponse {
-                branch: result.branch,
-            };
-
-            // Convert to JSON string and use text_content
-            serde_json::to_string(&response)
-                .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json, None))
-                .map_err(|e| {
-                    rust_mcp_sdk::schema::schema_utils::CallToolError::new(
-                        crate::mcp::error::ToolError::from(e),
-                    )
-                })
-        }
-    );
+    generate_call_tool!(self, GetGitStatusCommand { path }, get_git_status);
 }
 
 #[cfg(test)]

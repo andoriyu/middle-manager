@@ -67,6 +67,14 @@ impl From<serde_json::Error> for ToolError {
     }
 }
 
+/// Implementation of From<ToolError> for CallToolError
+impl From<ToolError> for CallToolError {
+    fn from(error: ToolError) -> Self {
+        error!("Tool call failed: {:#?}", error);
+        CallToolError::new(error)
+    }
+}
+
 /// Map a core result into a MCP tool result by converting any error into a
 /// [`CallToolError`].
 ///
@@ -77,8 +85,7 @@ where
     E: Into<ToolError> + StdError + Send + Sync + 'static,
 {
     res.map_err(|e| {
-        error!("Tool call failed: {:#?}", e);
         let tool_error: ToolError = e.into();
-        CallToolError::new(tool_error)
+        tool_error.into()
     })
 }

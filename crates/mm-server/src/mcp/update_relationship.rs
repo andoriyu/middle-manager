@@ -30,12 +30,7 @@ impl UpdateRelationshipTool {
             update
         },
         update_relationship,
-        |_cmd, _res| {
-            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                "Relationship updated".to_string(),
-                None,
-            ))
-        }
+        "Relationship updated"
     );
 }
 

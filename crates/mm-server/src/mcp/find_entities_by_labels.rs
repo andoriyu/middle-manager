@@ -23,11 +23,6 @@ impl FindEntitiesByLabelsTool {
             match_mode => self.match_mode,
             required_label => self.required_label.clone()
         },
-        find_entities_by_labels,
-        |_cmd, res| {
-            serde_json::to_value(res.entities)
-                .map(|j| rust_mcp_sdk::schema::CallToolResult::text_content(j.to_string(), None))
-                .map_err(|e| rust_mcp_sdk::schema::schema_utils::CallToolError::new(crate::mcp::error::ToolError::from(e)))
-        }
+        find_entities_by_labels
     );
 }
