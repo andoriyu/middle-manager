@@ -1,5 +1,6 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use mm_git::GitRepository;
 use mm_memory::{MemoryRepository, relationship::RelationshipRef};
 use tracing::instrument;
 
@@ -11,13 +12,15 @@ pub struct DeleteRelationshipsCommand {
 pub type DeleteRelationshipsResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(rel_count = command.relationships.len()))]
-pub async fn delete_relationships<R>(
-    ports: &Ports<R>,
+pub async fn delete_relationships<M, G>(
+    ports: &Ports<M, G>,
     command: DeleteRelationshipsCommand,
-) -> DeleteRelationshipsResult<R::Error>
+) -> DeleteRelationshipsResult<M::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync,
+    G: GitRepository + Send + Sync,
+    M::Error: std::error::Error + Send + Sync + 'static,
+    G::Error: std::error::Error + Send + Sync + 'static,
 {
     let errors = ports
         .memory_service

@@ -53,7 +53,7 @@ mod tests {
             .withf(|f, t, n, _| f == "a" && t == "b" && n == "rel")
             .returning(|_, _, _, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
         let tool = UpdateRelationshipTool {
             from: "a".into(),
             to: "b".into(),

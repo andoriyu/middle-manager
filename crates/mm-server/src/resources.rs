@@ -1,5 +1,6 @@
 use mm_core::Ports;
 use mm_core::operations::memory::{GetEntityCommand, get_entity};
+use mm_git::GitRepository;
 use mm_memory::MemoryRepository;
 use rust_mcp_sdk::schema::{
     ListResourceTemplatesResult, ListResourcesResult, ReadResourceResult,
@@ -32,10 +33,15 @@ pub fn list_resources() -> ListResourcesResult {
 
 /// Read a memory entity from the given URI.
 #[tracing::instrument(skip(ports), fields(uri))]
-pub async fn read_resource<R>(ports: &Ports<R>, uri: &str) -> Result<ReadResourceResult, RpcError>
+pub async fn read_resource<M, G>(
+    ports: &Ports<M, G>,
+    uri: &str,
+) -> Result<ReadResourceResult, RpcError>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync,
+    G: GitRepository + Send + Sync,
+    M::Error: std::error::Error + Send + Sync + 'static,
+    G::Error: std::error::Error + Send + Sync + 'static,
 {
     let Some(name) = uri.strip_prefix("memory://") else {
         return Err(RpcError::invalid_params().with_message("Unsupported URI".to_string()));
@@ -74,6 +80,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::sync::Arc;
@@ -92,7 +99,9 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
 
         let result = read_resource(&ports, "memory://test:entity").await.unwrap();
         if let ReadResourceResultContentsItem::TextResourceContents(contents) = &result.contents[0]
@@ -110,7 +119,9 @@ mod tests {
             .with(eq("missing"))
             .returning(|_| Ok(None));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
         let err = read_resource(&ports, "memory://missing").await.unwrap_err();
         assert_eq!(err.message, "Entity 'missing' not found");
     }
@@ -119,7 +130,9 @@ mod tests {
     async fn test_read_resource_invalid_uri() {
         let mock = MockMemoryRepository::new();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
         let err = read_resource(&ports, "file://foo").await.unwrap_err();
         assert_eq!(err.message, "Unsupported URI");
     }
@@ -129,6 +142,7 @@ mod tests {
 mod prop_tests {
     use super::*;
     use arbitrary::{Arbitrary, Unstructured};
+    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mm_utils::prop::{NonEmptyName, async_arbtest};
     use std::sync::Arc;
@@ -144,7 +158,9 @@ mod prop_tests {
                 .withf(move |n| n == name_clone)
                 .returning(|_| Ok(None));
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let ports = Ports::new(Arc::new(service));
+            let git_repo = MockGitRepository::new();
+            let git_service = mm_git::GitService::new(git_repo);
+            let ports = Ports::new(Arc::new(service), Arc::new(git_service));
             let err = rt.block_on(read_resource(&ports, &uri)).unwrap_err();
             assert_eq!(err.message, format!("Entity '{}' not found", name));
             Ok(())
@@ -171,7 +187,9 @@ mod prop_tests {
             let mut mock = MockMemoryRepository::new();
             mock.expect_find_entity_by_name().never();
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let ports = Ports::new(Arc::new(service));
+            let git_repo = MockGitRepository::new();
+            let git_service = mm_git::GitService::new(git_repo);
+            let ports = Ports::new(Arc::new(service), Arc::new(git_service));
             let err = rt.block_on(read_resource(&ports, &uri)).unwrap_err();
             assert_eq!(err.message, "Unsupported URI");
             Ok(())

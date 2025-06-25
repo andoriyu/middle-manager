@@ -1,5 +1,6 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
+use mm_git::GitRepository;
 use mm_memory::MemoryRepository;
 use tracing::instrument;
 
@@ -11,13 +12,15 @@ pub struct DeleteEntitiesCommand {
 pub type DeleteEntitiesResult<E> = CoreResult<(), E>;
 
 #[instrument(skip(ports), fields(names_count = command.names.len()))]
-pub async fn delete_entities<R>(
-    ports: &Ports<R>,
+pub async fn delete_entities<M, G>(
+    ports: &Ports<M, G>,
     command: DeleteEntitiesCommand,
-) -> DeleteEntitiesResult<R::Error>
+) -> DeleteEntitiesResult<M::Error>
 where
-    R: MemoryRepository + Send + Sync,
-    R::Error: std::error::Error + Send + Sync + 'static,
+    M: MemoryRepository + Send + Sync,
+    G: GitRepository + Send + Sync,
+    M::Error: std::error::Error + Send + Sync + 'static,
+    G::Error: std::error::Error + Send + Sync + 'static,
 {
     let errors = ports
         .memory_service

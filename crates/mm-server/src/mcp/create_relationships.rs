@@ -70,7 +70,7 @@ mod tests {
             .returning(|_| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = CreateRelationshipsTool {
             relationships: vec![RelationshipInput {
@@ -93,7 +93,7 @@ mod tests {
             .returning(|_| Err(MemoryError::runtime_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let ports = Ports::new(Arc::new(service));
+        let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
 
         let tool = CreateRelationshipsTool {
             relationships: vec![RelationshipInput {

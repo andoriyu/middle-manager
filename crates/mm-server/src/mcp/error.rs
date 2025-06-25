@@ -47,6 +47,7 @@ where
     fn from(error: CoreError<E>) -> Self {
         let message = match &error {
             CoreError::Memory(e) => e.to_string(),
+            CoreError::Git(e) => e.to_string(),
             CoreError::Serialization(e) => e.to_string(),
             CoreError::Validation(e) => e.to_string(),
             CoreError::BatchValidation(v) => v

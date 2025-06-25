@@ -10,6 +10,9 @@ where
     #[error("Memory error")]
     Memory(#[from] mm_memory::MemoryError<E>),
 
+    #[error("Git error")]
+    Git(#[from] mm_git::GitError<E>),
+
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 

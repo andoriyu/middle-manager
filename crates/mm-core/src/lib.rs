@@ -17,3 +17,6 @@ pub use root::{Root, RootCollection};
 
 // Re-export the mm-memory crate for easy access to memory types and services
 pub use mm_memory;
+
+// Re-export the mm-git crate for easy access to git types and services
+pub use mm_git;
