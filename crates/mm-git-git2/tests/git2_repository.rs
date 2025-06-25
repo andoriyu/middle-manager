@@ -27,6 +27,10 @@ async fn test_get_status_success() {
     let service = create_git_service();
     let status = service.get_status(dir.path()).await.unwrap();
     assert_eq!(status.branch, expected_branch);
+    assert!(!status.is_dirty);
+    assert_eq!(status.ahead_by, 0);
+    assert_eq!(status.behind_by, 0);
+    assert!(status.changed_files.is_empty());
 }
 
 #[tokio::test]

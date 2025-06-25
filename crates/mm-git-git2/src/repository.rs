@@ -27,11 +27,40 @@ impl GitRepository for Git2Repository {
         let res = task::spawn_blocking(move || -> Result<GitStatus, git2::Error> {
             let repo = Repository::open(path)?;
             let head = repo.head()?;
-            let branch = head
+            let branch_name = head
                 .shorthand()
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| "HEAD".to_string());
-            Ok(GitStatus { branch })
+
+            let mut opts = git2::StatusOptions::new();
+            opts.include_untracked(true).recurse_untracked_dirs(true);
+            let statuses = repo.statuses(Some(&mut opts))?;
+            let is_dirty = !statuses.is_empty();
+            let changed_files = statuses
+                .iter()
+                .filter_map(|e| e.path().map(|p| p.to_string()))
+                .collect::<Vec<_>>();
+
+            let (ahead, behind) =
+                if let Ok(branch) = repo.find_branch(&branch_name, git2::BranchType::Local) {
+                    if let Ok(upstream) = branch.upstream() {
+                        let local_oid = branch.get().target().unwrap_or_else(git2::Oid::zero);
+                        let upstream_oid = upstream.get().target().unwrap_or_else(git2::Oid::zero);
+                        repo.graph_ahead_behind(local_oid, upstream_oid)?
+                    } else {
+                        (0, 0)
+                    }
+                } else {
+                    (0, 0)
+                };
+
+            Ok(GitStatus {
+                branch: branch_name,
+                is_dirty,
+                ahead_by: ahead as u32,
+                behind_by: behind as u32,
+                changed_files,
+            })
         })
         .await
         .map_err(|e| GitError::repository_error(format!("Task join error: {e}")))?;
