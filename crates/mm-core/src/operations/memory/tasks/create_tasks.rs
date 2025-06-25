@@ -1,3 +1,4 @@
+use super::super::common::handle_batch_result;
 use super::types::TaskProperties;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
@@ -39,15 +40,7 @@ where
     let task_names: Vec<String> = tasks.iter().map(|t| t.name.clone()).collect();
 
     // Create the task entity
-    let errors = ports
-        .memory_service
-        .create_entities_typed(&tasks)
-        .await
-        .map_err(CoreError::from)?;
-
-    if !errors.is_empty() {
-        return Err(CoreError::BatchValidation(errors));
-    }
+    handle_batch_result(|| ports.memory_service.create_entities_typed(&tasks)).await?;
 
     let relationships: Vec<MemoryRelationship> = task_names
         .into_iter()
@@ -59,15 +52,7 @@ where
         })
         .collect();
 
-    let errors = ports
-        .memory_service
-        .create_relationships(&relationships)
-        .await
-        .map_err(CoreError::from)?;
-
-    if !errors.is_empty() {
-        return Err(CoreError::BatchValidation(errors));
-    }
+    handle_batch_result(|| ports.memory_service.create_relationships(&relationships)).await?;
 
     Ok(())
 }
