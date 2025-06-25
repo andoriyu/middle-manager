@@ -1,6 +1,7 @@
 use mm_git::{GitRepository, GitService};
 use mm_memory::{MemoryRepository, MemoryService};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::RootCollection;
 
