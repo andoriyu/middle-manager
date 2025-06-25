@@ -14,9 +14,9 @@ use anyhow::Result as AnyResult;
 
 use mm_core::Ports;
 use mm_git::{GitRepository, GitService};
-use mm_git_git2::create_git_service;
+use mm_git_git2::{Git2Repository, create_git_service};
 use mm_memory::{MemoryRepository, MemoryService};
-use mm_memory_neo4j::{create_neo4j_service, neo4rs};
+use mm_memory_neo4j::{Neo4jRepository, create_neo4j_service, neo4rs};
 
 mod config;
 pub use config::Config;
@@ -188,6 +188,23 @@ where
     MiddleManagerHandler::new(memory_service, git_service)
 }
 
+/// Load configuration and construct Ports from the provided paths.
+pub async fn create_ports_from_config<P: AsRef<Path>>(
+    paths: &[P],
+) -> AnyResult<(Config, Ports<Neo4jRepository, Git2Repository>)> {
+    let config =
+        Config::load(paths).map_err(|e| anyhow::anyhow!("Failed to load configuration: {}", e))?;
+
+    let memory_service = create_neo4j_service(config.neo4j.clone(), config.memory.clone())
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
+
+    let git_service = create_git_service();
+    let ports = Ports::new(Arc::new(memory_service), Arc::new(git_service));
+
+    Ok((config, ports))
+}
+
 #[async_trait]
 impl<M, G> ServerHandler for MiddleManagerHandler<M, G>
 where
@@ -251,23 +268,16 @@ where
 /// Run the Middle Manager MCP server
 #[tracing::instrument(skip(config_paths), fields(paths = config_paths.len()))]
 pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
-    // Load configuration
-    let config = Config::load(config_paths)
-        .map_err(|e| anyhow::anyhow!("Failed to load configuration: {}", e))?;
+    // Load configuration and create ports
+    let (config, ports) = create_ports_from_config(config_paths).await?;
 
     tracing::info!("Starting Middle Manager MCP server");
     tracing::debug!("Using Neo4j URI: {}", config.neo4j.uri);
 
-    // Create memory service
-    let memory_service = create_neo4j_service(config.neo4j, config.memory)
-        .await
-        .map_err(|e| anyhow::anyhow!("Failed to create Neo4j memory service: {}", e))?;
-
-    // Create git service
-    let git_service = create_git_service();
-
-    // Create server handler
-    let handler = create_handler(memory_service, git_service);
+    // Create server handler using the constructed ports
+    let handler = MiddleManagerHandler {
+        ports: Arc::new(ports),
+    };
 
     // Create server details
     let server_details = InitializeResult {
@@ -304,11 +314,8 @@ pub async fn run_server<P: AsRef<Path>>(config_paths: &[P]) -> AnyResult<()> {
 /// Execute tool-related commands from the CLI
 #[tracing::instrument(skip(config_paths), fields(paths = config_paths.len()))]
 pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]) -> AnyResult<()> {
-    // Load configuration
-    let config = Config::load(config_paths)?;
-    let memory_service = create_neo4j_service(config.neo4j, config.memory).await?;
-    let git_service = create_git_service();
-    let ports = Ports::new(Arc::new(memory_service), Arc::new(git_service));
+    // Load configuration and build ports
+    let (_, ports) = create_ports_from_config(config_paths).await?;
 
     match command {
         ToolsCommand::List => {
