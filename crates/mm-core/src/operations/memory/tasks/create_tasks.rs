@@ -37,20 +37,32 @@ where
     };
 
     let tasks = command.tasks;
+    let depends_on = command.depends_on;
     let task_names: Vec<String> = tasks.iter().map(|t| t.name.clone()).collect();
 
     // Create the task entity
     handle_batch_result(|| ports.memory_service.create_entities_typed(&tasks)).await?;
 
-    let relationships: Vec<MemoryRelationship> = task_names
-        .into_iter()
+    let mut relationships: Vec<MemoryRelationship> = task_names
+        .iter()
         .map(|task_name| MemoryRelationship {
             from: project_name.clone(),
-            to: task_name,
+            to: task_name.clone(),
             name: "contains".to_string(),
             properties: HashMap::default(),
         })
         .collect();
+
+    for task_name in &task_names {
+        for dependency in &depends_on {
+            relationships.push(MemoryRelationship {
+                from: task_name.clone(),
+                to: dependency.clone(),
+                name: "depends_on".to_string(),
+                properties: HashMap::default(),
+            });
+        }
+    }
 
     handle_batch_result(|| ports.memory_service.create_relationships(&relationships)).await?;
 
@@ -97,6 +109,51 @@ mod tests {
             }],
             project_name: None,
             depends_on: Vec::new(),
+        };
+
+        let res = create_tasks(&ports, cmd).await;
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_create_tasks_with_dependencies() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_entities()
+            .withf(|ents| ents.len() == 1 && ents[0].name == "task:2")
+            .returning(|_| Ok(()));
+        mock.expect_create_relationships()
+            .withf(|rels| {
+                rels.len() == 2
+                    && rels
+                        .iter()
+                        .any(|r| r.from == "proj" && r.to == "task:2" && r.name == "contains")
+                    && rels
+                        .iter()
+                        .any(|r| r.from == "task:2" && r.to == "task:1" && r.name == "depends_on")
+            })
+            .returning(|_| Ok(()));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_project: Some("proj".into()),
+                additional_relationships: std::iter::once("depends_on".to_string())
+                    .collect::<HashSet<_>>(),
+                ..MemoryConfig::default()
+            },
+        );
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+
+        let cmd = CreateTasksCommand {
+            tasks: vec![MemoryEntity::<TaskProperties> {
+                name: "task:2".into(),
+                labels: vec![TASK_LABEL.to_string()],
+                ..Default::default()
+            }],
+            project_name: None,
+            depends_on: vec!["task:1".into()],
         };
 
         let res = create_tasks(&ports, cmd).await;

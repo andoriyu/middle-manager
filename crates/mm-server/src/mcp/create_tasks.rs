@@ -72,4 +72,49 @@ mod tests {
         // With our new macro, we're returning null
         assert_eq!(text, "null");
     }
+
+    #[tokio::test]
+    async fn test_call_tool_with_dependencies() {
+        let mut mock = MockMemoryRepository::new();
+        mock.expect_create_entities()
+            .withf(|ents| ents.len() == 1 && ents[0].name == "task:2")
+            .returning(|_| Ok(()));
+        mock.expect_create_relationships()
+            .withf(|rels| {
+                rels.len() == 2
+                    && rels
+                        .iter()
+                        .any(|r| r.from == "proj" && r.to == "task:2" && r.name == "contains")
+                    && rels
+                        .iter()
+                        .any(|r| r.from == "task:2" && r.to == "task:1" && r.name == "depends_on")
+            })
+            .returning(|_| Ok(()));
+
+        let service = MemoryService::new(
+            mock,
+            MemoryConfig {
+                default_project: Some("proj".into()),
+                additional_relationships: std::iter::once("depends_on".to_string()).collect(),
+                ..MemoryConfig::default()
+            },
+        );
+        let git_repo = MockGitRepository::new();
+        let git_service = mm_git::GitService::new(git_repo);
+        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+
+        let tool = CreateTasksTool {
+            tasks: vec![MemoryEntity::<TaskProperties> {
+                name: "task:2".into(),
+                labels: vec![TASK_LABEL.to_string()],
+                ..Default::default()
+            }],
+            project_name: None,
+            depends_on: vec!["task:1".into()],
+        };
+
+        let result = tool.call_tool(&ports).await.unwrap();
+        let text = result.content[0].as_text_content().unwrap().text.clone();
+        assert_eq!(text, "null");
+    }
 }
