@@ -2,9 +2,33 @@ use mm_memory::test_suite::run_memory_service_test_suite;
 use mm_memory::{MemoryRelationship, MemoryValue, RelationshipDirection};
 use mm_memory_neo4j::LabelMatchMode;
 use mm_memory_neo4j::{
-    MemoryConfig, MemoryEntity, MemoryError, Neo4jConfig, Neo4jRepository, create_neo4j_service,
+    MemoryConfig, MemoryEntity, MemoryError, MemoryService, Neo4jConfig, Neo4jRepository,
+    create_neo4j_service,
 };
 use std::collections::HashMap;
+
+async fn new_test_service(label: &str) -> MemoryService<Neo4jRepository> {
+    let config = Neo4jConfig {
+        uri: "neo4j://localhost:7688".to_string(),
+        username: "neo4j".to_string(),
+        password: "password".to_string(),
+    };
+
+    create_neo4j_service(
+        config,
+        MemoryConfig {
+            default_label: Some(label.to_string()),
+            default_relationships: true,
+            additional_relationships: std::collections::HashSet::default(),
+            default_labels: true,
+            additional_labels: std::iter::once("Example".to_string()).collect(),
+            default_project: None,
+            agent_name: "test".to_string(),
+        },
+    )
+    .await
+    .unwrap()
+}
 
 #[tokio::test]
 async fn test_connection_error() {
@@ -21,26 +45,7 @@ async fn test_connection_error() {
 
 #[tokio::test]
 async fn test_find_nonexistent_entity() {
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    let service = create_neo4j_service(
-        config,
-        MemoryConfig {
-            default_label: Some("TestFindNone".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
-            default_project: None,
-            agent_name: "test".to_string(),
-        },
-    )
-    .await
-    .unwrap();
+    let service = new_test_service("TestFindNone").await;
 
     // Test that finding a non-existent entity returns None
     let result = service
@@ -52,26 +57,7 @@ async fn test_find_nonexistent_entity() {
 
 #[tokio::test]
 async fn test_create_and_find_entity() {
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    let service = create_neo4j_service(
-        config,
-        MemoryConfig {
-            default_label: Some("TestCreate".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
-            default_project: None,
-            agent_name: "test".to_string(),
-        },
-    )
-    .await
-    .unwrap();
+    let service = new_test_service("TestCreate").await;
 
     let mut props = HashMap::new();
     props.insert("rating".to_string(), MemoryValue::Integer(5));
@@ -111,26 +97,7 @@ async fn test_create_and_find_entity() {
 
 #[tokio::test]
 async fn test_validation_errors() {
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    let service = create_neo4j_service(
-        config,
-        MemoryConfig {
-            default_label: Some("TestValidation".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
-            default_project: None,
-            agent_name: "test".to_string(),
-        },
-    )
-    .await
-    .unwrap();
+    let service = new_test_service("TestValidation").await;
 
     // Test empty entity name
     let result = service.find_entity_by_name("").await;
@@ -157,26 +124,7 @@ async fn test_validation_errors() {
 
 #[tokio::test]
 async fn test_set_observations() {
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    let service = create_neo4j_service(
-        config,
-        MemoryConfig {
-            default_label: Some("TestSet".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
-            default_project: None,
-            agent_name: "test".to_string(),
-        },
-    )
-    .await
-    .unwrap();
+    let service = new_test_service("TestSet").await;
 
     let entity_name = "test:entity:set";
     let entity = MemoryEntity {
@@ -206,26 +154,7 @@ async fn test_set_observations() {
 
 #[tokio::test]
 async fn test_add_and_remove_observations() {
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    let service = create_neo4j_service(
-        config,
-        MemoryConfig {
-            default_label: Some("TestAddRemove".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
-            default_project: None,
-            agent_name: "test".to_string(),
-        },
-    )
-    .await
-    .unwrap();
+    let service = new_test_service("TestAddRemove").await;
 
     let entity_name = "test:entity:modify";
     let entity = MemoryEntity {
@@ -276,26 +205,7 @@ async fn test_add_and_remove_observations() {
 
 #[tokio::test]
 async fn test_create_relationship() {
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    let service = create_neo4j_service(
-        config,
-        MemoryConfig {
-            default_label: Some("RelationshipTest".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
-            default_project: None,
-            agent_name: "test".to_string(),
-        },
-    )
-    .await
-    .unwrap();
+    let service = new_test_service("RelationshipTest").await;
 
     let a = MemoryEntity {
         name: "rel:a".to_string(),
@@ -348,26 +258,7 @@ async fn test_create_relationship() {
 
 #[tokio::test]
 async fn test_find_related_entities() {
-    let config = Neo4jConfig {
-        uri: "neo4j://localhost:7688".to_string(),
-        username: "neo4j".to_string(),
-        password: "password".to_string(),
-    };
-
-    let service = create_neo4j_service(
-        config,
-        MemoryConfig {
-            default_label: Some("RelatedTest".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
-            default_project: None,
-            agent_name: "test".to_string(),
-        },
-    )
-    .await
-    .unwrap();
+    let service = new_test_service("RelatedTest").await;
 
     let a = MemoryEntity {
         name: "related:a".to_string(),
