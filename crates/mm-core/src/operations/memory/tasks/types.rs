@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use mm_memory::MemoryValue;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_json;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 /// Priority level for a task
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
@@ -12,6 +12,24 @@ pub enum Priority {
     Medium,
     High,
     Critical,
+}
+
+impl FromStr for Priority {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.eq_ignore_ascii_case("low") {
+            Ok(Priority::Low)
+        } else if s.eq_ignore_ascii_case("medium") {
+            Ok(Priority::Medium)
+        } else if s.eq_ignore_ascii_case("high") {
+            Ok(Priority::High)
+        } else if s.eq_ignore_ascii_case("critical") {
+            Ok(Priority::Critical)
+        } else {
+            Err(())
+        }
+    }
 }
 
 /// Status of a task
@@ -24,6 +42,21 @@ pub enum TaskStatus {
     Cancelled,
 }
 
+impl FromStr for TaskStatus {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_ascii_lowercase().as_str() {
+            "todo" => Ok(TaskStatus::Todo),
+            "inprogress" | "in_progress" => Ok(TaskStatus::InProgress),
+            "blocked" => Ok(TaskStatus::Blocked),
+            "done" => Ok(TaskStatus::Done),
+            "cancelled" => Ok(TaskStatus::Cancelled),
+            _ => Err(()),
+        }
+    }
+}
+
 /// Type of task
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
 pub enum TaskType {
@@ -31,6 +64,20 @@ pub enum TaskType {
     Bug,
     Chore,
     Improvement,
+}
+
+impl FromStr for TaskType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_ascii_lowercase().as_str() {
+            "feature" => Ok(TaskType::Feature),
+            "bug" => Ok(TaskType::Bug),
+            "chore" => Ok(TaskType::Chore),
+            "improvement" => Ok(TaskType::Improvement),
+            _ => Err(()),
+        }
+    }
 }
 
 /// Properties for Task entities
@@ -108,22 +155,18 @@ impl From<HashMap<String, MemoryValue>> for TaskProperties {
         };
 
         let task_type = match map.remove("task_type") {
-            Some(MemoryValue::String(s)) => {
-                serde_json::from_str(&format!("\"{}\"", s)).unwrap_or(TaskType::Feature)
-            }
+            Some(MemoryValue::String(s)) => TaskType::from_str(&s).unwrap_or(TaskType::Feature),
             _ => TaskType::Feature,
         };
 
         let status = match map.remove("status") {
-            Some(MemoryValue::String(s)) => {
-                serde_json::from_str(&format!("\"{}\"", s)).unwrap_or(TaskStatus::Todo)
-            }
+            Some(MemoryValue::String(s)) => TaskStatus::from_str(&s).unwrap_or(TaskStatus::Todo),
             _ => TaskStatus::Todo,
         };
 
         let priority = match map.remove("priority") {
             Some(MemoryValue::String(s)) => {
-                serde_json::from_str(&format!("\"{}\"", s)).unwrap_or(Priority::Low)
+                Priority::from_str(&s).unwrap_or(TaskProperties::default().priority)
             }
             _ => TaskProperties::default().priority,
         };
@@ -171,5 +214,37 @@ impl From<TaskProperties> for HashMap<String, MemoryValue> {
             MemoryValue::String(format!("{:?}", props.priority).to_lowercase()),
         );
         map
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_enum_from_str() {
+        assert_eq!(Priority::from_str("high").unwrap(), Priority::High);
+        assert_eq!(
+            TaskStatus::from_str("inprogress").unwrap(),
+            TaskStatus::InProgress
+        );
+        assert_eq!(TaskType::from_str("bug").unwrap(), TaskType::Bug);
+        assert!(Priority::from_str("unknown").is_err());
+    }
+
+    #[test]
+    fn test_task_properties_from_map() {
+        let mut map = HashMap::new();
+        map.insert("task_type".to_string(), MemoryValue::String("bug".into()));
+        map.insert("status".to_string(), MemoryValue::String("done".into()));
+        map.insert(
+            "priority".to_string(),
+            MemoryValue::String("critical".into()),
+        );
+
+        let props = TaskProperties::from(map);
+        assert_eq!(props.task_type, TaskType::Bug);
+        assert_eq!(props.status, TaskStatus::Done);
+        assert_eq!(props.priority, Priority::Critical);
     }
 }
