@@ -25,11 +25,12 @@ impl GetProjectContextTool {
                 (Some(name), _) => ProjectFilter::Name(name),
                 (None, Some(repo)) => ProjectFilter::Repository(repo),
                 (None, None) => {
-                    return Err(rust_mcp_sdk::schema::schema_utils::CallToolError::new(
-                        crate::mcp::error::ToolError::with_source(
+                    return Err(rust_mcp_sdk::schema::schema_utils::CallToolError(
+                        crate::mcp::error::error_with_source(
                             "Either project_name or repository_name must be provided",
                             std::io::Error::new(std::io::ErrorKind::InvalidInput, "Missing required parameter")
                         )
+                        .into_boxed_dyn_error()
                     ));
                 }
             }

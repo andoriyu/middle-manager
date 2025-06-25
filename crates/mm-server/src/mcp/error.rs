@@ -1,91 +1,53 @@
+use anyhow::{Context, Error};
 use mm_core::CoreError;
-
 use rust_mcp_sdk::schema::schema_utils::CallToolError;
 use std::error::Error as StdError;
-use std::fmt;
 use tracing::error;
 
-/// Error type for MCP tools
-#[derive(Debug)]
-pub struct ToolError {
-    message: String,
-    source: Option<Box<dyn StdError + Send + Sync>>,
+/// Create an [`anyhow::Error`] with a custom message and source error.
+pub fn error_with_source<S, E>(message: S, source: E) -> Error
+where
+    S: Into<String>,
+    E: StdError + Send + Sync + 'static,
+{
+    Err::<(), E>(source).context(message.into()).unwrap_err()
 }
 
-impl ToolError {
-    /// Create a new tool error with a message and source
-    pub fn with_source<S, E>(message: S, source: E) -> Self
-    where
-        S: Into<String>,
-        E: StdError + Send + Sync + 'static,
-    {
-        Self {
-            message: message.into(),
-            source: Some(Box::new(source)),
-        }
-    }
-}
-
-impl fmt::Display for ToolError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl StdError for ToolError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        self.source
-            .as_ref()
-            .map(|s| s.as_ref() as &(dyn StdError + 'static))
-    }
-}
-
-impl<E> From<CoreError<E>> for ToolError
+/// Convert a [`CoreError`] into an [`anyhow::Error`] with a helpful message.
+pub fn core_error_to_anyhow<E>(error: CoreError<E>) -> Error
 where
     E: StdError + Send + Sync + 'static,
 {
-    fn from(error: CoreError<E>) -> Self {
-        let message = match &error {
-            CoreError::Memory(e) => e.to_string(),
-            CoreError::Git(e) => e.to_string(),
-            CoreError::Serialization(e) => e.to_string(),
-            CoreError::Validation(e) => e.to_string(),
-            CoreError::BatchValidation(v) => v
-                .iter()
-                .map(|(name, err)| format!("{}: {}", name, err))
-                .collect::<Vec<_>>()
-                .join("; "),
-            CoreError::MissingProject => "No project specified".to_string(),
-        };
-        Self::with_source(message, error)
-    }
+    let message = match &error {
+        CoreError::Memory(e) => e.to_string(),
+        CoreError::Git(e) => e.to_string(),
+        CoreError::Serialization(e) => e.to_string(),
+        CoreError::Validation(e) => e.to_string(),
+        CoreError::BatchValidation(v) => v
+            .iter()
+            .map(|(name, err)| format!("{}: {}", name, err))
+            .collect::<Vec<_>>()
+            .join("; "),
+        CoreError::MissingProject => "No project specified".to_string(),
+    };
+
+    error_with_source(message, error)
 }
 
-impl From<serde_json::Error> for ToolError {
-    fn from(error: serde_json::Error) -> Self {
-        Self::with_source(format!("Serialization error: {:#?}", error), error)
-    }
+/// Convert any error into a [`CallToolError`], logging it in the process.
+pub fn into_call_tool_error<E>(err: E) -> CallToolError
+where
+    E: StdError + Send + Sync + 'static,
+{
+    error!("Tool call failed: {:#?}", err);
+    let err = Error::from(err).into_boxed_dyn_error();
+    CallToolError(err)
 }
 
-/// Implementation of From<ToolError> for CallToolError
-impl From<ToolError> for CallToolError {
-    fn from(error: ToolError) -> Self {
-        error!("Tool call failed: {:#?}", error);
-        CallToolError::new(error)
-    }
-}
-
-/// Map a core result into a MCP tool result by converting any error into a
-/// [`CallToolError`].
-///
-/// The caller is expected to map the successful result into a
-/// [`CallToolResult`] before invoking this helper.
+/// Map a result into a [`CallToolError`] using [`into_call_tool_error`].
 pub fn map_result<R, E>(res: Result<R, E>) -> Result<R, CallToolError>
 where
-    E: Into<ToolError> + StdError + Send + Sync + 'static,
+    E: StdError + Send + Sync + 'static,
 {
-    res.map_err(|e| {
-        let tool_error: ToolError = e.into();
-        tool_error.into()
-    })
+    res.map_err(into_call_tool_error)
 }
