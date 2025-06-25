@@ -196,7 +196,7 @@ mod tests {
                         .contains(&ValidationErrorKind::NoLabels("valid:entity".to_string()))
             }));
         } else {
-            panic!("Expected batch validation error");
+            unreachable!("Expected batch validation error");
         }
     }
 }
