@@ -18,12 +18,16 @@ impl FromStr for Priority {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_ascii_lowercase().as_str() {
-            "low" => Ok(Priority::Low),
-            "medium" => Ok(Priority::Medium),
-            "high" => Ok(Priority::High),
-            "critical" => Ok(Priority::Critical),
-            _ => Err(()),
+        if s.eq_ignore_ascii_case("low") {
+            Ok(Priority::Low)
+        } else if s.eq_ignore_ascii_case("medium") {
+            Ok(Priority::Medium)
+        } else if s.eq_ignore_ascii_case("high") {
+            Ok(Priority::High)
+        } else if s.eq_ignore_ascii_case("critical") {
+            Ok(Priority::Critical)
+        } else {
+            Err(())
         }
     }
 }
