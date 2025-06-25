@@ -59,3 +59,39 @@ tool_box!(
         UpdateRelationshipTool
     ]
 );
+
+impl MMTools {
+    /// Execute the contained tool using the provided ports.
+    pub async fn execute<M, G>(
+        self,
+        ports: &mm_core::Ports<M, G>,
+    ) -> Result<
+        rust_mcp_sdk::schema::CallToolResult,
+        rust_mcp_sdk::schema::schema_utils::CallToolError,
+    >
+    where
+        M: mm_memory::MemoryRepository + Send + Sync,
+        G: mm_git::GitRepository + Send + Sync,
+        M::Error: std::error::Error + Send + Sync + 'static,
+        G::Error: std::error::Error + Send + Sync + 'static,
+    {
+        match self {
+            MMTools::CreateEntitiesTool(tool) => tool.call_tool(ports).await,
+            MMTools::CreateRelationshipsTool(tool) => tool.call_tool(ports).await,
+            MMTools::DeleteEntitiesTool(tool) => tool.call_tool(ports).await,
+            MMTools::DeleteRelationshipsTool(tool) => tool.call_tool(ports).await,
+            MMTools::FindEntitiesByLabelsTool(tool) => tool.call_tool(ports).await,
+            MMTools::FindRelationshipsTool(tool) => tool.call_tool(ports).await,
+            MMTools::CreateTasksTool(tool) => tool.call_tool(ports).await,
+            MMTools::GetTaskTool(tool) => tool.call_tool(ports).await,
+            MMTools::UpdateTaskTool(tool) => tool.call_tool(ports).await,
+            MMTools::DeleteTaskTool(tool) => tool.call_tool(ports).await,
+            MMTools::GetEntityTool(tool) => tool.call_tool(ports).await,
+            MMTools::GetGitStatusTool(tool) => tool.call_tool(ports).await,
+            MMTools::GetProjectContextTool(tool) => tool.call_tool(ports).await,
+            MMTools::ListProjectsTool(tool) => tool.call_tool(ports).await,
+            MMTools::UpdateEntityTool(tool) => tool.call_tool(ports).await,
+            MMTools::UpdateRelationshipTool(tool) => tool.call_tool(ports).await,
+        }
+    }
+}

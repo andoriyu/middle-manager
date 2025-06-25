@@ -177,30 +177,7 @@ where
         let tool_params = MMTools::try_from(request.params)
             .map_err(|_| CallToolError::unknown_tool(tool_name.clone()))?;
 
-        // Match the tool variant and execute its corresponding logic
-        let result = match tool_params {
-            MMTools::CreateEntitiesTool(create_entity_tool) => {
-                create_entity_tool.call_tool(&self.ports).await?
-            }
-            MMTools::CreateRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::DeleteEntitiesTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::DeleteRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::FindEntitiesByLabelsTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::FindRelationshipsTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::CreateTasksTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::GetTaskTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::UpdateTaskTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::DeleteTaskTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::GetEntityTool(get_entity_tool) => {
-                get_entity_tool.call_tool(&self.ports).await?
-            }
-            MMTools::GetGitStatusTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::GetProjectContextTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::ListProjectsTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::UpdateEntityTool(tool) => tool.call_tool(&self.ports).await?,
-            MMTools::UpdateRelationshipTool(tool) => tool.call_tool(&self.ports).await?,
-        };
-        Ok(result)
+        tool_params.execute(&self.ports).await
     }
 }
 
@@ -379,25 +356,10 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
                 };
                 let tool =
                     MMTools::try_from(params).map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
-                let result = match tool {
-                    MMTools::CreateEntitiesTool(t) => t.call_tool(&ports).await,
-                    MMTools::CreateRelationshipsTool(t) => t.call_tool(&ports).await,
-                    MMTools::DeleteEntitiesTool(t) => t.call_tool(&ports).await,
-                    MMTools::DeleteRelationshipsTool(t) => t.call_tool(&ports).await,
-                    MMTools::FindEntitiesByLabelsTool(t) => t.call_tool(&ports).await,
-                    MMTools::FindRelationshipsTool(t) => t.call_tool(&ports).await,
-                    MMTools::CreateTasksTool(t) => t.call_tool(&ports).await,
-                    MMTools::GetTaskTool(t) => t.call_tool(&ports).await,
-                    MMTools::UpdateTaskTool(t) => t.call_tool(&ports).await,
-                    MMTools::DeleteTaskTool(t) => t.call_tool(&ports).await,
-                    MMTools::GetEntityTool(t) => t.call_tool(&ports).await,
-                    MMTools::GetGitStatusTool(t) => t.call_tool(&ports).await,
-                    MMTools::GetProjectContextTool(t) => t.call_tool(&ports).await,
-                    MMTools::ListProjectsTool(t) => t.call_tool(&ports).await,
-                    MMTools::UpdateEntityTool(t) => t.call_tool(&ports).await,
-                    MMTools::UpdateRelationshipTool(t) => t.call_tool(&ports).await,
-                }
-                .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
+                let result = tool
+                    .execute(&ports)
+                    .await
+                    .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
                 println!("{}", serde_json::to_string_pretty(&result)?);
             }
         },
