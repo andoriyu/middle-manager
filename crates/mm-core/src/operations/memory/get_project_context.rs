@@ -1,12 +1,18 @@
+use crate::operations::memory::git::types::GitRepositoryProperties;
+use crate::operations::memory::projects::{ProjectContext, ProjectProperties};
+use crate::operations::memory::tasks::TaskProperties;
 use mm_git::GitRepository;
 use mm_memory::{
-    MemoryEntity, MemoryError, MemoryRepository, ProjectContext, RelationshipDirection,
+    MemoryEntity, MemoryError, MemoryRepository, RelationshipDirection, value::MemoryValue,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use tracing::{debug, instrument};
 
-use mm_memory::labels::{COMPONENT_LABEL, NOTE_LABEL, PROJECT_LABEL, TASK_LABEL, TECHNOLOGY_LABEL};
+use mm_memory::labels::{
+    COMPONENT_LABEL, GIT_REPOSITORY_LABEL, NOTE_LABEL, PROJECT_LABEL, TASK_LABEL, TECHNOLOGY_LABEL,
+};
 
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
@@ -36,24 +42,30 @@ pub struct GetProjectContextResult {
     pub context: ProjectContext,
 }
 
-async fn related_by_label<M, G>(
+async fn related_by_label<M, G, P>(
     ports: &Ports<M, G>,
     entity_name: &str,
     relationship: Option<String>,
     direction: Option<RelationshipDirection>,
     depth: u32,
     label: &str,
-) -> CoreResult<Vec<MemoryEntity>, M::Error>
+) -> CoreResult<Vec<MemoryEntity<P>>, M::Error>
 where
     M: MemoryRepository + Send + Sync,
     G: GitRepository + Send + Sync,
+    P: JsonSchema
+        + From<HashMap<String, MemoryValue>>
+        + Into<HashMap<String, MemoryValue>>
+        + Clone
+        + std::fmt::Debug
+        + Default,
     M::Error: std::error::Error + Send + Sync + 'static,
     G::Error: std::error::Error + Send + Sync + 'static,
 {
     let label_string = label.to_string();
     let entities = ports
         .memory_service
-        .find_related_entities(entity_name, relationship, direction, depth)
+        .find_related_entities_typed::<P>(entity_name, relationship, direction, depth)
         .await
         .map_err(CoreError::from)?
         .into_iter()
@@ -79,7 +91,7 @@ where
             // Try to find the project by name
             let project_entity = ports
                 .memory_service
-                .find_entity_by_name(&name)
+                .find_entity_by_name_typed::<ProjectProperties>(&name)
                 .await
                 .map_err(CoreError::from)?;
 
@@ -101,7 +113,7 @@ where
 
             if let Some(repo) = repo_entity {
                 // Find projects contained by this repository
-                let projects = related_by_label(
+                let projects = related_by_label::<_, _, ProjectProperties>(
                     ports,
                     &repo.name,
                     Some("contains".to_string()),
@@ -137,7 +149,7 @@ where
 /// Build project context from a project entity
 async fn build_project_context<M, G>(
     ports: &Ports<M, G>,
-    project: MemoryEntity,
+    project: MemoryEntity<ProjectProperties>,
 ) -> CoreResult<ProjectContext, M::Error>
 where
     M: MemoryRepository + Send + Sync,
@@ -146,7 +158,7 @@ where
     G::Error: std::error::Error + Send + Sync + 'static,
 {
     // Find tasks related to this project
-    let tasks = related_by_label(
+    let tasks = related_by_label::<_, _, TaskProperties>(
         ports,
         &project.name,
         Some("contains".to_string()),
@@ -157,7 +169,7 @@ where
     .await?;
 
     // Find notes related to this project
-    let notes = related_by_label(
+    let notes = related_by_label::<_, _, HashMap<String, MemoryValue>>(
         ports,
         &project.name,
         Some("relates_to".to_string()),
@@ -167,16 +179,18 @@ where
     )
     .await?;
 
-    // Find components related to this project
-    let components = related_by_label(
+    // Find associated git repository if any
+    let git_repository = related_by_label::<_, _, GitRepositoryProperties>(
         ports,
         &project.name,
         Some("contains".to_string()),
-        Some(RelationshipDirection::Outgoing),
+        Some(RelationshipDirection::Incoming),
         1,
-        COMPONENT_LABEL,
+        GIT_REPOSITORY_LABEL,
     )
-    .await?;
+    .await?
+    .into_iter()
+    .next();
 
     // Find other entities related to this project
     let other_related = ports
@@ -194,7 +208,7 @@ where
         .collect();
 
     // Find technologies used by this project
-    let technologies = related_by_label(
+    let technologies = related_by_label::<_, _, HashMap<String, MemoryValue>>(
         ports,
         &project.name,
         Some("uses".to_string()),
@@ -206,10 +220,10 @@ where
 
     Ok(ProjectContext {
         project,
+        git_repository,
         tasks,
         notes,
-        components,
-        other_related_entities: other_related,
         technologies,
+        other_related_entities: other_related,
     })
 }

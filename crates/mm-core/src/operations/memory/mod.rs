@@ -4,6 +4,7 @@ mod generic;
 mod git;
 // Re-export label constants from the memory crate
 pub use mm_memory::labels;
+mod projects;
 mod tasks;
 
 pub(crate) use validate_name;
@@ -43,6 +44,7 @@ pub use get_project_context::{
 };
 pub use labels::*;
 pub use list_projects::{ListProjectsCommand, ListProjectsResult, list_projects};
+pub use projects::{ProjectContext, ProjectProperties, ProjectStatus, ProjectType};
 pub use tasks::{
     CreateTasksCommand, CreateTasksResult, DeleteTaskCommand, DeleteTaskResult, GetTaskCommand,
     GetTaskResult, Priority, TaskProperties, TaskStatus, TaskType, UpdateTaskCommand,
