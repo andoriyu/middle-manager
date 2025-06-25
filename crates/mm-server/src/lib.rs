@@ -40,7 +40,6 @@ mod resources;
 mod roots;
 
 use clap::Subcommand;
-use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::schema::{ListResourceTemplatesResult, ListResourcesResult};
 use serde_json::Value;
 
@@ -368,25 +367,13 @@ pub async fn run_tools<P: AsRef<Path>>(command: ToolsCommand, config_paths: &[P]
             if toolbox != "MMTools" {
                 anyhow::bail!("Unknown toolbox: {}", toolbox);
             }
-            let schema = match tool_name.as_str() {
-                "create_entities" => mcp::CreateEntitiesTool::json_schema(),
-                "create_relationships" => mcp::CreateRelationshipsTool::json_schema(),
-                "delete_entities" => mcp::DeleteEntitiesTool::json_schema(),
-                "delete_relationships" => mcp::DeleteRelationshipsTool::json_schema(),
-                "find_entities_by_labels" => mcp::FindEntitiesByLabelsTool::json_schema(),
-                "find_relationships" => mcp::FindRelationshipsTool::json_schema(),
-                "create_tasks" => mcp::CreateTasksTool::json_schema(),
-                "get_task" => mcp::GetTaskTool::json_schema(),
-                "update_task" => mcp::UpdateTaskTool::json_schema(),
-                "delete_task" => mcp::DeleteTaskTool::json_schema(),
-                "get_entity" => mcp::GetEntityTool::json_schema(),
-                "get_git_status" => mcp::GetGitStatusTool::json_schema(),
-                "get_project_context" => mcp::GetProjectContextTool::json_schema(),
-                "list_projects" => mcp::ListProjectsTool::json_schema(),
-                "update_entity" => mcp::UpdateEntityTool::json_schema(),
-                "update_relationship" => mcp::UpdateRelationshipTool::json_schema(),
-                _ => anyhow::bail!("Unknown tool: {}", tool_name),
+            let params = rust_mcp_sdk::schema::CallToolRequestParams {
+                name: tool_name.clone(),
+                arguments: None,
             };
+            let tool = MMTools::try_from(params)
+                .map_err(|_| anyhow::anyhow!("Unknown tool: {}", tool_name))?;
+            let schema = tool.schema();
             println!("{}", serde_json::to_string_pretty(&schema)?);
         }
     }

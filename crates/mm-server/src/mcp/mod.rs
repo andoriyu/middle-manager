@@ -18,7 +18,9 @@ pub mod update_entity;
 pub mod update_relationship;
 pub mod update_task;
 
+use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::tool_box;
+use serde_json::{Map, Value};
 
 pub use create_entities::CreateEntitiesTool;
 pub use create_relationships::CreateRelationshipsTool;
@@ -92,6 +94,28 @@ impl MMTools {
             MMTools::ListProjectsTool(tool) => tool.call_tool(ports).await,
             MMTools::UpdateEntityTool(tool) => tool.call_tool(ports).await,
             MMTools::UpdateRelationshipTool(tool) => tool.call_tool(ports).await,
+        }
+    }
+
+    /// Return the JSON schema for the contained tool.
+    pub fn schema(&self) -> Map<String, Value> {
+        match self {
+            MMTools::CreateEntitiesTool(_) => CreateEntitiesTool::json_schema(),
+            MMTools::CreateRelationshipsTool(_) => CreateRelationshipsTool::json_schema(),
+            MMTools::DeleteEntitiesTool(_) => DeleteEntitiesTool::json_schema(),
+            MMTools::DeleteRelationshipsTool(_) => DeleteRelationshipsTool::json_schema(),
+            MMTools::FindEntitiesByLabelsTool(_) => FindEntitiesByLabelsTool::json_schema(),
+            MMTools::FindRelationshipsTool(_) => FindRelationshipsTool::json_schema(),
+            MMTools::CreateTasksTool(_) => CreateTasksTool::json_schema(),
+            MMTools::GetTaskTool(_) => GetTaskTool::json_schema(),
+            MMTools::UpdateTaskTool(_) => UpdateTaskTool::json_schema(),
+            MMTools::DeleteTaskTool(_) => DeleteTaskTool::json_schema(),
+            MMTools::GetEntityTool(_) => GetEntityTool::json_schema(),
+            MMTools::GetGitStatusTool(_) => GetGitStatusTool::json_schema(),
+            MMTools::GetProjectContextTool(_) => GetProjectContextTool::json_schema(),
+            MMTools::ListProjectsTool(_) => ListProjectsTool::json_schema(),
+            MMTools::UpdateEntityTool(_) => UpdateEntityTool::json_schema(),
+            MMTools::UpdateRelationshipTool(_) => UpdateRelationshipTool::json_schema(),
         }
     }
 }
