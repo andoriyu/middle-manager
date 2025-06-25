@@ -1,6 +1,7 @@
 # Middle Manager
 
-Middle Manager is a Model Context Protocol (MCP) server for a Neo4j memory graph. It uses a hexagonal architecture to keep domain logic independent of external protocols.
+Middle Manager is a Model Context Protocol (MCP) server for a Neo4j memory graph. It uses a hexagonal architecture to keep domain logic independent of external protocols.  
+In addition to storing knowledge, Middle Manager manages project tasks and integrates basic Git repository information.
 
 ### Memory
 
@@ -16,9 +17,22 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 
 | Name | Purpose |
 | ---- | ------- |
-| `create_entity` | Create one or more entities |
-| `create_relationship` | Create relationships between entities |
+| `create_entities` | Create one or more entities |
+| `create_relationships` | Create relationships between entities |
+| `delete_entities` | Delete entities from the graph |
+| `delete_relationships` | Delete relationships between entities |
+| `find_entities_by_labels` | Find entities with specific labels |
+| `find_relationships` | Find relationships between entities |
+| `create_tasks` | Create task entities |
+| `get_task` | Retrieve a task by name |
+| `update_task` | Update a task |
+| `delete_task` | Delete a task |
 | `get_entity` | Retrieve an entity by name |
+| `get_git_status` | Get Git status for a repository path |
+| `get_project_context` | Retrieve context for a project |
+| `list_projects` | List known projects |
+| `update_entity` | Update an entity |
+| `update_relationship` | Update a relationship |
 
 ## Project Structure
 
@@ -28,6 +42,8 @@ The project is organized as a Rust workspace with the following crates:
 - **mm-core**: Core domain operations that depend on the `MemoryService` from `mm-memory`
 - **mm-memory**: Memory domain types including the `MemoryService` struct and `MemoryRepository` trait
 - **mm-memory-neo4j**: Neo4j-backed memory repository implementation
+- **mm-git**: Git service and repository traits
+- **mm-git-git2**: `git2`-based Git repository implementation
 - **mm-server**: MCP server implementation
 - **mm-utils**: Shared utility helpers
 
@@ -37,63 +53,44 @@ All workspace crates reside in the `crates/` directory to keep the repository ro
 
 ```mermaid
 graph TD
-    %% mm-cli details
+    %% mm-cli
     subgraph "mm-cli"
-        main_fn["main()"]
-        run_server_fn["run_server()"]
-        main_fn --> run_server_fn
+        main_fn["main()"] --> run_server_fn["run_server()"]
         run_server_fn --> create_handler
     end
 
-    %% mm-server details
+    %% mm-server
     subgraph "mm-server"
-        create_handler["create_handler()"]
-        subgraph "mcp"
-            create_tool["CreateEntityTool::call_tool"]
-            create_rel_tool["CreateRelationshipTool::call_tool"]
-            get_tool["GetEntityTool::call_tool"]
-        end
-        subgraph "resources"
-            list_res["list_resources()"]
-            list_tmpl["list_resource_templates()"]
-            read_res["read_resource()"]
-        end
-        create_handler --> create_tool
-        create_handler --> create_rel_tool
-        create_handler --> get_tool
-        create_handler --> list_res
-        create_handler --> list_tmpl
-        create_handler --> read_res
+        create_handler["create_handler()"] --> tools["MMTools"]
     end
 
-    %% mm-core details
+    %% core
     subgraph "mm-core"
-        create_op["create_entity"]
-        create_rel_op["create_relationship"]
-        get_op["get_entity"]
-        create_op --> memory_service["MemoryService Struct"]
-        create_rel_op --> memory_service
-        get_op --> memory_service
+        memory_ops["memory & task ops"] --> memory_service
+        git_ops["git ops"] --> git_service
     end
 
-    %% mm-memory details
+    %% memory crates
     subgraph "mm-memory"
-        memory_service["MemoryService Struct"]
-        repository_trait["MemoryRepository Trait"]
-        memory_service -->|uses| repository_trait
+        memory_service["MemoryService"] --> repo_trait["MemoryRepository"]
     end
-
-    %% mm-memory-neo4j details
     subgraph "mm-memory-neo4j"
-        neo4j_repo["Neo4jRepository Struct"] -->|implements| repository_trait
-        neo4j_repo --> neo4j_db[(Neo4j)]
+        neo4j_repo["Neo4jRepository"] -->|implements| repo_trait
+        neo4j_repo --> neo4j[(Neo4j)]
     end
 
-    %% Flow connections
-    create_tool --> create_op
-    create_rel_tool --> create_rel_op
-    get_tool --> get_op
-    read_res --> get_op
+    %% git crates
+    subgraph "mm-git"
+        git_service["GitService"] --> git_repo_trait["GitRepository"]
+    end
+    subgraph "mm-git-git2"
+        git2_repo["Git2Repository"] -->|implements| git_repo_trait
+    end
+
+    %% relationships
+    mm-cli --> mm-server --> mm-core
+    mm-core --> mm-memory --> mm-memory-neo4j
+    mm-core --> mm-git --> mm-git-git2
 ```
 
 ## Features
@@ -105,8 +102,15 @@ graph TD
 - Set, add, remove, or clear observations
 - Create relationships between entities
 
+- Manage project tasks and their dependencies
+- Retrieve project context and list projects
+
 - Fetch any entity with `memory://{name}`; `list_resource_templates` advertises this
 - Configurable logging
+
+### Git
+
+- Query repository status with `get_git_status`
 
 ## Building
 
