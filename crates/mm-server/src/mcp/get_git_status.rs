@@ -77,7 +77,7 @@ mod tests {
         let json: serde_json::Value = serde_json::from_str(&text).unwrap();
         let branch = json.get("branch").unwrap().as_str().unwrap();
         assert_eq!(branch, "main");
-        assert_eq!(json.get("is_dirty").unwrap().as_bool().unwrap(), false);
+        assert!(!json.get("is_dirty").unwrap().as_bool().unwrap());
         assert_eq!(json.get("ahead_by").unwrap().as_u64().unwrap(), 0);
         assert_eq!(json.get("behind_by").unwrap().as_u64().unwrap(), 0);
         assert!(
