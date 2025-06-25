@@ -1,7 +1,9 @@
 use super::types::TaskProperties;
-use crate::error::{CoreError, CoreResult};
+#[cfg(test)]
+use crate::error::CoreError;
+use crate::error::CoreResult;
+use crate::operations::memory::generic::get_entity_generic;
 use crate::ports::Ports;
-use crate::validate_name;
 use mm_git::GitRepository;
 use mm_memory::{MemoryEntity, MemoryRepository};
 use tracing::instrument;
@@ -21,13 +23,7 @@ where
     M::Error: std::error::Error + Send + Sync + 'static,
     G::Error: std::error::Error + Send + Sync + 'static,
 {
-    validate_name!(command.name);
-
-    ports
-        .memory_service
-        .find_entity_by_name_typed::<TaskProperties>(&command.name)
-        .await
-        .map_err(CoreError::from)
+    get_entity_generic::<M, G, TaskProperties>(ports, &command.name).await
 }
 
 #[cfg(test)]
