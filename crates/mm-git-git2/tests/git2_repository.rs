@@ -30,6 +30,18 @@ async fn test_get_status_success() {
 }
 
 #[tokio::test]
+async fn test_get_status_nested_directory() {
+    let dir = TempDir::new().unwrap();
+    let repo = init_repo(&dir);
+    let expected_branch = repo.head().unwrap().shorthand().unwrap().to_string();
+    let nested = dir.path().join("nested/dir");
+    std::fs::create_dir_all(&nested).unwrap();
+    let service = create_git_service();
+    let status = service.get_status(&nested).await.unwrap();
+    assert_eq!(status.branch, expected_branch);
+}
+
+#[tokio::test]
 async fn test_get_status_invalid_path() {
     let repo = Git2Repository::new();
     let path = std::path::Path::new("/nonexistent/path");
