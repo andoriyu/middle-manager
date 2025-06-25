@@ -18,6 +18,7 @@ async-trait = { workspace = true }
 schemars = { workspace = true }
 chrono = { workspace = true }
 futures = { workspace = true }
+tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
 mockall = { workspace = true }
