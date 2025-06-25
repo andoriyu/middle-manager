@@ -1,4 +1,7 @@
-use crate::error::{CoreError, CoreResult};
+#[cfg(test)]
+use crate::error::CoreError;
+use crate::error::CoreResult;
+use crate::operations::memory::{DeleteEntitiesCommand, delete_entities};
 use crate::ports::Ports;
 use crate::validate_name;
 use mm_git::GitRepository;
@@ -25,17 +28,13 @@ where
 {
     validate_name!(command.name);
 
-    let errors = ports
-        .memory_service
-        .delete_entities(std::slice::from_ref(&command.name))
-        .await
-        .map_err(CoreError::from)?;
-
-    if !errors.is_empty() {
-        return Err(CoreError::BatchValidation(errors));
-    }
-
-    Ok(())
+    delete_entities(
+        ports,
+        DeleteEntitiesCommand {
+            names: vec![command.name],
+        },
+    )
+    .await
 }
 
 #[cfg(test)]

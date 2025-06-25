@@ -1,4 +1,5 @@
 mod common;
+mod generic;
 mod git;
 mod tasks;
 
@@ -30,6 +31,7 @@ pub use find_relationships::{
     FindRelationshipsCommand, FindRelationshipsResult, FindRelationshipsResultType,
     find_relationships,
 };
+pub use generic::{get_entity_generic, update_entity_generic};
 pub use get_entity::{GetEntityCommand, GetEntityResult, get_entity};
 pub use get_project_context::{
     GetProjectContextCommand, GetProjectContextResult, ProjectFilter, get_project_context,

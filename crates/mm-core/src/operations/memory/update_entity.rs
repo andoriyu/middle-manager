@@ -1,6 +1,8 @@
-use crate::error::{CoreError, CoreResult};
+#[cfg(test)]
+use crate::error::CoreError;
+use crate::error::CoreResult;
+use crate::operations::memory::generic::update_entity_generic;
 use crate::ports::Ports;
-use crate::validate_name;
 use mm_git::GitRepository;
 use mm_memory::{EntityUpdate, MemoryRepository};
 use tracing::instrument;
@@ -24,13 +26,7 @@ where
     M::Error: std::error::Error + Send + Sync + 'static,
     G::Error: std::error::Error + Send + Sync + 'static,
 {
-    validate_name!(command.name);
-
-    ports
-        .memory_service
-        .update_entity(&command.name, &command.update)
-        .await
-        .map_err(CoreError::from)
+    update_entity_generic(ports, &command.name, &command.update).await
 }
 
 #[cfg(test)]
