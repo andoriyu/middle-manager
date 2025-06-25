@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 pub fn assert_no_defs<T: mm_utils::IntoJsonSchema>() {
     let schema = T::json_schema();
     assert!(
