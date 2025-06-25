@@ -1,45 +1,12 @@
 #[cfg(test)]
 use crate::error::CoreError;
-use crate::error::CoreResult;
-use crate::operations::memory::{DeleteEntitiesCommand, delete_entities};
-use crate::ports::Ports;
-use crate::validate_name;
-use mm_git::GitRepository;
-use mm_memory::MemoryRepository;
-use tracing::instrument;
 
-#[derive(Debug, Clone)]
-pub struct DeleteTaskCommand {
-    pub name: String,
-}
-
-pub type DeleteTaskResult<E> = CoreResult<(), E>;
-
-#[instrument(skip(ports), fields(name = %command.name))]
-pub async fn delete_task<M, G>(
-    ports: &Ports<M, G>,
-    command: DeleteTaskCommand,
-) -> DeleteTaskResult<M::Error>
-where
-    M: MemoryRepository + Send + Sync,
-    G: GitRepository + Send + Sync,
-    M::Error: std::error::Error + Send + Sync + 'static,
-    G::Error: std::error::Error + Send + Sync + 'static,
-{
-    validate_name!(command.name);
-
-    delete_entities(
-        ports,
-        DeleteEntitiesCommand {
-            names: vec![command.name],
-        },
-    )
-    .await
-}
+generate_delete_wrapper!(DeleteTaskCommand, delete_task, DeleteTaskResult);
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ports::Ports;
     use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
