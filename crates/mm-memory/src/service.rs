@@ -86,6 +86,26 @@ where
         &self.config
     }
 
+    /// Validate a relationship reference or instance
+    fn validate_relationship(&self, from: &str, to: &str, name: &str) -> Vec<ValidationErrorKind> {
+        let mut errs = Vec::new();
+        if from.is_empty() || to.is_empty() {
+            errs.push(ValidationErrorKind::EmptyEntityName);
+        }
+        if !is_snake_case(name) {
+            errs.push(ValidationErrorKind::InvalidRelationshipFormat(
+                name.to_string(),
+            ));
+        }
+        if self.config.default_relationships
+            && !DEFAULT_RELATIONSHIPS.contains(&name)
+            && !self.config.additional_relationships.contains(name)
+        {
+            errs.push(ValidationErrorKind::UnknownRelationship(name.to_string()));
+        }
+        errs
+    }
+
     /// Create multiple entities in a batch
     #[instrument(skip(self, entities), fields(entities_count = entities.len()))]
     pub async fn create_entities_typed<P>(
@@ -232,21 +252,7 @@ where
         let mut valid = Vec::default();
 
         for rel in relationships {
-            let mut errs = Vec::default();
-            if rel.from.is_empty() || rel.to.is_empty() {
-                errs.push(ValidationErrorKind::EmptyEntityName);
-            }
-            if !is_snake_case(&rel.name) {
-                errs.push(ValidationErrorKind::InvalidRelationshipFormat(
-                    rel.name.clone(),
-                ));
-            }
-            if self.config.default_relationships
-                && !DEFAULT_RELATIONSHIPS.contains(&rel.name.as_str())
-                && !self.config.additional_relationships.contains(&rel.name)
-            {
-                errs.push(ValidationErrorKind::UnknownRelationship(rel.name.clone()));
-            }
+            let errs = self.validate_relationship(&rel.from, &rel.to, &rel.name);
 
             if errs.is_empty() {
                 valid.push(rel.clone());
@@ -299,21 +305,7 @@ where
         let mut valid = Vec::default();
 
         for rel in relationships {
-            let mut errs = Vec::default();
-            if rel.from.is_empty() || rel.to.is_empty() {
-                errs.push(ValidationErrorKind::EmptyEntityName);
-            }
-            if !is_snake_case(&rel.name) {
-                errs.push(ValidationErrorKind::InvalidRelationshipFormat(
-                    rel.name.clone(),
-                ));
-            }
-            if self.config.default_relationships
-                && !DEFAULT_RELATIONSHIPS.contains(&rel.name.as_str())
-                && !self.config.additional_relationships.contains(&rel.name)
-            {
-                errs.push(ValidationErrorKind::UnknownRelationship(rel.name.clone()));
-            }
+            let errs = self.validate_relationship(&rel.from, &rel.to, &rel.name);
 
             if errs.is_empty() {
                 valid.push(rel.clone());
