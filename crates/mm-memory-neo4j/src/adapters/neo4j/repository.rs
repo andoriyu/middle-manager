@@ -5,12 +5,12 @@ use neo4rs::{self, Graph, Node, Query};
 use tracing::instrument;
 
 use super::config::Neo4jConfig;
-use super::helpers::{extract_observations_from_node, parse_relationships_from_bolt};
+use super::helpers::memory_entity_from_node;
 use crate::adapters::conversions::{bolt_to_memory_value, memory_value_to_bolt};
 use mm_memory::{
     EntityUpdate, LabelMatchMode, MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository,
-    MemoryResult, MemoryValue, RelationshipDirection, RelationshipUpdate, ValidationError,
-    ValidationErrorKind, relationship::RelationshipRef,
+    MemoryResult, RelationshipDirection, RelationshipUpdate, ValidationError, ValidationErrorKind,
+    relationship::RelationshipRef,
 };
 
 pub struct Neo4jRepository {
@@ -117,34 +117,6 @@ impl MemoryRepository for Neo4jRepository {
                 }
             };
 
-            let entity_name = match node.get::<String>("name") {
-                Ok(n) => n,
-                Err(e) => {
-                    return Err(MemoryError::runtime_error_with_source(
-                        "Failed to get name property from node".to_string(),
-                        e,
-                    ));
-                }
-            };
-
-            let observations = extract_observations_from_node(&node)?;
-
-            let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
-
-            let mut properties: HashMap<String, MemoryValue> = HashMap::default();
-            for key in node.keys() {
-                if key != "name" && key != "observations" {
-                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
-                        MemoryError::runtime_error_with_source(
-                            "Failed to decode node properties".to_string(),
-                            e,
-                        )
-                    })?;
-                    let mv = bolt_to_memory_value(bolt)?;
-                    properties.insert(key.to_string(), mv);
-                }
-            }
-
             let rels_bolt = row.get::<neo4rs::BoltType>("rels").map_err(|e| {
                 MemoryError::runtime_error_with_source(
                     "Failed to decode relationships".to_string(),
@@ -152,15 +124,9 @@ impl MemoryRepository for Neo4jRepository {
                 )
             })?;
 
-            let relationships = parse_relationships_from_bolt(rels_bolt)?;
+            let entity = memory_entity_from_node(&node, rels_bolt)?;
 
-            Ok(Some(MemoryEntity {
-                name: entity_name,
-                labels,
-                observations,
-                properties,
-                relationships,
-            }))
+            Ok(Some(entity))
         } else {
             Ok(None)
         }
@@ -316,43 +282,16 @@ impl MemoryRepository for Neo4jRepository {
                 )
             })?;
 
-            let entity_name = node.get::<String>("name").map_err(|e| {
-                MemoryError::runtime_error_with_source("Failed to get name property".to_string(), e)
-            })?;
-
-            let observations = extract_observations_from_node(&node)?;
-
-            let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
-
-            let mut properties: HashMap<String, MemoryValue> = HashMap::default();
-            for key in node.keys() {
-                if key != "name" && key != "observations" {
-                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
-                        MemoryError::runtime_error_with_source(
-                            "Failed to decode node properties".to_string(),
-                            e,
-                        )
-                    })?;
-                    let mv = bolt_to_memory_value(bolt)?;
-                    properties.insert(key.to_string(), mv);
-                }
-            }
-
             let rels_bolt = row.get::<neo4rs::BoltType>("rels").map_err(|e| {
                 MemoryError::runtime_error_with_source(
                     "Failed to decode relationships".to_string(),
                     e,
                 )
             })?;
-            let relationships = parse_relationships_from_bolt(rels_bolt)?;
 
-            entities.push(MemoryEntity {
-                name: entity_name,
-                labels,
-                observations,
-                properties,
-                relationships,
-            });
+            let entity = memory_entity_from_node(&node, rels_bolt)?;
+
+            entities.push(entity);
         }
 
         Ok(entities)
@@ -420,43 +359,16 @@ impl MemoryRepository for Neo4jRepository {
                 )
             })?;
 
-            let entity_name = node.get::<String>("name").map_err(|e| {
-                MemoryError::runtime_error_with_source("Failed to get name property".to_string(), e)
-            })?;
-
-            let observations = extract_observations_from_node(&node)?;
-
-            let labels_vec: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
-
-            let mut properties: HashMap<String, MemoryValue> = HashMap::default();
-            for key in node.keys() {
-                if key != "name" && key != "observations" {
-                    let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
-                        MemoryError::runtime_error_with_source(
-                            "Failed to decode node properties".to_string(),
-                            e,
-                        )
-                    })?;
-                    let mv = bolt_to_memory_value(bolt)?;
-                    properties.insert(key.to_string(), mv);
-                }
-            }
-
             let rels_bolt = row.get::<neo4rs::BoltType>("rels").map_err(|e| {
                 MemoryError::runtime_error_with_source(
                     "Failed to decode relationships".to_string(),
                     e,
                 )
             })?;
-            let relationships = parse_relationships_from_bolt(rels_bolt)?;
 
-            entities.push(MemoryEntity {
-                name: entity_name,
-                labels: labels_vec,
-                observations,
-                properties,
-                relationships,
-            });
+            let entity = memory_entity_from_node(&node, rels_bolt)?;
+
+            entities.push(entity);
         }
 
         Ok(entities)

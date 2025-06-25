@@ -1,5 +1,5 @@
 use crate::adapters::conversions::bolt_to_memory_value;
-use mm_memory::{MemoryError, MemoryRelationship, MemoryResult};
+use mm_memory::{MemoryEntity, MemoryError, MemoryRelationship, MemoryResult, MemoryValue};
 use neo4rs::{self, Node};
 use std::collections::HashMap;
 
@@ -178,4 +178,44 @@ pub(super) fn parse_relationships_from_bolt(
     }
 
     Ok(relationships)
+}
+
+pub(super) fn memory_entity_from_node(
+    node: &Node,
+    rels_bolt: neo4rs::BoltType,
+) -> MemoryResult<MemoryEntity, neo4rs::Error> {
+    let entity_name = node.get::<String>("name").map_err(|e| {
+        MemoryError::runtime_error_with_source(
+            "Failed to get name property from node".to_string(),
+            e,
+        )
+    })?;
+
+    let observations = extract_observations_from_node(node)?;
+
+    let labels: Vec<String> = node.labels().iter().map(|s| s.to_string()).collect();
+
+    let mut properties: HashMap<String, MemoryValue> = HashMap::default();
+    for key in node.keys() {
+        if key != "name" && key != "observations" {
+            let bolt: neo4rs::BoltType = node.get(key).map_err(|e| {
+                MemoryError::runtime_error_with_source(
+                    "Failed to decode node properties".to_string(),
+                    e,
+                )
+            })?;
+            let mv = bolt_to_memory_value(bolt)?;
+            properties.insert(key.to_string(), mv);
+        }
+    }
+
+    let relationships = parse_relationships_from_bolt(rels_bolt)?;
+
+    Ok(MemoryEntity {
+        name: entity_name,
+        labels,
+        observations,
+        properties,
+        relationships,
+    })
 }
