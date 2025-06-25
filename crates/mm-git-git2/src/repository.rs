@@ -25,7 +25,7 @@ impl GitRepository for Git2Repository {
     async fn get_status(&self, path: &Path) -> GitResult<GitStatus, Self::Error> {
         let path: PathBuf = path.to_path_buf();
         let res = task::spawn_blocking(move || -> Result<GitStatus, git2::Error> {
-            let repo = Repository::open(path)?;
+            let repo = Repository::discover(path)?;
             let head = repo.head()?;
             let branch = head
                 .shorthand()
