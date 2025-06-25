@@ -1,10 +1,8 @@
-#[cfg(test)]
-use crate::ObservationsUpdate;
-use crate::value::MemoryValue;
 use crate::{
     DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, EntityUpdate, LabelMatchMode, MemoryConfig,
-    MemoryEntity, MemoryRelationship, MemoryRepository, MemoryResult, RelationshipDirection,
-    RelationshipUpdate, ValidationError, ValidationErrorKind, relationship::RelationshipRef,
+    MemoryEntity, MemoryRelationship, MemoryRepository, MemoryResult, ObservationsUpdate,
+    PropertiesUpdate, RelationshipDirection, RelationshipUpdate, ValidationError,
+    ValidationErrorKind, relationship::RelationshipRef, value::MemoryValue,
 };
 use mm_utils::is_snake_case;
 use schemars::JsonSchema;
@@ -50,6 +48,53 @@ where
         observations: entity.observations,
         properties: P::from(entity.properties),
         relationships: entity.relationships,
+    }
+}
+
+trait UpdateOps {
+    fn has_add(&self) -> bool;
+    fn has_remove(&self) -> bool;
+    fn has_set(&self) -> bool;
+}
+
+impl UpdateOps for ObservationsUpdate {
+    fn has_add(&self) -> bool {
+        self.add.is_some()
+    }
+
+    fn has_remove(&self) -> bool {
+        self.remove.is_some()
+    }
+
+    fn has_set(&self) -> bool {
+        self.set.is_some()
+    }
+}
+
+impl UpdateOps for PropertiesUpdate {
+    fn has_add(&self) -> bool {
+        self.add.is_some()
+    }
+
+    fn has_remove(&self) -> bool {
+        self.remove.is_some()
+    }
+
+    fn has_set(&self) -> bool {
+        self.set.is_some()
+    }
+}
+
+fn ensure_no_conflicting_ops<U: UpdateOps>(
+    ops: &U,
+    field: &'static str,
+) -> Result<(), ValidationError> {
+    if (ops.has_add() || ops.has_remove()) && ops.has_set() {
+        Err(ValidationError(vec![
+            ValidationErrorKind::ConflictingOperations(field),
+        ]))
+    } else {
+        Ok(())
     }
 }
 
@@ -439,36 +484,10 @@ where
         }
 
         if let Some(obs) = &update.observations {
-            let count =
-                obs.add.is_some() as u8 + obs.remove.is_some() as u8 + obs.set.is_some() as u8;
-            if count > 1 {
-                return Err(
-                    ValidationError::from(ValidationErrorKind::ConflictingOperations(
-                        "observations",
-                    ))
-                    .into(),
-                );
-            }
+            ensure_no_conflicting_ops(obs, "observations")?;
         }
         if let Some(props) = &update.properties {
-            let count = props.add.is_some() as u8
-                + props.remove.is_some() as u8
-                + props.set.is_some() as u8;
-            if count > 1 {
-                return Err(
-                    ValidationError::from(ValidationErrorKind::ConflictingOperations("properties"))
-                        .into(),
-                );
-            }
-        }
-        if let Some(labels) = &update.labels {
-            let count = labels.add.is_some() as u8 + labels.remove.is_some() as u8;
-            if count > 1 {
-                return Err(
-                    ValidationError::from(ValidationErrorKind::ConflictingOperations("labels"))
-                        .into(),
-                );
-            }
+            ensure_no_conflicting_ops(props, "properties")?;
         }
 
         self.repository.update_entity(name, update).await
@@ -487,15 +506,7 @@ where
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
         }
         if let Some(props) = &update.properties {
-            let count = props.add.is_some() as u8
-                + props.remove.is_some() as u8
-                + props.set.is_some() as u8;
-            if count > 1 {
-                return Err(
-                    ValidationError::from(ValidationErrorKind::ConflictingOperations("properties"))
-                        .into(),
-                );
-            }
+            ensure_no_conflicting_ops(props, "properties")?;
         }
 
         self.repository
@@ -985,8 +996,8 @@ mod tests {
         let update = EntityUpdate {
             observations: Some(ObservationsUpdate {
                 add: Some(vec!["a".to_string()]),
-                remove: Some(vec!["b".to_string()]),
-                set: None,
+                remove: None,
+                set: Some(vec!["c".to_string()]),
             }),
             properties: None,
             labels: None,
