@@ -1,12 +1,12 @@
 use rust_mcp_sdk::schema::{CallToolResult, schema_utils::CallToolError};
 use serde::Serialize;
-use crate::mcp::error::ToolError;
+use crate::mcp::error::into_call_tool_error;
 
 /// Convert a serializable value to a text content result
 pub fn to_json_result<T: Serialize>(value: T) -> Result<CallToolResult, CallToolError> {
     serde_json::to_value(value)
         .map(|json| CallToolResult::text_content(json.to_string(), None))
-        .map_err(|e| CallToolError::new(ToolError::from(e)))
+        .map_err(into_call_tool_error)
 }
 
 /// Handle an optional result, returning the value as JSON if present,
