@@ -57,34 +57,26 @@ trait UpdateOps {
     fn has_set(&self) -> bool;
 }
 
-impl UpdateOps for ObservationsUpdate {
-    fn has_add(&self) -> bool {
-        self.add.is_some()
-    }
+macro_rules! impl_update_ops {
+    ($type:ty) => {
+        impl UpdateOps for $type {
+            fn has_add(&self) -> bool {
+                self.add.is_some()
+            }
 
-    fn has_remove(&self) -> bool {
-        self.remove.is_some()
-    }
+            fn has_remove(&self) -> bool {
+                self.remove.is_some()
+            }
 
-    fn has_set(&self) -> bool {
-        self.set.is_some()
-    }
+            fn has_set(&self) -> bool {
+                self.set.is_some()
+            }
+        }
+    };
 }
 
-impl UpdateOps for PropertiesUpdate {
-    fn has_add(&self) -> bool {
-        self.add.is_some()
-    }
-
-    fn has_remove(&self) -> bool {
-        self.remove.is_some()
-    }
-
-    fn has_set(&self) -> bool {
-        self.set.is_some()
-    }
-}
-
+impl_update_ops!(ObservationsUpdate);
+impl_update_ops!(PropertiesUpdate);
 fn ensure_no_conflicting_ops<U: UpdateOps>(
     ops: &U,
     field: &'static str,
