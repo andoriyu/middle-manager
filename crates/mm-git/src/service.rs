@@ -39,12 +39,20 @@ mod tests {
         let mut mock = MockGitRepository::new();
         let expected = GitStatus {
             branch: "main".to_string(),
+            is_dirty: false,
+            ahead_by: 0,
+            behind_by: 0,
+            changed_files: vec![],
         };
         mock.expect_get_status()
             .withf(|p| p == Path::new("/tmp/repo"))
             .returning(|_| {
                 Ok(GitStatus {
                     branch: "main".to_string(),
+                    is_dirty: false,
+                    ahead_by: 0,
+                    behind_by: 0,
+                    changed_files: vec![],
                 })
             });
 
@@ -52,5 +60,9 @@ mod tests {
         let path = PathBuf::from("/tmp/repo");
         let status = service.get_status(&path).await.unwrap();
         assert_eq!(status.branch, expected.branch);
+        assert_eq!(status.is_dirty, expected.is_dirty);
+        assert_eq!(status.ahead_by, expected.ahead_by);
+        assert_eq!(status.behind_by, expected.behind_by);
+        assert_eq!(status.changed_files, expected.changed_files);
     }
 }

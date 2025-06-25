@@ -42,6 +42,10 @@ mod tests {
         git_repo.expect_get_status().returning(|_| {
             Ok(GitStatus {
                 branch: "main".to_string(),
+                is_dirty: false,
+                ahead_by: 0,
+                behind_by: 0,
+                changed_files: vec![],
             })
         });
 
@@ -58,7 +62,12 @@ mod tests {
 
         // Assert the result
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().branch, "main");
+        let status = result.unwrap();
+        assert_eq!(status.branch, "main");
+        assert!(!status.is_dirty);
+        assert_eq!(status.ahead_by, 0);
+        assert_eq!(status.behind_by, 0);
+        assert!(status.changed_files.is_empty());
     }
 
     #[tokio::test]
