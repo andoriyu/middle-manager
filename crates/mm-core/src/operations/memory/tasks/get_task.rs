@@ -1,34 +1,15 @@
 use super::types::TaskProperties;
 #[cfg(test)]
 use crate::error::CoreError;
-use crate::error::CoreResult;
-use crate::operations::memory::generic::get_entity_generic;
-use crate::ports::Ports;
-use mm_git::GitRepository;
-use mm_memory::{MemoryEntity, MemoryRepository};
-use tracing::instrument;
+#[cfg(test)]
+use mm_memory::MemoryEntity;
 
-#[derive(Debug, Clone)]
-pub struct GetTaskCommand {
-    pub name: String,
-}
-
-pub type GetTaskResult<E> = CoreResult<Option<MemoryEntity<TaskProperties>>, E>;
-
-#[instrument(skip(ports), fields(name = %command.name))]
-pub async fn get_task<M, G>(ports: &Ports<M, G>, command: GetTaskCommand) -> GetTaskResult<M::Error>
-where
-    M: MemoryRepository + Send + Sync,
-    G: GitRepository + Send + Sync,
-    M::Error: std::error::Error + Send + Sync + 'static,
-    G::Error: std::error::Error + Send + Sync + 'static,
-{
-    get_entity_generic::<M, G, TaskProperties>(ports, &command.name).await
-}
+generate_get_wrapper!(GetTaskCommand, get_task, GetTaskResult, TaskProperties);
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ports::Ports;
     use mm_git::repository::MockGitRepository;
     use mm_memory::labels::TASK_LABEL;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};

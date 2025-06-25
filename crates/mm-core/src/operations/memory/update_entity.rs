@@ -1,37 +1,14 @@
 #[cfg(test)]
 use crate::error::CoreError;
-use crate::error::CoreResult;
-use crate::operations::memory::generic::update_entity_generic;
-use crate::ports::Ports;
-use mm_git::GitRepository;
-use mm_memory::{EntityUpdate, MemoryRepository};
-use tracing::instrument;
+#[cfg(test)]
+use mm_memory::EntityUpdate;
 
-#[derive(Debug, Clone)]
-pub struct UpdateEntityCommand {
-    pub name: String,
-    pub update: EntityUpdate,
-}
-
-pub type UpdateEntityResult<E> = CoreResult<(), E>;
-
-#[instrument(skip(ports), fields(name = %command.name))]
-pub async fn update_entity<M, G>(
-    ports: &Ports<M, G>,
-    command: UpdateEntityCommand,
-) -> UpdateEntityResult<M::Error>
-where
-    M: MemoryRepository + Send + Sync,
-    G: GitRepository + Send + Sync,
-    M::Error: std::error::Error + Send + Sync + 'static,
-    G::Error: std::error::Error + Send + Sync + 'static,
-{
-    update_entity_generic(ports, &command.name, &command.update).await
-}
+generate_update_wrapper!(UpdateEntityCommand, update_entity, UpdateEntityResult);
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ports::Ports;
     use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;

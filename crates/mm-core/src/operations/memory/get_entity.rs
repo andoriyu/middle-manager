@@ -1,54 +1,19 @@
 #[cfg(test)]
 use crate::error::CoreError;
-use crate::error::CoreResult;
-use crate::operations::memory::generic::get_entity_generic;
-use crate::ports::Ports;
-use mm_git::GitRepository;
+#[cfg(test)]
 use mm_memory::MemoryEntity;
-use mm_memory::MemoryRepository;
-use tracing::instrument;
 
-/// Command to retrieve an entity by name
-#[derive(Debug, Clone)]
-pub struct GetEntityCommand {
-    pub name: String,
-}
-
-/// Error types that can occur when getting an entity
-/// Result type for the get_entity operation
-pub type GetEntityResult<E> = CoreResult<Option<MemoryEntity>, E>;
-
-/// Get an entity by name
-///
-/// # Arguments
-///
-/// * `ports` - The ports containing required services
-/// * `command` - The command containing the entity name to retrieve
-///
-/// # Returns
-///
-/// The entity if found, or None if not found
-#[instrument(skip(ports), fields(name = %command.name))]
-pub async fn get_entity<M, G>(
-    ports: &Ports<M, G>,
-    command: GetEntityCommand,
-) -> GetEntityResult<M::Error>
-where
-    M: MemoryRepository + Send + Sync,
-    G: GitRepository + Send + Sync,
-    M::Error: std::error::Error + Send + Sync + 'static,
-    G::Error: std::error::Error + Send + Sync + 'static,
-{
-    get_entity_generic::<M, G, std::collections::HashMap<String, mm_memory::value::MemoryValue>>(
-        ports,
-        &command.name,
-    )
-    .await
-}
+generate_get_wrapper!(
+    GetEntityCommand,
+    get_entity,
+    GetEntityResult,
+    std::collections::HashMap<String, mm_memory::value::MemoryValue>
+);
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ports::Ports;
     use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
     use mockall::predicate::*;
