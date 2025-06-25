@@ -19,6 +19,8 @@ schemars = { workspace = true }
 chrono = { workspace = true }
 futures = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 [dev-dependencies]
 mockall = { workspace = true }
