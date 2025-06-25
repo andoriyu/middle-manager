@@ -548,18 +548,31 @@ impl MemoryRepository for Neo4jRepository {
         &self,
         relationships: &[RelationshipRef],
     ) -> MemoryResult<(), Self::Error> {
-        for rel in relationships {
-            let q = format!(
-                "MATCH (a {{name: $from}})-[r:`{}`]->(b {{name: $to}}) DELETE r",
-                rel.name
-            );
-            let query = Query::new(q)
-                .param("from", rel.from.clone())
-                .param("to", rel.to.clone());
-            self.graph.run(query).await.map_err(|e| {
-                MemoryError::query_error_with_source("Failed to delete relationship".to_string(), e)
-            })?;
+        if relationships.is_empty() {
+            return Ok(());
         }
+
+        let rows: Vec<HashMap<String, neo4rs::BoltType>> = relationships
+            .iter()
+            .map(|rel| {
+                let mut row = HashMap::new();
+                row.insert("from".to_string(), rel.from.clone().into());
+                row.insert("to".to_string(), rel.to.clone().into());
+                row.insert("name".to_string(), rel.name.clone().into());
+                row
+            })
+            .collect();
+
+        let query = Query::new(
+            "UNWIND $rows AS row MATCH (a {name: row.from})-[r]->(b {name: row.to}) \
+             WHERE type(r) = row.name DELETE r"
+                .to_string(),
+        )
+        .param("rows", rows);
+
+        self.graph.run(query).await.map_err(|e| {
+            MemoryError::query_error_with_source("Failed to delete relationships".to_string(), e)
+        })?;
         Ok(())
     }
 

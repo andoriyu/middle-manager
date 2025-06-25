@@ -1,3 +1,4 @@
+use mm_memory::relationship::RelationshipRef;
 use mm_memory::test_suite::run_memory_service_test_suite;
 use mm_memory::{MemoryRelationship, MemoryValue, RelationshipDirection};
 use mm_memory_neo4j::LabelMatchMode;
@@ -253,6 +254,56 @@ async fn test_create_relationship() {
             .relationships
             .iter()
             .any(|r| r.from == "rel:a" && r.to == "rel:b" && r.name == "relates_to")
+    );
+}
+
+#[tokio::test]
+async fn test_delete_relationships() {
+    let service = new_test_service("DeleteRelTest").await;
+
+    let a = MemoryEntity {
+        name: "del:a".to_string(),
+        labels: vec!["Example".to_string()],
+        ..Default::default()
+    };
+    let b = MemoryEntity {
+        name: "del:b".to_string(),
+        labels: vec!["Example".to_string()],
+        ..Default::default()
+    };
+
+    service
+        .create_entities(&[a.clone(), b.clone()])
+        .await
+        .unwrap();
+
+    let rel = MemoryRelationship {
+        from: a.name.clone(),
+        to: b.name.clone(),
+        name: "relates_to".to_string(),
+        properties: HashMap::default(),
+    };
+    service
+        .create_relationships(std::slice::from_ref(&rel))
+        .await
+        .unwrap();
+
+    let rel_ref = RelationshipRef {
+        from: a.name.clone(),
+        to: b.name.clone(),
+        name: "relates_to".to_string(),
+    };
+    service
+        .delete_relationships(std::slice::from_ref(&rel_ref))
+        .await
+        .unwrap();
+
+    let fetched = service.find_entity_by_name(&a.name).await.unwrap().unwrap();
+    assert!(
+        fetched
+            .relationships
+            .iter()
+            .all(|r| !(r.from == a.name && r.to == b.name && r.name == "relates_to"))
     );
 }
 
