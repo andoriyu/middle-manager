@@ -161,22 +161,24 @@ where
         let mut valid = Vec::default();
 
         for entity in entities {
-            let mut tagged = entity.clone();
+            // Clone only the labels so we can apply defaults without duplicating the
+            // entire entity unless it passes validation.
+            let mut labels = entity.labels.clone();
             if let Some(label) = &self.config.default_label {
-                if !tagged.labels.contains(label) {
-                    tagged.labels.push(label.clone());
+                if !labels.contains(label) {
+                    labels.push(label.clone());
                 }
             }
 
             let mut errs = Vec::default();
-            if tagged.name.is_empty() {
+            if entity.name.is_empty() {
                 errs.push(ValidationErrorKind::EmptyEntityName);
             }
-            if tagged.labels.is_empty() {
-                errs.push(ValidationErrorKind::NoLabels(tagged.name.clone()));
+            if labels.is_empty() {
+                errs.push(ValidationErrorKind::NoLabels(entity.name.clone()));
             }
             if self.config.default_labels {
-                for label in &tagged.labels {
+                for label in &labels {
                     let allowed_default_label =
                         self.config.default_label.as_deref() == Some(label.as_str());
                     if !allowed_default_label
@@ -189,7 +191,13 @@ where
             }
 
             if errs.is_empty() {
-                valid.push(tagged);
+                valid.push(MemoryEntity {
+                    name: entity.name.clone(),
+                    labels,
+                    observations: entity.observations.clone(),
+                    properties: entity.properties.clone(),
+                    relationships: entity.relationships.clone(),
+                });
             } else {
                 errors.push((entity.name.clone(), ValidationError(errs)));
             }
