@@ -1,4 +1,5 @@
-use crate::error::{CoreError, CoreResult};
+use super::common::handle_batch_result;
+use crate::error::CoreResult;
 use crate::ports::Ports;
 use mm_git::GitRepository;
 use mm_memory::MemoryEntity;
@@ -35,22 +36,13 @@ where
     M::Error: std::error::Error + Send + Sync + 'static,
     G::Error: std::error::Error + Send + Sync + 'static,
 {
-    let errors = ports
-        .memory_service
-        .create_entities(&command.entities)
-        .await
-        .map_err(CoreError::from)?;
-
-    if !errors.is_empty() {
-        return Err(CoreError::BatchValidation(errors));
-    }
-
-    Ok(())
+    handle_batch_result(|| ports.memory_service.create_entities(&command.entities)).await
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::error::CoreError;
     use mm_git::repository::MockGitRepository;
     use mm_memory::ValidationErrorKind;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};

@@ -1,4 +1,5 @@
-use crate::error::{CoreError, CoreResult};
+use super::common::handle_batch_result;
+use crate::error::CoreResult;
 use crate::ports::Ports;
 use mm_git::GitRepository;
 use mm_memory::MemoryRepository;
@@ -22,15 +23,5 @@ where
     M::Error: std::error::Error + Send + Sync + 'static,
     G::Error: std::error::Error + Send + Sync + 'static,
 {
-    let errors = ports
-        .memory_service
-        .delete_entities(&command.names)
-        .await
-        .map_err(CoreError::from)?;
-
-    if !errors.is_empty() {
-        return Err(CoreError::BatchValidation(errors));
-    }
-
-    Ok(())
+    handle_batch_result(|| ports.memory_service.delete_entities(&command.names)).await
 }
