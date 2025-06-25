@@ -81,10 +81,9 @@ mod tests {
         let result = get_git_status(&ports, command).await;
 
         // Assert the result
-        assert!(result.is_err());
-        match result {
-            Err(CoreError::Git(_)) => {}
-            _ => panic!("Expected Git error"),
-        }
+        assert!(
+            matches!(result, Err(CoreError::Git(_))),
+            "Expected Git error"
+        );
     }
 }

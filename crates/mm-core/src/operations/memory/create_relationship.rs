@@ -185,7 +185,7 @@ mod tests {
                         .contains(&ValidationErrorKind::UnknownRelationship("".to_string()))
             }));
         } else {
-            panic!("Expected batch validation error");
+            unreachable!("Expected batch validation error");
         }
     }
 }
