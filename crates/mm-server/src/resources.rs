@@ -81,6 +81,7 @@ where
 mod tests {
     use super::*;
     use mm_git::repository::MockGitRepository;
+    use mm_memory::BasicEntityProperties;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::sync::Arc;
@@ -94,7 +95,7 @@ mod tests {
         };
 
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
             .with(eq("test:entity"))
             .returning(move |_| Ok(Some(entity.clone())));
 
@@ -115,7 +116,7 @@ mod tests {
     #[tokio::test]
     async fn test_read_resource_not_found() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
             .with(eq("missing"))
             .returning(|_| Ok(None));
         let service = MemoryService::new(mock, MemoryConfig::default());
@@ -143,6 +144,7 @@ mod prop_tests {
     use super::*;
     use arbitrary::{Arbitrary, Unstructured};
     use mm_git::repository::MockGitRepository;
+    use mm_memory::BasicEntityProperties;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mm_utils::prop::{NonEmptyName, async_arbtest};
     use std::sync::Arc;
@@ -154,7 +156,7 @@ mod prop_tests {
             let uri = format!("memory://{}", name);
             let mut mock = MockMemoryRepository::new();
             let name_clone = name.clone();
-            mock.expect_find_entity_by_name()
+            mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
                 .withf(move |n| n == name_clone)
                 .returning(|_| Ok(None));
             let service = MemoryService::new(mock, MemoryConfig::default());
@@ -185,7 +187,8 @@ mod prop_tests {
         async_arbtest(|rt, u| {
             let InvalidUri(uri) = InvalidUri::arbitrary(u)?;
             let mut mock = MockMemoryRepository::new();
-            mock.expect_find_entity_by_name().never();
+            mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
+                .never();
             let service = MemoryService::new(mock, MemoryConfig::default());
             let git_repo = MockGitRepository::new();
             let git_service = mm_git::GitService::new(git_repo);

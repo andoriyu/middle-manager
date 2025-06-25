@@ -1,12 +1,11 @@
 use crate::{
-    DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, EntityUpdate, LabelMatchMode, MemoryConfig,
-    MemoryEntity, MemoryRelationship, MemoryRepository, MemoryResult, ObservationsUpdate,
-    PropertiesUpdate, RelationshipDirection, RelationshipUpdate, ValidationError,
-    ValidationErrorKind, relationship::RelationshipRef, value::MemoryValue,
+    BasicEntityProperties, DEFAULT_LABELS, DEFAULT_RELATIONSHIPS, EntityUpdate, LabelMatchMode,
+    MemoryConfig, MemoryEntity, MemoryRelationship, MemoryRepository, MemoryResult,
+    ObservationsUpdate, PropertiesUpdate, RelationshipDirection, RelationshipUpdate,
+    ValidationError, ValidationErrorKind, relationship::RelationshipRef,
 };
 use mm_utils::is_snake_case;
 use schemars::JsonSchema;
-use std::collections::HashMap;
 use tracing::instrument;
 
 /// Minimum allowed traversal depth for related entity queries
@@ -18,35 +17,18 @@ const MAX_TRAVERSAL_DEPTH: u32 = 5;
 fn to_default_entity<P>(entity: MemoryEntity<P>) -> MemoryEntity
 where
     P: JsonSchema
-        + Into<HashMap<String, MemoryValue>>
-        + From<HashMap<String, MemoryValue>>
+        + Into<BasicEntityProperties>
+        + From<BasicEntityProperties>
         + Clone
         + std::fmt::Debug
-        + Default,
+        + Default
+        + 'static,
 {
     MemoryEntity {
         name: entity.name,
         labels: entity.labels,
         observations: entity.observations,
         properties: entity.properties.into(),
-        relationships: entity.relationships,
-    }
-}
-
-fn from_default_entity<P>(entity: MemoryEntity) -> MemoryEntity<P>
-where
-    P: JsonSchema
-        + Into<HashMap<String, MemoryValue>>
-        + From<HashMap<String, MemoryValue>>
-        + Clone
-        + std::fmt::Debug
-        + Default,
-{
-    MemoryEntity {
-        name: entity.name,
-        labels: entity.labels,
-        observations: entity.observations,
-        properties: P::from(entity.properties),
         relationships: entity.relationships,
     }
 }
@@ -151,11 +133,12 @@ where
     ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error>
     where
         P: JsonSchema
-            + Into<HashMap<String, MemoryValue>>
-            + From<HashMap<String, MemoryValue>>
+            + Into<BasicEntityProperties>
+            + From<BasicEntityProperties>
             + Clone
             + std::fmt::Debug
-            + Default,
+            + Default
+            + 'static,
     {
         let mut errors = Vec::default();
         let mut valid = Vec::default();
@@ -217,7 +200,7 @@ where
         &self,
         entities: &[MemoryEntity],
     ) -> MemoryResult<Vec<(String, ValidationError)>, R::Error> {
-        self.create_entities_typed::<HashMap<String, MemoryValue>>(entities)
+        self.create_entities_typed::<BasicEntityProperties>(entities)
             .await
     }
 
@@ -229,14 +212,15 @@ where
     ) -> MemoryResult<Option<MemoryEntity<P>>, R::Error>
     where
         P: JsonSchema
-            + From<HashMap<String, MemoryValue>>
-            + Into<HashMap<String, MemoryValue>>
+            + From<BasicEntityProperties>
+            + Into<BasicEntityProperties>
             + Clone
             + std::fmt::Debug
-            + Default,
+            + Default
+            + 'static,
     {
-        let result = self.repository.find_entity_by_name(name).await?;
-        Ok(result.map(from_default_entity::<P>))
+        let result = self.repository.find_entity_by_name_typed::<P>(name).await?;
+        Ok(result)
     }
 
     /// Find an entity by name using the default HashMap property type
@@ -245,7 +229,7 @@ where
         &self,
         name: &str,
     ) -> MemoryResult<Option<MemoryEntity>, R::Error> {
-        self.find_entity_by_name_typed::<HashMap<String, MemoryValue>>(name)
+        self.find_entity_by_name_typed::<BasicEntityProperties>(name)
             .await
     }
 
@@ -388,11 +372,12 @@ where
     ) -> MemoryResult<Vec<MemoryEntity<P>>, R::Error>
     where
         P: JsonSchema
-            + From<HashMap<String, MemoryValue>>
-            + Into<HashMap<String, MemoryValue>>
+            + From<BasicEntityProperties>
+            + Into<BasicEntityProperties>
             + Clone
             + std::fmt::Debug
-            + Default,
+            + Default
+            + 'static,
     {
         if name.is_empty() {
             return Err(ValidationError::from(ValidationErrorKind::EmptyEntityName).into());
@@ -401,12 +386,10 @@ where
             return Err(ValidationError::from(ValidationErrorKind::InvalidDepth(depth)).into());
         }
 
-        let raw = self
+        let mapped = self
             .repository
-            .find_related_entities(name, relationship_type.clone(), direction, depth)
+            .find_related_entities_typed::<P>(name, relationship_type.clone(), direction, depth)
             .await?;
-
-        let mapped = raw.into_iter().map(from_default_entity::<P>).collect();
 
         Ok(mapped)
     }
@@ -420,7 +403,7 @@ where
         direction: Option<RelationshipDirection>,
         depth: u32,
     ) -> MemoryResult<Vec<MemoryEntity>, R::Error> {
-        self.find_related_entities_typed::<HashMap<String, MemoryValue>>(
+        self.find_related_entities_typed::<BasicEntityProperties>(
             name,
             relationship_type,
             direction,
@@ -439,19 +422,18 @@ where
     ) -> MemoryResult<Vec<MemoryEntity<P>>, R::Error>
     where
         P: JsonSchema
-            + From<HashMap<String, MemoryValue>>
-            + Into<HashMap<String, MemoryValue>>
+            + From<BasicEntityProperties>
+            + Into<BasicEntityProperties>
             + Clone
             + std::fmt::Debug
-            + Default,
+            + Default
+            + 'static,
     {
         let effective_required = required_label.or_else(|| self.config.default_label.clone());
-        let raw = self
+        let mapped = self
             .repository
-            .find_entities_by_labels(labels, match_mode, effective_required)
+            .find_entities_by_labels_typed::<P>(labels, match_mode, effective_required)
             .await?;
-
-        let mapped = raw.into_iter().map(from_default_entity::<P>).collect();
 
         Ok(mapped)
     }
@@ -464,7 +446,7 @@ where
         match_mode: LabelMatchMode,
         required_label: Option<String>,
     ) -> MemoryResult<Vec<MemoryEntity>, R::Error> {
-        self.find_entities_by_labels_typed::<HashMap<String, MemoryValue>>(
+        self.find_entities_by_labels_typed::<BasicEntityProperties>(
             labels,
             match_mode,
             required_label,
@@ -871,7 +853,7 @@ mod tests {
         };
 
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
             .with(eq("a"))
             .returning(move |_| Ok(Some(entity.clone())));
 
@@ -906,7 +888,7 @@ mod tests {
             name: "b".to_string(),
             ..Default::default()
         }];
-        mock.expect_find_related_entities()
+        mock.expect_find_related_entities_typed::<BasicEntityProperties>()
             .with(
                 eq("a"),
                 eq(Some("relates_to".to_string())),
@@ -932,7 +914,7 @@ mod tests {
     #[tokio::test]
     async fn test_find_entities_by_labels_default_required() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entities_by_labels()
+        mock.expect_find_entities_by_labels_typed::<BasicEntityProperties>()
             .withf(|labels, mode, req| {
                 labels == ["Example".to_string()]
                     && *mode == LabelMatchMode::Any
@@ -962,7 +944,7 @@ mod tests {
     #[tokio::test]
     async fn test_find_entities_by_labels_required_override() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entities_by_labels()
+        mock.expect_find_entities_by_labels_typed::<BasicEntityProperties>()
             .withf(|labels, mode, req| {
                 labels.is_empty()
                     && *mode == LabelMatchMode::All

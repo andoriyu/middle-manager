@@ -7,7 +7,7 @@ generate_get_wrapper!(
     GetEntityCommand,
     get_entity,
     GetEntityResult,
-    std::collections::HashMap<String, mm_memory::value::MemoryValue>
+    mm_memory::BasicEntityProperties
 );
 
 #[cfg(test)]
@@ -29,7 +29,7 @@ mod tests {
         };
 
         mock_repo
-            .expect_find_entity_by_name()
+            .expect_find_entity_by_name_typed::<mm_memory::BasicEntityProperties>()
             .with(eq("test:entity"))
             .returning(move |_| Ok(Some(entity.clone())));
 
@@ -49,7 +49,9 @@ mod tests {
     #[tokio::test]
     async fn test_get_entity_empty_name() {
         let mut mock_repo = MockMemoryRepository::new();
-        mock_repo.expect_find_entity_by_name().never();
+        mock_repo
+            .expect_find_entity_by_name_typed::<mm_memory::BasicEntityProperties>()
+            .never();
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
         let git_repo = MockGitRepository::new();
         let git_service = mm_git::GitService::new(git_repo);
@@ -72,7 +74,7 @@ mod tests {
 
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo
-            .expect_find_entity_by_name()
+            .expect_find_entity_by_name_typed::<mm_memory::BasicEntityProperties>()
             .with(eq("test:entity"))
             .returning(|_| Err(MemoryError::query_error("db error")));
 
@@ -94,7 +96,7 @@ mod tests {
     async fn test_get_entity_not_found() {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo
-            .expect_find_entity_by_name()
+            .expect_find_entity_by_name_typed::<mm_memory::BasicEntityProperties>()
             .with(eq("missing:entity"))
             .returning(|_| Ok(None));
 
@@ -121,7 +123,7 @@ mod tests {
             let mut mock_repo = MockMemoryRepository::new();
             let name_clone = name.clone();
             mock_repo
-                .expect_find_entity_by_name()
+                .expect_find_entity_by_name_typed::<mm_memory::BasicEntityProperties>()
                 .withf(move |n| n == name_clone)
                 .returning(|_| Ok(None));
             let service = MemoryService::new(mock_repo, MemoryConfig::default());
@@ -139,7 +141,9 @@ mod tests {
     fn prop_get_entity_empty_name() {
         async_arbtest(|rt, _| {
             let mut mock_repo = MockMemoryRepository::new();
-            mock_repo.expect_find_entity_by_name().never();
+            mock_repo
+                .expect_find_entity_by_name_typed::<mm_memory::BasicEntityProperties>()
+                .never();
             let service = MemoryService::new(mock_repo, MemoryConfig::default());
             let git_repo = MockGitRepository::new();
             let git_service = mm_git::GitService::new(git_repo);

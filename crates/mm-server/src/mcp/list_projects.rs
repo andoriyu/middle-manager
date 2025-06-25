@@ -26,6 +26,7 @@ mod tests {
     use super::*;
     use mm_core::Ports;
     use mm_core::operations::memory::PROJECT_LABEL;
+    use mm_memory::BasicEntityProperties;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::collections::HashMap;
@@ -50,7 +51,7 @@ mod tests {
         };
 
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entities_by_labels()
+        mock.expect_find_entities_by_labels_typed::<BasicEntityProperties>()
             .with(
                 eq(vec![PROJECT_LABEL.to_string()]),
                 eq(mm_memory::LabelMatchMode::All),
@@ -89,7 +90,7 @@ mod tests {
         };
 
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entities_by_labels()
+        mock.expect_find_entities_by_labels_typed::<BasicEntityProperties>()
             .with(
                 eq(vec![PROJECT_LABEL.to_string()]),
                 eq(mm_memory::LabelMatchMode::All),

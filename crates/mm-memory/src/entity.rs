@@ -1,17 +1,16 @@
+use crate::BasicEntityProperties;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use crate::relationship::MemoryRelationship;
-use crate::value::MemoryValue;
 
 /// Memory entity representing a node in the knowledge graph
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, JsonSchema, Default)]
-pub struct MemoryEntity<P = HashMap<String, MemoryValue>>
+pub struct MemoryEntity<P = BasicEntityProperties>
 where
     P: JsonSchema
-        + Into<HashMap<String, MemoryValue>>
-        + From<HashMap<String, MemoryValue>>
+        + Into<BasicEntityProperties>
+        + From<BasicEntityProperties>
         + Clone
         + std::fmt::Debug
         + Default,

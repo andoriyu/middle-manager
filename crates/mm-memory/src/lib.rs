@@ -32,6 +32,9 @@ pub use update::{
 pub use validation_error::{ValidationError, ValidationErrorKind};
 pub use value::MemoryValue;
 
+/// Basic property map type used by default with [`MemoryEntity`]
+pub type BasicEntityProperties = std::collections::HashMap<String, MemoryValue>;
+
 #[cfg(test)]
 pub mod test_helpers;
 

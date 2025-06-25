@@ -1,6 +1,7 @@
 use mm_git::GitRepository;
 use mm_memory::{
-    MemoryEntity, MemoryError, MemoryRepository, ProjectContext, RelationshipDirection,
+    BasicEntityProperties, MemoryEntity, MemoryError, MemoryRepository, ProjectContext,
+    RelationshipDirection,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -53,7 +54,12 @@ where
     let label_string = label.to_string();
     let entities = ports
         .memory_service
-        .find_related_entities(entity_name, relationship, direction, depth)
+        .find_related_entities_typed::<BasicEntityProperties>(
+            entity_name,
+            relationship,
+            direction,
+            depth,
+        )
         .await
         .map_err(CoreError::from)?
         .into_iter()
@@ -79,7 +85,7 @@ where
             // Try to find the project by name
             let project_entity = ports
                 .memory_service
-                .find_entity_by_name(&name)
+                .find_entity_by_name_typed::<BasicEntityProperties>(&name)
                 .await
                 .map_err(CoreError::from)?;
 
@@ -95,7 +101,7 @@ where
             let repo_name = format!("tech:git:repo:{}", repo_name);
             let repo_entity = ports
                 .memory_service
-                .find_entity_by_name(&repo_name)
+                .find_entity_by_name_typed::<BasicEntityProperties>(&repo_name)
                 .await
                 .map_err(CoreError::from)?;
 
@@ -181,7 +187,12 @@ where
     // Find other entities related to this project
     let other_related = ports
         .memory_service
-        .find_related_entities(&project.name, None, Some(RelationshipDirection::Both), 1)
+        .find_related_entities_typed::<BasicEntityProperties>(
+            &project.name,
+            None,
+            Some(RelationshipDirection::Both),
+            1,
+        )
         .await
         .map_err(CoreError::from)?
         .into_iter()

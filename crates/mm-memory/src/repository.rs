@@ -19,6 +19,29 @@ pub trait MemoryRepository {
         name: &str,
     ) -> MemoryResult<Option<MemoryEntity>, Self::Error>;
 
+    async fn find_entity_by_name_typed<P>(
+        &self,
+        name: &str,
+    ) -> MemoryResult<Option<MemoryEntity<P>>, Self::Error>
+    where
+        P: schemars::JsonSchema
+            + From<crate::BasicEntityProperties>
+            + Into<crate::BasicEntityProperties>
+            + Clone
+            + std::fmt::Debug
+            + Default
+            + 'static,
+    {
+        let result = self.find_entity_by_name(name).await?;
+        Ok(result.map(|e| MemoryEntity {
+            name: e.name,
+            labels: e.labels,
+            observations: e.observations,
+            properties: P::from(e.properties),
+            relationships: e.relationships,
+        }))
+    }
+
     async fn set_observations(
         &self,
         name: &str,
@@ -65,6 +88,36 @@ pub trait MemoryRepository {
         required_label: Option<String>,
     ) -> MemoryResult<Vec<MemoryEntity>, Self::Error>;
 
+    async fn find_entities_by_labels_typed<P>(
+        &self,
+        labels: &[String],
+        match_mode: LabelMatchMode,
+        required_label: Option<String>,
+    ) -> MemoryResult<Vec<MemoryEntity<P>>, Self::Error>
+    where
+        P: schemars::JsonSchema
+            + From<crate::BasicEntityProperties>
+            + Into<crate::BasicEntityProperties>
+            + Clone
+            + std::fmt::Debug
+            + Default
+            + 'static,
+    {
+        let raw = self
+            .find_entities_by_labels(labels, match_mode, required_label)
+            .await?;
+        Ok(raw
+            .into_iter()
+            .map(|e| MemoryEntity {
+                name: e.name,
+                labels: e.labels,
+                observations: e.observations,
+                properties: P::from(e.properties),
+                relationships: e.relationships,
+            })
+            .collect())
+    }
+
     async fn find_related_entities(
         &self,
         name: &str,
@@ -72,6 +125,37 @@ pub trait MemoryRepository {
         direction: Option<RelationshipDirection>,
         depth: u32,
     ) -> MemoryResult<Vec<MemoryEntity>, Self::Error>;
+
+    async fn find_related_entities_typed<P>(
+        &self,
+        name: &str,
+        relationship_type: Option<String>,
+        direction: Option<RelationshipDirection>,
+        depth: u32,
+    ) -> MemoryResult<Vec<MemoryEntity<P>>, Self::Error>
+    where
+        P: schemars::JsonSchema
+            + From<crate::BasicEntityProperties>
+            + Into<crate::BasicEntityProperties>
+            + Clone
+            + std::fmt::Debug
+            + Default
+            + 'static,
+    {
+        let raw = self
+            .find_related_entities(name, relationship_type, direction, depth)
+            .await?;
+        Ok(raw
+            .into_iter()
+            .map(|e| MemoryEntity {
+                name: e.name,
+                labels: e.labels,
+                observations: e.observations,
+                properties: P::from(e.properties),
+                relationships: e.relationships,
+            })
+            .collect())
+    }
 
     async fn update_entity(
         &self,

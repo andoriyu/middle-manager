@@ -43,6 +43,7 @@ mod tests {
     use super::*;
     use mm_core::Ports;
     use mm_core::operations::memory::{PROJECT_LABEL, TECHNOLOGY_LABEL};
+    use mm_memory::BasicEntityProperties;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::collections::HashMap;
@@ -76,13 +77,13 @@ mod tests {
 
         // Clone entities for each closure to avoid moved value errors
         let project_entity_clone1 = project_entity.clone();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
             .with(eq("andoriyu:project:middle_manager"))
             .returning(move |_| Ok(Some(project_entity_clone1.clone())));
 
         let project_entity_clone2 = project_entity.clone();
         let related_entity_clone = related_entity.clone();
-        mock.expect_find_related_entities()
+        mock.expect_find_related_entities_typed::<BasicEntityProperties>()
             .with(
                 eq("andoriyu:project:middle_manager"),
                 always(),

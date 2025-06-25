@@ -1552,6 +1552,7 @@ dependencies = [
  "mm-memory",
  "mockall",
  "neo4rs",
+ "schemars",
  "serde",
  "serde_json",
  "thiserror 1.0.69",

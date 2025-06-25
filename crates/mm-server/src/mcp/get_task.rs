@@ -1,3 +1,5 @@
+#[cfg(test)]
+use mm_core::operations::memory::TaskProperties;
 use mm_core::operations::memory::{GetTaskCommand, get_task};
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
@@ -38,7 +40,7 @@ mod tests {
             ..Default::default()
         };
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<TaskProperties>()
             .with(eq("task:1"))
             .returning(move |_| Ok(Some(entity.clone())));
 

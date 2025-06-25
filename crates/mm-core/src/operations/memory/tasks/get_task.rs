@@ -24,7 +24,7 @@ mod tests {
             labels: vec![TASK_LABEL.to_string()],
             ..Default::default()
         };
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<TaskProperties>()
             .with(eq("task:1"))
             .returning(move |_| Ok(Some(entity.clone())));
 
@@ -43,7 +43,8 @@ mod tests {
     #[tokio::test]
     async fn test_get_task_empty_name() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name().never();
+        mock.expect_find_entity_by_name_typed::<TaskProperties>()
+            .never();
         let service = MemoryService::new(mock, MemoryConfig::default());
         let git_repo = MockGitRepository::new();
         let git_service = mm_git::GitService::new(git_repo);

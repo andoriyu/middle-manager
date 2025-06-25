@@ -1,6 +1,6 @@
 use mm_git::GitRepository;
 use mm_memory::labels::PROJECT_LABEL;
-use mm_memory::{LabelMatchMode, MemoryEntity, MemoryRepository};
+use mm_memory::{BasicEntityProperties, LabelMatchMode, MemoryEntity, MemoryRepository};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -37,7 +37,11 @@ where
     // Find all projects
     let mut projects = ports
         .memory_service
-        .find_entities_by_labels(&[PROJECT_LABEL.to_string()], LabelMatchMode::All, None)
+        .find_entities_by_labels_typed::<BasicEntityProperties>(
+            &[PROJECT_LABEL.to_string()],
+            LabelMatchMode::All,
+            None,
+        )
         .await
         .map_err(CoreError::from)?;
 
@@ -83,7 +87,7 @@ mod tests {
         };
 
         mock_repo
-            .expect_find_entities_by_labels()
+            .expect_find_entities_by_labels_typed::<BasicEntityProperties>()
             .with(
                 eq(vec![PROJECT_LABEL.to_string()]),
                 eq(LabelMatchMode::All),
@@ -128,7 +132,7 @@ mod tests {
         };
 
         mock_repo
-            .expect_find_entities_by_labels()
+            .expect_find_entities_by_labels_typed::<BasicEntityProperties>()
             .with(
                 eq(vec![PROJECT_LABEL.to_string()]),
                 eq(LabelMatchMode::All),
@@ -158,7 +162,7 @@ mod tests {
 
         // Setup mock for find_entities_by_labels
         mock_repo
-            .expect_find_entities_by_labels()
+            .expect_find_entities_by_labels_typed::<BasicEntityProperties>()
             .with(
                 eq(vec![PROJECT_LABEL.to_string()]),
                 eq(LabelMatchMode::All),

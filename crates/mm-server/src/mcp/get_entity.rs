@@ -22,6 +22,7 @@ impl GetEntityTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_memory::BasicEntityProperties;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryError, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use serde_json::Value;
@@ -36,7 +37,7 @@ mod tests {
         };
 
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
             .with(eq("test:entity"))
             .returning(move |_| Ok(Some(entity.clone())));
 
@@ -57,7 +58,7 @@ mod tests {
     #[tokio::test]
     async fn test_call_tool_repository_error() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
             .returning(|_| Err(MemoryError::query_error("fail")));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
@@ -74,7 +75,7 @@ mod tests {
     #[tokio::test]
     async fn test_call_tool_not_found() {
         let mut mock = MockMemoryRepository::new();
-        mock.expect_find_entity_by_name()
+        mock.expect_find_entity_by_name_typed::<BasicEntityProperties>()
             .with(eq("missing"))
             .returning(|_| Ok(None));
 

@@ -1,7 +1,7 @@
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use mm_git::GitRepository;
-use mm_memory::{LabelMatchMode, MemoryEntity, MemoryRepository};
+use mm_memory::{BasicEntityProperties, LabelMatchMode, MemoryEntity, MemoryRepository};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -33,7 +33,7 @@ where
 {
     let entities = ports
         .memory_service
-        .find_entities_by_labels(
+        .find_entities_by_labels_typed::<BasicEntityProperties>(
             &command.labels,
             command.match_mode,
             command.required_label.clone(),

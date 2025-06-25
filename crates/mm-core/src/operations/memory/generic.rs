@@ -2,9 +2,8 @@ use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 use crate::validate_name;
 use mm_git::GitRepository;
-use mm_memory::{EntityUpdate, MemoryEntity, MemoryRepository, value::MemoryValue};
+use mm_memory::{BasicEntityProperties, EntityUpdate, MemoryEntity, MemoryRepository};
 use schemars::JsonSchema;
-use std::collections::HashMap;
 use tracing::instrument;
 
 pub type UpdateEntityGenericResult<E> = CoreResult<(), E>;
@@ -43,11 +42,12 @@ where
     M::Error: std::error::Error + Send + Sync + 'static,
     G::Error: std::error::Error + Send + Sync + 'static,
     P: JsonSchema
-        + From<HashMap<String, MemoryValue>>
-        + Into<HashMap<String, MemoryValue>>
+        + From<BasicEntityProperties>
+        + Into<BasicEntityProperties>
         + Clone
         + std::fmt::Debug
-        + Default,
+        + Default
+        + 'static,
 {
     validate_name!(name);
 
