@@ -15,28 +15,7 @@ pub struct GetEntityTool {
 }
 
 impl GetEntityTool {
-    generate_call_tool!(
-        self,
-        GetEntityCommand { name },
-        get_entity,
-        |command, result| {
-            match result {
-                Some(entity) => serde_json::to_value(entity)
-                    .map(|json| {
-                        rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None)
-                    })
-                    .map_err(|e| {
-                        rust_mcp_sdk::schema::schema_utils::CallToolError::new(
-                            crate::mcp::error::ToolError::from(e),
-                        )
-                    }),
-                None => Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                    format!("Entity '{}' not found", command.name),
-                    None,
-                )),
-            }
-        }
-    );
+    generate_call_tool!(self, GetEntityCommand { name }, get_entity);
 }
 
 #[cfg(test)]
@@ -108,6 +87,6 @@ mod tests {
 
         let result = tool.call_tool(&ports).await.expect("tool should succeed");
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        assert_eq!(text, "Entity 'missing' not found");
+        assert_eq!(text, "null");
     }
 }

@@ -17,11 +17,6 @@ impl DeleteEntitiesTool {
         self,
         DeleteEntitiesCommand { names => self.names.clone() },
         delete_entities,
-        |_cmd, _res| {
-            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                "Entities deleted".to_string(),
-                None,
-            ))
-        }
+        "Entities deleted"
     );
 }

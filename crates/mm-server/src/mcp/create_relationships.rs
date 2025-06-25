@@ -46,12 +46,7 @@ impl CreateRelationshipsTool {
                 .collect(),
         },
         create_relationships,
-        |_cmd, _res| {
-            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                "Relationships created".to_string(),
-                None,
-            ))
-        }
+        "Relationships created"
     );
 }
 

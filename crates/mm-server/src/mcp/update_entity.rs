@@ -17,8 +17,8 @@ impl UpdateEntityTool {
     generate_call_tool!(
         self,
         UpdateEntityCommand { name, update },
-        "Entity '{}' updated",
-        update_entity
+        update_entity,
+        "Entity updated"
     );
 }
 
@@ -43,6 +43,6 @@ mod tests {
         };
         let result = tool.call_tool(&ports).await.unwrap();
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        assert_eq!(text, "Entity 'e' updated");
+        assert_eq!(text, "Entity updated");
     }
 }

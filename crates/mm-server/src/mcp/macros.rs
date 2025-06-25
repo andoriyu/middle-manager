@@ -10,17 +10,26 @@
 ///   command fields; optionally override a field with an expression using
 ///   `field => expr`.
 /// * `$operation` - path to the async core operation to call.
-/// * success block `|$cmd_ident, $res_ident| { ... }` - code executed after the
-///   operation, expected to return `Result<CallToolResult, CallToolError>`.
+/// * Optional `$success_msg` - static message to return on success.
 ///
-/// ### Example
-/// ```rust
+/// ### Examples
+/// ```no_run
+/// // Automatically serialize result to JSON
+/// impl ExampleTool {
+///     generate_call_tool!(
+///         self,
+///         ExampleCommand { field1, field2 => transform(&self.field2) },
+///         example_operation
+///     );
+/// }
+///
+/// // Return static success message
 /// impl ExampleTool {
 ///     generate_call_tool!(
 ///         self,
 ///         ExampleCommand { field1, field2 => transform(&self.field2) },
 ///         example_operation,
-///         |command, result| { Ok(CallToolResult::text_content("ok", None)) }
+///         "Operation completed successfully"
 ///     );
 /// }
 /// ```
@@ -31,8 +40,8 @@ macro_rules! generate_call_tool {
     (@inner $self_field:expr, $value:expr) => { $value };
     (@inner $self_field:expr) => { $self_field.clone() };
 
-    // Custom success block version that provides both the command and the result
-    ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $operation:path, |$cmd_ident:ident, $res_ident:ident| $success_block:block) => {
+    // Default version that automatically serializes the result
+    ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $operation:path) => {
         pub async fn call_tool<M, G>(&$self_ident, ports: &mm_core::Ports<M, G>) -> Result<rust_mcp_sdk::schema::CallToolResult, rust_mcp_sdk::schema::schema_utils::CallToolError>
         where
             M: mm_memory::MemoryRepository + Send + Sync,
@@ -42,7 +51,7 @@ macro_rules! generate_call_tool {
         {
             use tracing::Instrument;
 
-            let $cmd_ident = $command {
+            let command = $command {
                 $(
                     $field: generate_call_tool!(@value $self_ident.$field $(, $value)? ),
                 )*
@@ -50,37 +59,50 @@ macro_rules! generate_call_tool {
 
             let span = tracing::info_span!("call_tool");
             async move {
-                let $res_ident = $crate::mcp::error::map_result($operation(ports, $cmd_ident.clone()).await)?;
-                $success_block
+                // Use ? to automatically convert CoreError to ToolError to CallToolError
+                let result = $operation(ports, command.clone()).await
+                    .map_err(crate::mcp::error::ToolError::from)?;
+
+                // Use ? again for JSON serialization errors
+                let json = serde_json::to_value(result)
+                    .map_err(crate::mcp::error::ToolError::from)?;
+
+                // Return the final result
+                Ok(rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
             }
             .instrument(span)
             .await
         }
     };
 
-    // Backwards-compatible custom success block that only receives the command
-    ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $operation:path, |$cmd_ident:ident| $success_block:block) => {
-        generate_call_tool!(
-            $self_ident,
-            $command { $( $field $(=> $value)? ),* },
-            $operation,
-            |$cmd_ident, _result| $success_block
-        );
-    };
+    // Simple message version
+    ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $operation:path, $success_msg:expr) => {
+        pub async fn call_tool<M, G>(&$self_ident, ports: &mm_core::Ports<M, G>) -> Result<rust_mcp_sdk::schema::CallToolResult, rust_mcp_sdk::schema::schema_utils::CallToolError>
+        where
+            M: mm_memory::MemoryRepository + Send + Sync,
+            G: mm_git::GitRepository + Send + Sync,
+            M::Error: std::error::Error + Send + Sync + 'static,
+            G::Error: std::error::Error + Send + Sync + 'static,
+        {
+            use tracing::Instrument;
 
-    // Default success message version
-    ($self_ident:ident, $command:ident { $( $field:ident $(=> $value:expr)? ),* $(,)? }, $success_msg:expr, $operation:path) => {
-        generate_call_tool!(
-            $self_ident,
-            $command { $( $field $(=> $value)? ),* },
-            $operation,
-            |cmd, _result| {
-                let _ = cmd;
-                Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                    format!($success_msg, $self_ident.name),
-                    None,
-                ))
+            let command = $command {
+                $(
+                    $field: generate_call_tool!(@value $self_ident.$field $(, $value)? ),
+                )*
+            };
+
+            let span = tracing::info_span!("call_tool");
+            async move {
+                // Use ? to automatically convert CoreError to ToolError to CallToolError
+                $operation(ports, command).await
+                    .map_err(crate::mcp::error::ToolError::from)?;
+
+                // Return the success message
+                Ok(rust_mcp_sdk::schema::CallToolResult::text_content($success_msg.to_string(), None))
             }
-        );
+            .instrument(span)
+            .await
+        }
     };
 }

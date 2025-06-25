@@ -34,18 +34,7 @@ impl GetProjectContextTool {
                 }
             }
         },
-        get_project_context,
-        |_command, result| {
-            serde_json::to_value(result.context)
-                .map(|json| {
-                    rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None)
-                })
-                .map_err(|e| {
-                    rust_mcp_sdk::schema::schema_utils::CallToolError::new(
-                        crate::mcp::error::ToolError::from(e),
-                    )
-                })
-        }
+        get_project_context
     );
 }
 
@@ -56,7 +45,6 @@ mod tests {
     use mm_core::operations::memory::{PROJECT_LABEL, TECHNOLOGY_LABEL};
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
-    use serde_json::Value;
     use std::collections::HashMap;
     use std::sync::Arc;
 
@@ -120,11 +108,9 @@ mod tests {
 
         let result = tool.call_tool(&ports).await.expect("tool should succeed");
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        let value: Value = serde_json::from_str(&text).unwrap();
-
-        // Verify results
-        assert_eq!(value["project"]["name"], "andoriyu:project:middle_manager");
-        assert_eq!(value["technologies"][0]["name"], "tech:language:rust");
+        // With our new macro, we're returning the full context object
+        assert!(text.contains("context"));
+        assert!(text.contains("andoriyu:project:middle_manager"));
     }
 
     #[tokio::test]

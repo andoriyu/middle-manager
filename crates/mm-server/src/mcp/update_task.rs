@@ -39,9 +39,7 @@ impl UpdateTaskTool {
             }
         },
         update_task,
-        |command, _res| {
-            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(command.name, None))
-        }
+        "Task updated"
     );
 }
 
@@ -71,6 +69,6 @@ mod tests {
 
         let result = tool.call_tool(&ports).await.unwrap();
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        assert_eq!(text, "task:1");
+        assert_eq!(text, "Task updated");
     }
 }

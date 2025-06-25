@@ -18,11 +18,6 @@ impl DeleteRelationshipsTool {
         self,
         DeleteRelationshipsCommand { relationships => self.relationships.clone() },
         delete_relationships,
-        |_cmd, _res| {
-            Ok(rust_mcp_sdk::schema::CallToolResult::text_content(
-                "Relationships deleted".to_string(),
-                None,
-            ))
-        }
+        "Relationships deleted"
     );
 }

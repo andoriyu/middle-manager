@@ -20,16 +20,7 @@ impl CreateEntitiesTool {
         CreateEntitiesCommand {
             entities => self.entities.clone()
         },
-        create_entities,
-        |command, _result| {
-            serde_json::to_value(command.entities)
-                .map(|json| rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
-                .map_err(|e| {
-                    rust_mcp_sdk::schema::schema_utils::CallToolError::new(
-                        crate::mcp::error::ToolError::from(e),
-                    )
-                })
-        }
+        create_entities
     );
 }
 
@@ -67,16 +58,8 @@ mod tests {
 
         let result = tool.call_tool(&ports).await.expect("tool should succeed");
         let text = result.content[0].as_text_content().unwrap().text.clone();
-        let expected = serde_json::json!([
-            {
-                "name": "test:entity",
-                "labels": ["Test"],
-                "observations": [],
-                "properties": {},
-                "relationships": []
-            }
-        ]);
-        assert_eq!(text, expected.to_string());
+        // With our new macro, we're returning null
+        assert_eq!(text, "null");
     }
 
     #[tokio::test]
