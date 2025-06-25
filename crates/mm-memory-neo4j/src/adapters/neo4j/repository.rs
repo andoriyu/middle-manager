@@ -262,7 +262,7 @@ impl MemoryRepository for Neo4jRepository {
         observations: &[String],
     ) -> MemoryResult<(), Self::Error> {
         let query = Query::new(
-            "MATCH (n {name: $name}) SET n.observations = [o IN n.observations WHERE NOT o IN $remove]"
+            "MATCH (n {name: $name}) SET n.observations = [o IN coalesce(n.observations, []) WHERE NOT o IN $remove]"
                 .to_string(),
         )
         .param("name", name.to_string())
