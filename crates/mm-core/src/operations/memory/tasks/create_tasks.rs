@@ -1,10 +1,9 @@
 use super::types::TaskProperties;
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
-use crate::validate_name;
 use mm_git::GitRepository;
 use mm_memory::MemoryRepository;
-use mm_memory::{MemoryEntity, MemoryRelationship, ValidationError, ValidationErrorKind};
+use mm_memory::{MemoryEntity, MemoryRelationship};
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -77,10 +76,7 @@ where
 mod tests {
     use super::*;
     use mm_git::repository::MockGitRepository;
-    use mm_memory::{
-        MemoryConfig, MemoryError, MemoryService, MockMemoryRepository, ValidationErrorKind,
-    };
-    use mockall::predicate::*;
+    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
     use std::collections::HashSet;
     use std::sync::Arc;
 
