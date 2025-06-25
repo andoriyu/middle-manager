@@ -1,7 +1,10 @@
+#[macro_use]
 mod common;
 mod generic;
 mod git;
 mod tasks;
+
+pub(crate) use validate_name;
 
 pub mod create_entity;
 pub mod create_relationship;
