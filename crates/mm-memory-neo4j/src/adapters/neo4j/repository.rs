@@ -9,8 +9,8 @@ use super::helpers::memory_entity_from_node;
 use crate::adapters::conversions::{bolt_to_memory_value, memory_value_to_bolt};
 use mm_memory::{
     EntityUpdate, LabelMatchMode, MemoryEntity, MemoryError, MemoryRelationship, MemoryRepository,
-    MemoryResult, RelationshipDirection, RelationshipUpdate, ValidationError, ValidationErrorKind,
-    relationship::RelationshipRef,
+    MemoryResult, PropertiesUpdate, RelationshipDirection, RelationshipUpdate, ValidationError,
+    ValidationErrorKind, relationship::RelationshipRef,
 };
 
 pub struct Neo4jRepository {
@@ -30,6 +30,76 @@ impl Neo4jRepository {
             })?;
 
         Ok(Self { graph })
+    }
+
+    #[instrument(skip(self, params, update))]
+    async fn apply_property_update(
+        &self,
+        match_clause: &str,
+        identifier: &str,
+        params: &[(&str, String)],
+        update: &PropertiesUpdate,
+        preserve: Option<&[&str]>,
+        context: &str,
+    ) -> MemoryResult<(), neo4rs::Error> {
+        if let Some(add) = &update.add {
+            let mut map: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            for (k, v) in add {
+                map.insert(k.clone(), memory_value_to_bolt(v)?);
+            }
+            let qstr = format!("{} SET {} += $props", match_clause, identifier);
+            let mut query = Query::new(qstr).param("props", map);
+            for (k, v) in params {
+                query = query.param(k, v.clone());
+            }
+            self.graph.run(query).await.map_err(|e| {
+                MemoryError::query_error_with_source(format!("Failed to add {}", context), e)
+            })?;
+        } else if let Some(remove) = &update.remove {
+            if !remove.is_empty() {
+                let fields = remove
+                    .iter()
+                    .map(|k| format!("{}.`{}`", identifier, k))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let qstr = format!("{} REMOVE {}", match_clause, fields);
+                let mut query = Query::new(qstr);
+                for (k, v) in params {
+                    query = query.param(k, v.clone());
+                }
+                self.graph.run(query).await.map_err(|e| {
+                    MemoryError::query_error_with_source(format!("Failed to remove {}", context), e)
+                })?;
+            }
+        } else if let Some(set_map) = &update.set {
+            let mut map: HashMap<String, neo4rs::BoltType> = HashMap::new();
+            for (k, v) in set_map {
+                map.insert(k.clone(), memory_value_to_bolt(v)?);
+            }
+            let qstr = if let Some(keep) = preserve {
+                let cond = keep
+                    .iter()
+                    .map(|k| format!("x <> '{}'", k))
+                    .collect::<Vec<_>>()
+                    .join(" AND ");
+                format!(
+                    "{match_clause} WITH {id}, keys({id}) AS k UNWIND [x IN k WHERE {cond}] AS key REMOVE {id}[key] WITH {id} SET {id} += $props",
+                    match_clause = match_clause,
+                    id = identifier,
+                    cond = cond
+                )
+            } else {
+                format!("{} SET {} = $props", match_clause, identifier)
+            };
+            let mut query = Query::new(qstr).param("props", map);
+            for (k, v) in params {
+                query = query.param(k, v.clone());
+            }
+            self.graph.run(query).await.map_err(|e| {
+                MemoryError::query_error_with_source(format!("Failed to set {}", context), e)
+            })?;
+        }
+        Ok(())
     }
 }
 
@@ -390,54 +460,16 @@ impl MemoryRepository for Neo4jRepository {
         }
 
         if let Some(props) = &update.properties {
-            if let Some(add) = &props.add {
-                let mut map: HashMap<String, neo4rs::BoltType> = HashMap::new();
-                for (k, v) in add {
-                    map.insert(k.clone(), memory_value_to_bolt(v)?);
-                }
-                let query = Query::new("MATCH (n {name: $name}) SET n += $props".to_string())
-                    .param("name", name.to_string())
-                    .param("props", map);
-                self.graph.run(query).await.map_err(|e| {
-                    MemoryError::query_error_with_source(
-                        format!("Failed to add properties for {}", name),
-                        e,
-                    )
-                })?;
-            } else if let Some(remove) = &props.remove {
-                if !remove.is_empty() {
-                    let fields = remove
-                        .iter()
-                        .map(|k| format!("n.`{}`", k))
-                        .collect::<Vec<_>>()
-                        .join(", ");
-                    let qstr = format!("MATCH (n {{name: $name}}) REMOVE {}", fields);
-                    let query = Query::new(qstr).param("name", name.to_string());
-                    self.graph.run(query).await.map_err(|e| {
-                        MemoryError::query_error_with_source(
-                            format!("Failed to remove properties for {}", name),
-                            e,
-                        )
-                    })?;
-                }
-            } else if let Some(set_map) = &props.set {
-                let mut map: HashMap<String, neo4rs::BoltType> = HashMap::new();
-                for (k, v) in set_map {
-                    map.insert(k.clone(), memory_value_to_bolt(v)?);
-                }
-                let query = Query::new(
-                    "MATCH (n {name: $name}) WITH n, keys(n) AS k UNWIND [x IN k WHERE x <> 'name' AND x <> 'observations'] AS key REMOVE n[key] WITH n SET n += $props"
-                        .to_string(),
-                )
-                .param("name", name.to_string())
-                .param("props", map);
-                self.graph.run(query).await.map_err(|e| {
-                    MemoryError::query_error_with_source(
-                        format!("Failed to set properties for {}", name),
-                        e,
-                    )
-                })?;
-            }
+            let params = [("name", name.to_string())];
+            self.apply_property_update(
+                "MATCH (n {name: $name})",
+                "n",
+                &params,
+                props,
+                Some(&["name", "observations"]),
+                &format!("properties for {}", name),
+            )
+            .await?;
         }
 
         if let Some(labels) = &update.labels {
@@ -482,66 +514,20 @@ impl MemoryRepository for Neo4jRepository {
         update: &RelationshipUpdate,
     ) -> MemoryResult<(), Self::Error> {
         if let Some(props) = &update.properties {
-            if let Some(add) = &props.add {
-                let mut map: HashMap<String, neo4rs::BoltType> = HashMap::new();
-                for (k, v) in add {
-                    map.insert(k.clone(), memory_value_to_bolt(v)?);
-                }
-                let query = Query::new(
-                    "MATCH (a {name: $from})-[r:`".to_owned()
-                        + name
-                        + "`]->(b {name: $to}) SET r += $props",
-                )
-                .param("from", from.to_string())
-                .param("to", to.to_string())
-                .param("props", map);
-                self.graph.run(query).await.map_err(|e| {
-                    MemoryError::query_error_with_source(
-                        "Failed to add relationship properties".to_string(),
-                        e,
-                    )
-                })?;
-            } else if let Some(remove) = &props.remove {
-                if !remove.is_empty() {
-                    let fields = remove
-                        .iter()
-                        .map(|k| format!("r.`{}`", k))
-                        .collect::<Vec<_>>()
-                        .join(", ");
-                    let qstr = format!(
-                        "MATCH (a {{name: $from}})-[r:`{}`]->(b {{name: $to}}) REMOVE {}",
-                        name, fields
-                    );
-                    let query = Query::new(qstr)
-                        .param("from", from.to_string())
-                        .param("to", to.to_string());
-                    self.graph.run(query).await.map_err(|e| {
-                        MemoryError::query_error_with_source(
-                            "Failed to remove relationship properties".to_string(),
-                            e,
-                        )
-                    })?;
-                }
-            } else if let Some(set_map) = &props.set {
-                let mut map: HashMap<String, neo4rs::BoltType> = HashMap::new();
-                for (k, v) in set_map {
-                    map.insert(k.clone(), memory_value_to_bolt(v)?);
-                }
-                let qstr = format!(
-                    "MATCH (a {{name: $from}})-[r:`{}`]->(b {{name: $to}}) SET r = $props",
-                    name
-                );
-                let query = Query::new(qstr)
-                    .param("from", from.to_string())
-                    .param("to", to.to_string())
-                    .param("props", map);
-                self.graph.run(query).await.map_err(|e| {
-                    MemoryError::query_error_with_source(
-                        "Failed to set relationship properties".to_string(),
-                        e,
-                    )
-                })?;
-            }
+            let match_clause = format!(
+                "MATCH (a {{name: $from}})-[r:`{}`]->(b {{name: $to}})",
+                name
+            );
+            let params = [("from", from.to_string()), ("to", to.to_string())];
+            self.apply_property_update(
+                &match_clause,
+                "r",
+                &params,
+                props,
+                None,
+                "relationship properties",
+            )
+            .await?;
         }
         Ok(())
     }
