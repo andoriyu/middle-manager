@@ -1,6 +1,8 @@
 mod common;
 mod generic;
 mod git;
+// Re-export label constants from the memory crate
+pub use mm_memory::labels;
 mod tasks;
 
 pub mod create_entity;
@@ -36,6 +38,7 @@ pub use get_entity::{GetEntityCommand, GetEntityResult, get_entity};
 pub use get_project_context::{
     GetProjectContextCommand, GetProjectContextResult, ProjectFilter, get_project_context,
 };
+pub use labels::*;
 pub use list_projects::{ListProjectsCommand, ListProjectsResult, list_projects};
 pub use tasks::{
     CreateTasksCommand, CreateTasksResult, DeleteTaskCommand, DeleteTaskResult, GetTaskCommand,

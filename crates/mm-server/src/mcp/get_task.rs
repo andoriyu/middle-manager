@@ -35,6 +35,7 @@ impl GetTaskTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::operations::memory::TASK_LABEL;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use serde_json::Value;
@@ -44,7 +45,7 @@ mod tests {
     async fn test_call_tool_success() {
         let entity = MemoryEntity {
             name: "task:1".into(),
-            labels: vec!["Task".into()],
+            labels: vec![TASK_LABEL.to_string()],
             ..Default::default()
         };
         let mut mock = MockMemoryRepository::new();

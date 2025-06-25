@@ -6,6 +6,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument};
 
+use mm_memory::labels::{COMPONENT_LABEL, NOTE_LABEL, PROJECT_LABEL, TASK_LABEL, TECHNOLOGY_LABEL};
+
 use crate::error::{CoreError, CoreResult};
 use crate::ports::Ports;
 
@@ -32,6 +34,32 @@ pub struct GetProjectContextCommand {
 pub struct GetProjectContextResult {
     /// Project context
     pub context: ProjectContext,
+}
+
+async fn related_by_label<M, G>(
+    ports: &Ports<M, G>,
+    entity_name: &str,
+    relationship: Option<String>,
+    direction: Option<RelationshipDirection>,
+    depth: u32,
+    label: &str,
+) -> CoreResult<Vec<MemoryEntity>, M::Error>
+where
+    M: MemoryRepository + Send + Sync,
+    G: GitRepository + Send + Sync,
+    M::Error: std::error::Error + Send + Sync + 'static,
+    G::Error: std::error::Error + Send + Sync + 'static,
+{
+    let label_string = label.to_string();
+    let entities = ports
+        .memory_service
+        .find_related_entities(entity_name, relationship, direction, depth)
+        .await
+        .map_err(CoreError::from)?
+        .into_iter()
+        .filter(|e| e.labels.contains(&label_string))
+        .collect();
+    Ok(entities)
 }
 
 /// Get project context by name or repository
@@ -73,19 +101,15 @@ where
 
             if let Some(repo) = repo_entity {
                 // Find projects contained by this repository
-                let projects = ports
-                    .memory_service
-                    .find_related_entities(
-                        &repo.name,
-                        Some("contains".to_string()),
-                        Some(RelationshipDirection::Outgoing),
-                        1,
-                    )
-                    .await
-                    .map_err(CoreError::from)?
-                    .into_iter()
-                    .filter(|e| e.labels.contains(&"Project".to_string()))
-                    .collect::<Vec<_>>();
+                let projects = related_by_label(
+                    ports,
+                    &repo.name,
+                    Some("contains".to_string()),
+                    Some(RelationshipDirection::Outgoing),
+                    1,
+                    PROJECT_LABEL,
+                )
+                .await?;
 
                 if projects.is_empty() {
                     Err(CoreError::Memory(MemoryError::entity_not_found(format!(
@@ -122,49 +146,37 @@ where
     G::Error: std::error::Error + Send + Sync + 'static,
 {
     // Find tasks related to this project
-    let tasks = ports
-        .memory_service
-        .find_related_entities(
-            &project.name,
-            Some("contains".to_string()),
-            Some(RelationshipDirection::Outgoing),
-            1,
-        )
-        .await
-        .map_err(CoreError::from)?
-        .into_iter()
-        .filter(|e| e.labels.contains(&"Task".to_string()))
-        .collect::<Vec<_>>();
+    let tasks = related_by_label(
+        ports,
+        &project.name,
+        Some("contains".to_string()),
+        Some(RelationshipDirection::Outgoing),
+        1,
+        TASK_LABEL,
+    )
+    .await?;
 
     // Find notes related to this project
-    let notes = ports
-        .memory_service
-        .find_related_entities(
-            &project.name,
-            Some("relates_to".to_string()),
-            Some(RelationshipDirection::Incoming),
-            1,
-        )
-        .await
-        .map_err(CoreError::from)?
-        .into_iter()
-        .filter(|e| e.labels.contains(&"Note".to_string()))
-        .collect::<Vec<_>>();
+    let notes = related_by_label(
+        ports,
+        &project.name,
+        Some("relates_to".to_string()),
+        Some(RelationshipDirection::Incoming),
+        1,
+        NOTE_LABEL,
+    )
+    .await?;
 
     // Find components related to this project
-    let components = ports
-        .memory_service
-        .find_related_entities(
-            &project.name,
-            Some("contains".to_string()),
-            Some(RelationshipDirection::Outgoing),
-            1,
-        )
-        .await
-        .map_err(CoreError::from)?
-        .into_iter()
-        .filter(|e| e.labels.contains(&"Component".to_string()))
-        .collect::<Vec<_>>();
+    let components = related_by_label(
+        ports,
+        &project.name,
+        Some("contains".to_string()),
+        Some(RelationshipDirection::Outgoing),
+        1,
+        COMPONENT_LABEL,
+    )
+    .await?;
 
     // Find other entities related to this project
     let other_related = ports
@@ -174,27 +186,23 @@ where
         .map_err(CoreError::from)?
         .into_iter()
         .filter(|e| {
-            !e.labels.contains(&"Task".to_string())
-                && !e.labels.contains(&"Note".to_string())
-                && !e.labels.contains(&"Component".to_string())
-                && !e.labels.contains(&"Technology".to_string())
+            !e.labels.contains(&TASK_LABEL.to_string())
+                && !e.labels.contains(&NOTE_LABEL.to_string())
+                && !e.labels.contains(&COMPONENT_LABEL.to_string())
+                && !e.labels.contains(&TECHNOLOGY_LABEL.to_string())
         })
         .collect();
 
     // Find technologies used by this project
-    let technologies = ports
-        .memory_service
-        .find_related_entities(
-            &project.name,
-            Some("uses".to_string()),
-            Some(RelationshipDirection::Outgoing),
-            1,
-        )
-        .await
-        .map_err(CoreError::from)?
-        .into_iter()
-        .filter(|e| e.labels.contains(&"Technology".to_string()))
-        .collect();
+    let technologies = related_by_label(
+        ports,
+        &project.name,
+        Some("uses".to_string()),
+        Some(RelationshipDirection::Outgoing),
+        1,
+        TECHNOLOGY_LABEL,
+    )
+    .await?;
 
     Ok(ProjectContext {
         project,

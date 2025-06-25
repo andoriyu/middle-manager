@@ -40,6 +40,7 @@ impl CreateTasksTool {
 mod tests {
     use super::*;
     use mm_core::Ports;
+    use mm_core::operations::memory::TASK_LABEL;
     use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
@@ -68,7 +69,7 @@ mod tests {
         let tool = CreateTasksTool {
             tasks: vec![MemoryEntity::<TaskProperties> {
                 name: "task:1".into(),
-                labels: vec!["Task".into()],
+                labels: vec![TASK_LABEL.to_string()],
                 ..Default::default()
             }],
             project_name: None,

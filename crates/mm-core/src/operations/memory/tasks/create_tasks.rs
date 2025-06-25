@@ -61,6 +61,7 @@ where
 mod tests {
     use super::*;
     use mm_git::repository::MockGitRepository;
+    use mm_memory::labels::TASK_LABEL;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
     use std::collections::HashSet;
     use std::sync::Arc;
@@ -91,7 +92,7 @@ mod tests {
         let cmd = CreateTasksCommand {
             tasks: vec![MemoryEntity::<TaskProperties> {
                 name: "task:1".into(),
-                labels: vec!["Task".into()],
+                labels: vec![TASK_LABEL.to_string()],
                 ..Default::default()
             }],
             project_name: None,
@@ -116,7 +117,7 @@ mod tests {
         let cmd = CreateTasksCommand {
             tasks: vec![MemoryEntity::<TaskProperties> {
                 name: "task:1".into(),
-                labels: vec!["Task".into()],
+                labels: vec![TASK_LABEL.to_string()],
                 ..Default::default()
             }],
             project_name: None,
@@ -147,7 +148,7 @@ mod tests {
         let cmd = CreateTasksCommand {
             tasks: vec![MemoryEntity::<TaskProperties> {
                 name: String::new(),
-                labels: vec!["Task".into()],
+                labels: vec![TASK_LABEL.to_string()],
                 ..Default::default()
             }],
             project_name: None,
