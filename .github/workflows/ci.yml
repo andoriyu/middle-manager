@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
   merge_group:
 
@@ -101,3 +103,29 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           artifact-name: code-coverage-report
           update-comment: true
+
+  check-flake:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v6
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: Show flake
+        run: nix flake show
+      - name: Check flake
+        run: nix flake check
+
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v6
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: Build package
+        run: nix build .#middle_manager
