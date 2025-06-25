@@ -59,13 +59,13 @@ macro_rules! generate_call_tool {
 
             let span = tracing::info_span!("call_tool");
             async move {
-                // Use ? to automatically convert CoreError to ToolError to CallToolError
+                // Convert core errors into CallToolError using anyhow
                 let result = $operation(ports, command.clone()).await
-                    .map_err(crate::mcp::error::ToolError::from)?;
+                    .map_err(crate::mcp::error::into_call_tool_error)?;
 
                 // Use ? again for JSON serialization errors
                 let json = serde_json::to_value(result)
-                    .map_err(crate::mcp::error::ToolError::from)?;
+                    .map_err(crate::mcp::error::into_call_tool_error)?;
 
                 // Return the final result
                 Ok(rust_mcp_sdk::schema::CallToolResult::text_content(json.to_string(), None))
@@ -94,9 +94,9 @@ macro_rules! generate_call_tool {
 
             let span = tracing::info_span!("call_tool");
             async move {
-                // Use ? to automatically convert CoreError to ToolError to CallToolError
+                // Convert core errors into CallToolError using anyhow
                 $operation(ports, command).await
-                    .map_err(crate::mcp::error::ToolError::from)?;
+                    .map_err(crate::mcp::error::into_call_tool_error)?;
 
                 // Return the success message
                 Ok(rust_mcp_sdk::schema::CallToolResult::text_content($success_msg.to_string(), None))
