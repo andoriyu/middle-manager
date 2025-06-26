@@ -17,6 +17,7 @@ pub mod find_entities_by_labels;
 pub mod find_related_entities;
 pub mod find_relationships;
 pub mod get_entity;
+pub mod get_graph_meta;
 pub mod get_project_context;
 pub mod list_projects;
 pub mod update_entity;
@@ -44,6 +45,9 @@ pub use find_relationships::{
 };
 pub use generic::{get_entity_generic, update_entity_generic};
 pub use get_entity::{GetEntityCommand, GetEntityResult, get_entity};
+pub use get_graph_meta::{
+    GRAPH_ROOT, GetGraphMetaCommand, GetGraphMetaResult, GetGraphMetaResultType, get_graph_meta,
+};
 pub use get_project_context::{
     GetProjectContextCommand, GetProjectContextResult, ProjectFilter, get_project_context,
 };
