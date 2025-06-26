@@ -8,14 +8,14 @@ use serde::{Deserialize, Serialize};
 pub struct ListTasksTool {
     /// Optional project name
     pub project_name: Option<String>,
-    /// Optional lifecycle label to filter by
-    pub lifecycle: Option<String>,
+    /// Labels to filter by
+    pub labels: Vec<String>,
 }
 
 impl ListTasksTool {
     generate_call_tool!(
         self,
-        ListTasksCommand { project_name => self.project_name.clone(), lifecycle => self.lifecycle.clone() },
+        ListTasksCommand { project_name => self.project_name.clone(), labels => self.labels.clone() },
         list_tasks
     );
 }
@@ -64,7 +64,7 @@ mod tests {
 
         let tool = ListTasksTool {
             project_name: None,
-            lifecycle: None,
+            labels: vec![],
         };
         let result = tool.call_tool(&ports).await.unwrap();
         let text = result.content[0].as_text_content().unwrap().text.clone();

@@ -12,8 +12,8 @@ use tracing::instrument;
 pub struct ListTasksCommand {
     /// Optional project name to list tasks for
     pub project_name: Option<String>,
-    /// Optional lifecycle label to filter tasks
-    pub lifecycle: Option<String>,
+    /// Labels to filter tasks
+    pub labels: Vec<String>,
 }
 
 /// Result of listing tasks
@@ -23,7 +23,7 @@ pub struct ListTasksResult {
     pub tasks: Vec<MemoryEntity<TaskProperties>>,
 }
 
-/// List tasks for a project optionally filtered by lifecycle label
+/// List tasks for a project optionally filtered by labels
 #[instrument(skip(ports), err)]
 pub async fn list_tasks<M, G>(
     ports: &Ports<M, G>,
@@ -57,7 +57,7 @@ where
         .filter(|t| t.labels.contains(&TASK_LABEL.to_string()))
         .collect::<Vec<_>>();
 
-    if let Some(label) = command.lifecycle {
+    for label in command.labels {
         tasks.retain(|t| t.labels.contains(&label));
     }
 
@@ -115,14 +115,14 @@ mod tests {
 
         let cmd = ListTasksCommand {
             project_name: None,
-            lifecycle: None,
+            labels: vec![],
         };
         let result = list_tasks(&ports, cmd).await.unwrap();
         assert_eq!(result.tasks.len(), 2);
     }
 
     #[tokio::test]
-    async fn test_list_tasks_with_lifecycle() {
+    async fn test_list_tasks_with_labels() {
         let props: std::collections::HashMap<String, MemoryValue> =
             TaskProperties::default().into();
         let task1 = MemoryEntity {
@@ -153,7 +153,7 @@ mod tests {
         let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
         let cmd = ListTasksCommand {
             project_name: None,
-            lifecycle: Some(ACTIVE_LABEL.to_string()),
+            labels: vec![ACTIVE_LABEL.to_string()],
         };
         let result = list_tasks(&ports, cmd).await.unwrap();
         assert_eq!(result.tasks.len(), 1);
@@ -168,7 +168,7 @@ mod tests {
         let ports = Ports::noop().with(|p| p.memory_service = Arc::new(service));
         let cmd = ListTasksCommand {
             project_name: None,
-            lifecycle: None,
+            labels: vec![],
         };
         let res = list_tasks(&ports, cmd).await;
         assert!(matches!(res, Err(CoreError::MissingProject)));
