@@ -30,6 +30,14 @@ pub enum ValidationErrorKind {
     /// Error when multiple operations are specified for the same field
     #[error("Conflicting operations for {0}")]
     ConflictingOperations(&'static str),
+
+    /// Error when a task depends on itself
+    #[error("Task '{0}' cannot depend on itself")]
+    SelfDependency(String),
+
+    /// Error when a task depends on a non-existent task
+    #[error("Dependency '{0}' not found")]
+    DependencyNotFound(String),
 }
 
 /// Collection of validation errors

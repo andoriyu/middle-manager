@@ -1,5 +1,4 @@
-use mm_core::operations::memory::{CreateTasksCommand, TaskProperties, create_tasks};
-use mm_memory::MemoryEntity;
+use mm_core::operations::memory::{CreateTasksCommand, TaskInput, create_tasks};
 use mm_utils::IntoJsonSchema;
 use rust_mcp_sdk::macros::mcp_tool;
 use serde::{Deserialize, Serialize};
@@ -11,18 +10,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CreateTasksTool {
     /// Tasks to create
-    pub tasks: Vec<MemoryEntity<TaskProperties>>,
+    pub tasks: Vec<TaskInput>,
     /// Project to associate with
     pub project_name: Option<String>,
-    /// Tasks this task depends on
-    #[serde(default)]
-    pub depends_on: Vec<String>,
 }
 
 impl CreateTasksTool {
     generate_call_tool!(
         self,
-        CreateTasksCommand { tasks => self.tasks.clone(), project_name, depends_on },
+        CreateTasksCommand { tasks => self.tasks.clone(), project_name },
         create_tasks
     );
 }
@@ -32,13 +28,15 @@ mod tests {
     use super::*;
     use mm_core::Ports;
     use mm_core::operations::memory::TASK_LABEL;
+    use mm_core::operations::memory::TaskProperties;
     use mm_git::repository::MockGitRepository;
-    use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
+    use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_call_tool_success() {
         let mut mock = MockMemoryRepository::new();
+        mock.expect_find_entity_by_name().never();
         mock.expect_create_entities()
             .withf(|ents| ents.len() == 1 && ents[0].name == "task:1")
             .returning(|_| Ok(()));
@@ -58,13 +56,15 @@ mod tests {
         let ports = Ports::new(Arc::new(service), Arc::new(git_service));
 
         let tool = CreateTasksTool {
-            tasks: vec![MemoryEntity::<TaskProperties> {
-                name: "task:1".into(),
-                labels: vec![TASK_LABEL.to_string()],
-                ..Default::default()
+            tasks: vec![TaskInput {
+                task: MemoryEntity::<TaskProperties> {
+                    name: "task:1".into(),
+                    labels: vec![TASK_LABEL.to_string()],
+                    ..Default::default()
+                },
+                depends_on: vec![],
             }],
             project_name: None,
-            depends_on: vec![],
         };
 
         let result = tool.call_tool(&ports).await.unwrap();
@@ -76,6 +76,15 @@ mod tests {
     #[tokio::test]
     async fn test_call_tool_with_dependencies() {
         let mut mock = MockMemoryRepository::new();
+        mock.expect_find_entity_by_name()
+            .with(mockall::predicate::eq("task:1"))
+            .return_once(|_| {
+                Ok(Some(MemoryEntity {
+                    name: "task:1".into(),
+                    labels: vec![TASK_LABEL.to_string()],
+                    ..Default::default()
+                }))
+            });
         mock.expect_create_entities()
             .withf(|ents| ents.len() == 1 && ents[0].name == "task:2")
             .returning(|_| Ok(()));
@@ -104,13 +113,15 @@ mod tests {
         let ports = Ports::new(Arc::new(service), Arc::new(git_service));
 
         let tool = CreateTasksTool {
-            tasks: vec![MemoryEntity::<TaskProperties> {
-                name: "task:2".into(),
-                labels: vec![TASK_LABEL.to_string()],
-                ..Default::default()
+            tasks: vec![TaskInput {
+                task: MemoryEntity::<TaskProperties> {
+                    name: "task:2".into(),
+                    labels: vec![TASK_LABEL.to_string()],
+                    ..Default::default()
+                },
+                depends_on: vec!["task:1".into()],
             }],
             project_name: None,
-            depends_on: vec!["task:1".into()],
         };
 
         let result = tool.call_tool(&ports).await.unwrap();
