@@ -7,6 +7,7 @@ use tracing::{Level, instrument};
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt, prelude::*};
 
+use mm_core::operations::memory::{GetTaskCommand, ListTasksCommand, get_task, list_tasks};
 use mm_server as mm_server_lib;
 use mm_server_lib::{ToolsCommand, create_ports_from_config};
 
@@ -63,6 +64,8 @@ enum Command {
     Tools(ToolsSubcommand),
     /// Configuration related commands
     Config(ConfigSubcommand),
+    /// Task management commands
+    Tasks(TasksSubcommand),
 }
 
 #[derive(Parser, Debug)]
@@ -102,6 +105,36 @@ enum ToolsSubcommandType {
     Schema {
         /// Name of the tool
         tool_name: String,
+    },
+}
+
+#[derive(Parser, Debug)]
+struct TasksSubcommand {
+    #[command(subcommand)]
+    command: TasksSubcommandType,
+}
+
+#[derive(Subcommand, Debug)]
+enum TasksSubcommandType {
+    /// List tasks for a project
+    List {
+        /// Project name to list tasks for
+        #[arg(long)]
+        project: Option<String>,
+        /// Lifecycle label to filter by
+        #[arg(long)]
+        lifecycle: Option<String>,
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+    /// View a single task
+    View {
+        /// Name of the task to view
+        name: String,
+        /// Output result in JSON format
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -214,6 +247,74 @@ async fn run(args: Args) -> anyhow::Result<()> {
                 run_config_validate(&config_paths, show).await?;
             }
         },
+        Command::Tasks(tasks_subcommand) => {
+            let (_, ports) = create_ports_from_config(&config_paths).await?;
+            match tasks_subcommand.command {
+                TasksSubcommandType::List {
+                    project,
+                    lifecycle,
+                    json,
+                } => {
+                    let result = list_tasks(
+                        &ports,
+                        ListTasksCommand {
+                            project_name: project,
+                            lifecycle,
+                        },
+                    )
+                    .await?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&result.tasks)?);
+                    } else if result.tasks.is_empty() {
+                        println!("No tasks found");
+                    } else {
+                        println!("{:<40} {:<10} {:<8} Due", "Name", "Status", "Priority");
+                        for t in result.tasks {
+                            let due = t
+                                .properties
+                                .due_date
+                                .map(|d| d.to_rfc3339())
+                                .unwrap_or_default();
+                            println!(
+                                "{:<40} {:<10} {:<8} {}",
+                                t.name,
+                                t.properties.status.as_ref(),
+                                t.properties.priority.as_ref(),
+                                due
+                            );
+                        }
+                    }
+                }
+                TasksSubcommandType::View { name, json } => {
+                    let result = get_task(&ports, GetTaskCommand { name }).await?;
+                    if let Some(task) = result {
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&task)?);
+                        } else {
+                            println!("Name: {}", task.name);
+                            println!("Labels: {}", task.labels.join(", "));
+                            println!("Description: {}", task.properties.description);
+                            println!("Status: {}", task.properties.status.as_ref());
+                            println!("Type: {}", task.properties.task_type.as_ref());
+                            println!("Priority: {}", task.properties.priority.as_ref());
+                            if let Some(due) = task.properties.due_date {
+                                println!("Due: {}", due.to_rfc3339());
+                            }
+                            println!("Created: {}", task.properties.created_at.to_rfc3339());
+                            println!("Updated: {}", task.properties.updated_at.to_rfc3339());
+                            if !task.observations.is_empty() {
+                                println!("Observations:");
+                                for obs in task.observations {
+                                    println!("  - {}", obs);
+                                }
+                            }
+                        }
+                    } else {
+                        println!("Task not found");
+                    }
+                }
+            }
+        }
     }
 
     Ok(())
