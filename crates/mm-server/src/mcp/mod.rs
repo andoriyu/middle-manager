@@ -8,6 +8,7 @@ pub mod delete_relationships;
 pub mod delete_task;
 pub mod error;
 pub mod find_entities_by_labels;
+pub mod find_related_entities;
 pub mod find_relationships;
 pub mod get_entity;
 pub mod get_git_status;
@@ -31,6 +32,7 @@ pub use delete_entities::DeleteEntitiesTool;
 pub use delete_relationships::DeleteRelationshipsTool;
 pub use delete_task::DeleteTaskTool;
 pub use find_entities_by_labels::FindEntitiesByLabelsTool;
+pub use find_related_entities::FindRelatedEntitiesTool;
 pub use find_relationships::FindRelationshipsTool;
 pub use get_entity::GetEntityTool;
 pub use get_git_status::GetGitStatusTool;
@@ -51,6 +53,7 @@ tool_box!(
         DeleteRelationshipsTool,
         FindEntitiesByLabelsTool,
         FindRelationshipsTool,
+        FindRelatedEntitiesTool,
         CreateTasksTool,
         GetTaskTool,
         UpdateTaskTool,
@@ -86,6 +89,7 @@ impl MMTools {
             MMTools::DeleteRelationshipsTool(tool) => tool.call_tool(ports).await,
             MMTools::FindEntitiesByLabelsTool(tool) => tool.call_tool(ports).await,
             MMTools::FindRelationshipsTool(tool) => tool.call_tool(ports).await,
+            MMTools::FindRelatedEntitiesTool(tool) => tool.call_tool(ports).await,
             MMTools::CreateTasksTool(tool) => tool.call_tool(ports).await,
             MMTools::GetTaskTool(tool) => tool.call_tool(ports).await,
             MMTools::UpdateTaskTool(tool) => tool.call_tool(ports).await,
@@ -108,6 +112,7 @@ impl MMTools {
             MMTools::DeleteRelationshipsTool(_) => DeleteRelationshipsTool::json_schema(),
             MMTools::FindEntitiesByLabelsTool(_) => FindEntitiesByLabelsTool::json_schema(),
             MMTools::FindRelationshipsTool(_) => FindRelationshipsTool::json_schema(),
+            MMTools::FindRelatedEntitiesTool(_) => FindRelatedEntitiesTool::json_schema(),
             MMTools::CreateTasksTool(_) => CreateTasksTool::json_schema(),
             MMTools::GetTaskTool(_) => GetTaskTool::json_schema(),
             MMTools::UpdateTaskTool(_) => UpdateTaskTool::json_schema(),

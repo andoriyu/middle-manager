@@ -14,6 +14,7 @@ pub mod create_relationship;
 pub mod delete_entities;
 pub mod delete_relationships;
 pub mod find_entities_by_labels;
+pub mod find_related_entities;
 pub mod find_relationships;
 pub mod get_entity;
 pub mod get_project_context;
@@ -32,6 +33,10 @@ pub use delete_relationships::{
 pub use find_entities_by_labels::{
     FindEntitiesByLabelsCommand, FindEntitiesByLabelsResult, FindEntitiesByLabelsResultType,
     find_entities_by_labels,
+};
+pub use find_related_entities::{
+    FindRelatedEntitiesCommand, FindRelatedEntitiesResult, FindRelatedEntitiesResultType,
+    find_related_entities,
 };
 pub use find_relationships::{
     FindRelationshipsCommand, FindRelationshipsResult, FindRelationshipsResultType,
