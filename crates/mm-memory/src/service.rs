@@ -161,36 +161,45 @@ where
         let mut valid = Vec::default();
 
         for entity in entities {
-            // Clone only the labels so we can apply defaults without duplicating the
-            // entire entity unless it passes validation.
-            let mut labels = entity.labels.clone();
-            if let Some(label) = &self.config.default_label {
-                if !labels.contains(label) {
-                    labels.push(label.clone());
-                }
-            }
-
             let mut errs = Vec::default();
+
+            // Validate using the existing labels plus any default label without
+            // cloning unless the entity is valid.
+            let default_label = self.config.default_label.as_deref();
+            let labels_iter = entity
+                .labels
+                .iter()
+                .map(String::as_str)
+                .chain(default_label.into_iter());
+
             if entity.name.is_empty() {
                 errs.push(ValidationErrorKind::EmptyEntityName);
             }
-            if labels.is_empty() {
+
+            if entity.labels.is_empty() && default_label.is_none() {
                 errs.push(ValidationErrorKind::NoLabels(entity.name.clone()));
             }
+
             if self.config.default_labels {
-                for label in &labels {
-                    let allowed_default_label =
-                        self.config.default_label.as_deref() == Some(label.as_str());
+                for label in labels_iter.clone() {
+                    let allowed_default_label = default_label == Some(label);
                     if !allowed_default_label
-                        && !DEFAULT_LABELS.contains(&label.as_str())
+                        && !DEFAULT_LABELS.contains(&label)
                         && !self.config.additional_labels.contains(label)
                     {
-                        errs.push(ValidationErrorKind::UnknownLabel(label.clone()));
+                        errs.push(ValidationErrorKind::UnknownLabel(label.to_string()));
                     }
                 }
             }
 
             if errs.is_empty() {
+                // Construct the final entity with defaults applied.
+                let mut labels = entity.labels.clone();
+                if let Some(label) = default_label {
+                    if !labels.contains(&label.to_string()) {
+                        labels.push(label.to_string());
+                    }
+                }
                 valid.push(MemoryEntity {
                     name: entity.name.clone(),
                     labels,
