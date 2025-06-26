@@ -10,7 +10,6 @@ generate_get_wrapper!(GetTaskCommand, get_task, GetTaskResult, TaskProperties);
 mod tests {
     use super::*;
     use crate::ports::Ports;
-    use mm_git::repository::MockGitRepository;
     use mm_memory::labels::TASK_LABEL;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
@@ -29,9 +28,9 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let cmd = GetTaskCommand {
             name: "task:1".into(),
@@ -45,9 +44,9 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_find_entity_by_name().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let cmd = GetTaskCommand {
             name: String::new(),

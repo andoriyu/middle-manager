@@ -39,7 +39,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
@@ -50,9 +49,9 @@ mod tests {
             .withf(|f, t, n, _| f == "a" && t == "b" && n == "rel")
             .returning(|_, _, _, _| Ok(()));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
         let cmd = UpdateRelationshipCommand {
             from: "a".into(),
             to: "b".into(),
@@ -68,9 +67,9 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_update_relationship().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
         let cmd = UpdateRelationshipCommand {
             from: "".into(),
             to: "b".into(),

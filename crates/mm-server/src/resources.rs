@@ -80,7 +80,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryEntity, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::sync::Arc;
@@ -99,9 +98,9 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let result = read_resource(&ports, "memory://test:entity").await.unwrap();
         if let ReadResourceResultContentsItem::TextResourceContents(contents) = &result.contents[0]
@@ -119,9 +118,9 @@ mod tests {
             .with(eq("missing"))
             .returning(|_| Ok(None));
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
         let err = read_resource(&ports, "memory://missing").await.unwrap_err();
         assert_eq!(err.message, "Entity 'missing' not found");
     }
@@ -130,9 +129,9 @@ mod tests {
     async fn test_read_resource_invalid_uri() {
         let mock = MockMemoryRepository::new();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
         let err = read_resource(&ports, "file://foo").await.unwrap_err();
         assert_eq!(err.message, "Unsupported URI");
     }
@@ -142,7 +141,6 @@ mod tests {
 mod prop_tests {
     use super::*;
     use arbitrary::{Arbitrary, Unstructured};
-    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mm_utils::prop::{NonEmptyName, async_arbtest};
     use std::sync::Arc;
@@ -158,9 +156,9 @@ mod prop_tests {
                 .withf(move |n| n == name_clone)
                 .returning(|_| Ok(None));
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let git_repo = MockGitRepository::new();
-            let git_service = mm_git::GitService::new(git_repo);
-            let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+            let ports = Ports::noop().with(|p| {
+                p.memory_service = Arc::new(service);
+            });
             let err = rt.block_on(read_resource(&ports, &uri)).unwrap_err();
             assert_eq!(err.message, format!("Entity '{}' not found", name));
             Ok(())
@@ -187,9 +185,9 @@ mod prop_tests {
             let mut mock = MockMemoryRepository::new();
             mock.expect_find_entity_by_name().never();
             let service = MemoryService::new(mock, MemoryConfig::default());
-            let git_repo = MockGitRepository::new();
-            let git_service = mm_git::GitService::new(git_repo);
-            let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+            let ports = Ports::noop().with(|p| {
+                p.memory_service = Arc::new(service);
+            });
             let err = rt.block_on(read_resource(&ports, &uri)).unwrap_err();
             assert_eq!(err.message, "Unsupported URI");
             Ok(())

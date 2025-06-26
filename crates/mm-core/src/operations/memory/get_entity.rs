@@ -14,7 +14,6 @@ generate_get_wrapper!(
 mod tests {
     use super::*;
     use crate::ports::Ports;
-    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository, ValidationErrorKind};
     use mockall::predicate::*;
     use std::sync::Arc;
@@ -34,9 +33,9 @@ mod tests {
             .returning(move |_| Ok(Some(entity.clone())));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
         let command = GetEntityCommand {
             name: "test:entity".to_string(),
         };
@@ -51,9 +50,9 @@ mod tests {
         let mut mock_repo = MockMemoryRepository::new();
         mock_repo.expect_find_entity_by_name().never();
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let command = GetEntityCommand {
             name: "".to_string(),
@@ -77,9 +76,9 @@ mod tests {
             .returning(|_| Err(MemoryError::query_error("db error")));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let command = GetEntityCommand {
             name: "test:entity".to_string(),
@@ -99,9 +98,9 @@ mod tests {
             .returning(|_| Ok(None));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let command = GetEntityCommand {
             name: "missing:entity".to_string(),
@@ -125,9 +124,9 @@ mod tests {
                 .withf(move |n| n == name_clone)
                 .returning(|_| Ok(None));
             let service = MemoryService::new(mock_repo, MemoryConfig::default());
-            let git_repo = MockGitRepository::new();
-            let git_service = mm_git::GitService::new(git_repo);
-            let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+            let ports = Ports::noop().with(|p| {
+                p.memory_service = Arc::new(service);
+            });
             let command = GetEntityCommand { name };
             let result = rt.block_on(get_entity(&ports, command));
             assert!(result.is_ok());
@@ -141,9 +140,9 @@ mod tests {
             let mut mock_repo = MockMemoryRepository::new();
             mock_repo.expect_find_entity_by_name().never();
             let service = MemoryService::new(mock_repo, MemoryConfig::default());
-            let git_repo = MockGitRepository::new();
-            let git_service = mm_git::GitService::new(git_repo);
-            let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+            let ports = Ports::noop().with(|p| {
+                p.memory_service = Arc::new(service);
+            });
             let command = GetEntityCommand {
                 name: String::default(),
             };
