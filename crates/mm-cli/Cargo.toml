@@ -5,10 +5,12 @@ edition = "2024"
 license = "MPL-2.0"
 default-run = "mm-cli"
 
+[lib]
+path = "src/lib.rs"
+
 [dependencies]
 mm-server = { path = "../mm-server" }
 mm-git-git2 = { path = "../mm-git-git2" }
-mm-core = { path = "../mm-core" }
 clap = { version = "4.4", features = ["derive"] }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }

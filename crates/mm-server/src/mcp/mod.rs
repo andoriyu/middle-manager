@@ -15,6 +15,7 @@ pub mod get_git_status;
 pub mod get_project_context;
 pub mod get_task;
 pub mod list_projects;
+pub mod list_tasks;
 #[cfg(test)]
 pub mod tests;
 pub mod update_entity;
@@ -39,6 +40,7 @@ pub use get_git_status::GetGitStatusTool;
 pub use get_project_context::GetProjectContextTool;
 pub use get_task::GetTaskTool;
 pub use list_projects::ListProjectsTool;
+pub use list_tasks::ListTasksTool;
 pub use update_entity::UpdateEntityTool;
 pub use update_relationship::UpdateRelationshipTool;
 pub use update_task::UpdateTaskTool;
@@ -55,6 +57,7 @@ tool_box!(
         FindRelationshipsTool,
         FindRelatedEntitiesTool,
         CreateTasksTool,
+        ListTasksTool,
         GetTaskTool,
         UpdateTaskTool,
         DeleteTaskTool,
@@ -91,6 +94,7 @@ impl MMTools {
             MMTools::FindRelationshipsTool(tool) => tool.call_tool(ports).await,
             MMTools::FindRelatedEntitiesTool(tool) => tool.call_tool(ports).await,
             MMTools::CreateTasksTool(tool) => tool.call_tool(ports).await,
+            MMTools::ListTasksTool(tool) => tool.call_tool(ports).await,
             MMTools::GetTaskTool(tool) => tool.call_tool(ports).await,
             MMTools::UpdateTaskTool(tool) => tool.call_tool(ports).await,
             MMTools::DeleteTaskTool(tool) => tool.call_tool(ports).await,
@@ -114,6 +118,7 @@ impl MMTools {
             MMTools::FindRelationshipsTool(_) => FindRelationshipsTool::json_schema(),
             MMTools::FindRelatedEntitiesTool(_) => FindRelatedEntitiesTool::json_schema(),
             MMTools::CreateTasksTool(_) => CreateTasksTool::json_schema(),
+            MMTools::ListTasksTool(_) => ListTasksTool::json_schema(),
             MMTools::GetTaskTool(_) => GetTaskTool::json_schema(),
             MMTools::UpdateTaskTool(_) => UpdateTaskTool::json_schema(),
             MMTools::DeleteTaskTool(_) => DeleteTaskTool::json_schema(),

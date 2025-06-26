@@ -7,8 +7,9 @@ use tracing::{Level, instrument};
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt, prelude::*};
 
-use mm_core::operations::memory::{GetTaskCommand, ListTasksCommand, get_task, list_tasks};
+use mm_cli::{format_task_detail, format_tasks_table};
 use mm_server as mm_server_lib;
+use mm_server_lib::mcp::{GetTaskTool, ListTasksTool};
 use mm_server_lib::{ToolsCommand, create_ports_from_config};
 
 /// Middle Manager CLI
@@ -255,62 +256,45 @@ async fn run(args: Args) -> anyhow::Result<()> {
                     lifecycle,
                     json,
                 } => {
-                    let result = list_tasks(
-                        &ports,
-                        ListTasksCommand {
-                            project_name: project,
-                            lifecycle,
-                        },
-                    )
-                    .await?;
+                    let tool = ListTasksTool {
+                        project_name: project,
+                        lifecycle,
+                    };
+                    let result = tool
+                        .call_tool(&ports)
+                        .await
+                        .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
+                    let text = result.content[0].as_text_content().unwrap().text.clone();
+                    let value: serde_json::Value = serde_json::from_str(&text)?;
+                    let tasks = value["tasks"].as_array().cloned().unwrap_or_default();
                     if json {
-                        println!("{}", serde_json::to_string_pretty(&result.tasks)?);
-                    } else if result.tasks.is_empty() {
+                        println!("{}", serde_json::to_string_pretty(&tasks)?);
+                    } else if tasks.is_empty() {
                         println!("No tasks found");
                     } else {
-                        println!("{:<40} {:<10} {:<8} Due", "Name", "Status", "Priority");
-                        for t in result.tasks {
-                            let due = t
-                                .properties
-                                .due_date
-                                .map(|d| d.to_rfc3339())
-                                .unwrap_or_default();
-                            println!(
-                                "{:<40} {:<10} {:<8} {}",
-                                t.name,
-                                t.properties.status.as_ref(),
-                                t.properties.priority.as_ref(),
-                                due
-                            );
-                        }
+                        print!("{}", format_tasks_table(&tasks));
                     }
                 }
                 TasksSubcommandType::View { name, json } => {
-                    let result = get_task(&ports, GetTaskCommand { name }).await?;
-                    if let Some(task) = result {
-                        if json {
-                            println!("{}", serde_json::to_string_pretty(&task)?);
-                        } else {
-                            println!("Name: {}", task.name);
-                            println!("Labels: {}", task.labels.join(", "));
-                            println!("Description: {}", task.properties.description);
-                            println!("Status: {}", task.properties.status.as_ref());
-                            println!("Type: {}", task.properties.task_type.as_ref());
-                            println!("Priority: {}", task.properties.priority.as_ref());
-                            if let Some(due) = task.properties.due_date {
-                                println!("Due: {}", due.to_rfc3339());
-                            }
-                            println!("Created: {}", task.properties.created_at.to_rfc3339());
-                            println!("Updated: {}", task.properties.updated_at.to_rfc3339());
-                            if !task.observations.is_empty() {
-                                println!("Observations:");
-                                for obs in task.observations {
-                                    println!("  - {}", obs);
-                                }
-                            }
-                        }
+                    let tool = GetTaskTool {
+                        task_name: name,
+                        project_name: None,
+                    };
+                    let result = tool
+                        .call_tool(&ports)
+                        .await
+                        .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
+                    let text = result.content[0].as_text_content().unwrap().text.clone();
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(&serde_json::from_str::<
+                                serde_json::Value,
+                            >(&text)?)?
+                        );
                     } else {
-                        println!("Task not found");
+                        let task: serde_json::Value = serde_json::from_str(&text)?;
+                        print!("{}", format_task_detail(&task));
                     }
                 }
             }
