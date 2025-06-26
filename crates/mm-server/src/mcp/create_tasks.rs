@@ -104,7 +104,7 @@ mod tests {
             mock,
             MemoryConfig {
                 default_project: Some("proj".into()),
-                additional_relationships: std::iter::once("depends_on".to_string()).collect(),
+                allowed_relationships: std::iter::once("depends_on".to_string()).collect(),
                 ..MemoryConfig::default()
             },
         );

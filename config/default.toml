@@ -4,10 +4,10 @@
 [memory]
 # Label added to every new entity
 default_label = "Memory"
-default_relationships = true
-additional_relationships = []
-default_labels = true
-additional_labels = []
+allow_default_relationships = true
+allowed_relationships = []
+allow_default_labels = true
+allowed_labels = []
 # Default project to use when not specified
 default_project = "andoriyu:project:middle_manager"
 

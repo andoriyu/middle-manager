@@ -12,19 +12,19 @@ pub struct MemoryConfig {
 
     /// Enforce use of default relationships
     #[serde(default = "MemoryConfig::default_true")]
-    pub default_relationships: bool,
+    pub allow_default_relationships: bool,
 
-    /// Additional relationships allowed when default_relationships is enabled
+    /// Relationship names allowed when `allow_default_relationships` is enabled
     #[serde(default)]
-    pub additional_relationships: HashSet<String>,
+    pub allowed_relationships: HashSet<String>,
 
     /// Enforce use of default labels
     #[serde(default = "MemoryConfig::default_true")]
-    pub default_labels: bool,
+    pub allow_default_labels: bool,
 
-    /// Additional labels allowed when default_labels is enabled
+    /// Label names allowed when `allow_default_labels` is enabled
     #[serde(default)]
-    pub additional_labels: HashSet<String>,
+    pub allowed_labels: HashSet<String>,
 
     /// Optional default project name to use when not explicitly specified
     #[serde(default)]
@@ -132,10 +132,10 @@ impl Default for MemoryConfig {
     fn default() -> Self {
         Self {
             default_label: Some(DEFAULT_MEMORY_LABEL.to_string()),
-            default_relationships: true,
-            additional_relationships: HashSet::default(),
-            default_labels: true,
-            additional_labels: HashSet::default(),
+            allow_default_relationships: true,
+            allowed_relationships: HashSet::default(),
+            allow_default_labels: true,
+            allowed_labels: HashSet::default(),
             default_project: None,
             agent_name: "unknown".to_string(),
         }
