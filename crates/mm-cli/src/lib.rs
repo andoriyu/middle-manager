@@ -1,3 +1,5 @@
+use anyhow::{Result, anyhow};
+use serde_json::{self, Value};
 use tabled::{Table, Tabled};
 
 #[derive(Tabled)]
@@ -76,4 +78,16 @@ pub fn format_task_detail(task: &serde_json::Value) -> String {
         }
     }
     out
+}
+
+pub fn parse_json_result(result: &rust_mcp_sdk::schema::CallToolResult) -> Result<Value> {
+    let text = result
+        .content
+        .first()
+        .ok_or_else(|| anyhow!("No content"))?
+        .as_text_content()
+        .map_err(|e| anyhow!(e.to_string()))?
+        .text
+        .clone();
+    Ok(serde_json::from_str(&text)?)
 }

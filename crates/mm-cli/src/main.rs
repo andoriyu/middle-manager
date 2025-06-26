@@ -264,8 +264,7 @@ async fn run(args: Args) -> anyhow::Result<()> {
                         .call_tool(&ports)
                         .await
                         .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
-                    let text = result.content[0].as_text_content().unwrap().text.clone();
-                    let value: serde_json::Value = serde_json::from_str(&text)?;
+                    let value = mm_cli::parse_json_result(&result)?;
                     let tasks = value["tasks"].as_array().cloned().unwrap_or_default();
                     if json {
                         println!("{}", serde_json::to_string_pretty(&tasks)?);
@@ -284,16 +283,10 @@ async fn run(args: Args) -> anyhow::Result<()> {
                         .call_tool(&ports)
                         .await
                         .map_err(|e| anyhow::anyhow!(format!("{e:?}")))?;
-                    let text = result.content[0].as_text_content().unwrap().text.clone();
+                    let task = mm_cli::parse_json_result(&result)?;
                     if json {
-                        println!(
-                            "{}",
-                            serde_json::to_string_pretty(&serde_json::from_str::<
-                                serde_json::Value,
-                            >(&text)?)?
-                        );
+                        println!("{}", serde_json::to_string_pretty(&task)?);
                     } else {
-                        let task: serde_json::Value = serde_json::from_str(&text)?;
                         print!("{}", format_task_detail(&task));
                     }
                 }

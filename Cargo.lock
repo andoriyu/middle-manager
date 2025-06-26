@@ -1481,6 +1481,7 @@ dependencies = [
  "clap",
  "mm-git-git2",
  "mm-server",
+ "rust-mcp-sdk",
  "serde_json",
  "tabled",
  "tokio",
