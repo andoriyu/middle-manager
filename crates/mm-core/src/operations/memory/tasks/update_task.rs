@@ -9,7 +9,6 @@ generate_update_wrapper!(UpdateTaskCommand, update_task, UpdateTaskResult);
 mod tests {
     use super::*;
     use crate::ports::Ports;
-    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use std::sync::Arc;
 
@@ -21,9 +20,9 @@ mod tests {
             .returning(|_, _| Ok(()));
 
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let cmd = UpdateTaskCommand {
             name: "task:1".into(),
@@ -38,9 +37,9 @@ mod tests {
         let mut mock = MockMemoryRepository::new();
         mock.expect_update_entity().never();
         let service = MemoryService::new(mock, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
         let cmd = UpdateTaskCommand {
             name: String::new(),
             update: EntityUpdate::default(),

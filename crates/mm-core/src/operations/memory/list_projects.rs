@@ -55,7 +55,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mm_git::repository::MockGitRepository;
     use mm_memory::{MemoryConfig, MemoryService, MockMemoryRepository};
     use mockall::predicate::*;
     use std::collections::HashMap;
@@ -93,9 +92,9 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let command = ListProjectsCommand { name_filter: None };
 
@@ -138,9 +137,9 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![project1.clone(), project2.clone()]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let command = ListProjectsCommand {
             name_filter: Some("flakes".to_string()),
@@ -168,9 +167,9 @@ mod tests {
             .returning(move |_, _, _| Ok(vec![]));
 
         let service = MemoryService::new(mock_repo, MemoryConfig::default());
-        let git_repo = MockGitRepository::new();
-        let git_service = mm_git::GitService::new(git_repo);
-        let ports = Ports::new(Arc::new(service), Arc::new(git_service));
+        let ports = Ports::noop().with(|p| {
+            p.memory_service = Arc::new(service);
+        });
 
         let command = ListProjectsCommand { name_filter: None };
 
