@@ -23,11 +23,13 @@ struct Args {
         short = 'f',
         long,
         value_name = "FILE",
-        required_if_eq("log_level", "error"),
-        required_if_eq("log_level", "warn"),
-        required_if_eq("log_level", "info"),
-        required_if_eq("log_level", "debug"),
-        required_if_eq("log_level", "trace")
+        required_if_eq_any([
+            ("log_level", "error"),
+            ("log_level", "warn"),
+            ("log_level", "info"),
+            ("log_level", "debug"),
+            ("log_level", "trace"),
+        ])
     )]
     logfile: Option<PathBuf>,
 
