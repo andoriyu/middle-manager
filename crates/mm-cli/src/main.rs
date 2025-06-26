@@ -122,9 +122,9 @@ enum TasksSubcommandType {
         /// Project name to list tasks for
         #[arg(long)]
         project: Option<String>,
-        /// Lifecycle label to filter by
-        #[arg(long)]
-        lifecycle: Option<String>,
+        /// Labels to filter by
+        #[arg(long, value_delimiter = ',', num_args = 1..)]
+        labels: Vec<String>,
         /// Output results in JSON format
         #[arg(long)]
         json: bool,
@@ -253,12 +253,12 @@ async fn run(args: Args) -> anyhow::Result<()> {
             match tasks_subcommand.command {
                 TasksSubcommandType::List {
                     project,
-                    lifecycle,
+                    labels,
                     json,
                 } => {
                     let tool = ListTasksTool {
                         project_name: project,
-                        lifecycle,
+                        labels,
                     };
                     let result = tool
                         .call_tool(&ports)
