@@ -30,6 +30,7 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 | `delete_task` | Delete a task |
 | `get_entity` | Retrieve an entity by name |
 | `get_git_status` | Get Git status for a repository path |
+| `get_graph_meta` | List entities related to the memory graph root |
 | `get_project_context` | Retrieve context for a project |
 | `list_projects` | List known projects |
 | `update_entity` | Update an entity |
@@ -37,6 +38,9 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 
 The `find_related_entities` tool accepts a `depth` parameter controlling how many
 relationship hops to follow. Depth values must be between 1 and 5.
+
+The `get_graph_meta` tool returns entities outbound from the `tech:tool:memory_graph` node.
+It traverses the graph with a fixed depth of `5` and accepts an optional `relationship` filter.
 
 ## Project Structure
 
