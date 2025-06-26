@@ -1475,6 +1475,7 @@ dependencies = [
  "clap",
  "mm-git-git2",
  "mm-server",
+ "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",

@@ -8,7 +8,7 @@ use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt, prelude::*};
 
 use mm_server as mm_server_lib;
-use mm_server_lib::ToolsCommand;
+use mm_server_lib::{ToolsCommand, create_ports_from_config};
 
 /// Middle Manager CLI
 #[derive(Parser, Debug)]
@@ -61,12 +61,30 @@ enum Command {
     Server,
     /// Interact with tools
     Tools(ToolsSubcommand),
+    /// Configuration related commands
+    Config(ConfigSubcommand),
 }
 
 #[derive(Parser, Debug)]
 struct ToolsSubcommand {
     #[command(subcommand)]
     command: ToolsSubcommandType,
+}
+
+#[derive(Parser, Debug)]
+struct ConfigSubcommand {
+    #[command(subcommand)]
+    command: ConfigSubcommandType,
+}
+
+#[derive(Subcommand, Debug)]
+enum ConfigSubcommandType {
+    /// Validate configuration
+    Validate {
+        /// Show loaded configuration if valid
+        #[arg(long)]
+        show: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -108,6 +126,27 @@ fn create_file_writer(path: &PathBuf, rotate: bool) -> io::Result<File> {
     } else {
         // Open for appending
         OpenOptions::new().create(true).append(true).open(path)
+    }
+}
+
+#[instrument(skip(paths))]
+async fn run_config_validate<P: AsRef<std::path::Path>>(
+    paths: &[P],
+    show: bool,
+) -> anyhow::Result<()> {
+    match create_ports_from_config(paths).await {
+        Ok((config, _)) => {
+            if show {
+                println!("{}", serde_json::to_string_pretty(&config)?);
+            } else {
+                println!("Ok");
+            }
+            Ok(())
+        }
+        Err(err) => {
+            println!("{:#?}", err);
+            Err(err)
+        }
     }
 }
 
@@ -170,6 +209,11 @@ async fn run(args: Args) -> anyhow::Result<()> {
                 }
             }
         }
+        Command::Config(config_subcommand) => match config_subcommand.command {
+            ConfigSubcommandType::Validate { show } => {
+                run_config_validate(&config_paths, show).await?;
+            }
+        },
     }
 
     Ok(())
