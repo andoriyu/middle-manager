@@ -12,8 +12,9 @@ pub trait GitRepository {
 
     /// Get the status of a Git repository.
     ///
-    /// The returned [`GitStatus`] includes the current branch name, whether the
-    /// working tree has uncommitted changes, how many commits the branch is
-    /// ahead or behind its upstream, and the list of changed files.
+    /// The returned [`GitStatus`] includes the current branch name, upstream
+    /// branch information, ahead/behind counts, and detailed lists of files in
+    /// different states (staged, modified, untracked, conflicted). It also
+    /// reports whether the working tree is dirty and how many stashes exist.
     async fn get_status(&self, path: &Path) -> GitResult<GitStatus, Self::Error>;
 }

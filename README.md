@@ -29,7 +29,7 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 | `update_task` | Update a task |
 | `delete_task` | Delete a task |
 | `get_entity` | Retrieve an entity by name |
-| `get_git_status` | Get Git status for a repository path |
+| `get_git_status` | Get detailed Git status for a repository path |
 | `get_graph_meta` | List entities related to the memory graph root |
 | `get_project_context` | Retrieve context for a project |
 | `list_projects` | List known projects |
@@ -118,7 +118,9 @@ graph TD
 
 ### Git
 
-- Query repository status with `get_git_status`
+- Query repository status with `get_git_status` including staged, modified, and
+  untracked files, merge conflicts, stash count, and branch ahead/behind
+  information
 
 ## Building
 

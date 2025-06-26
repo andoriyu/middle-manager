@@ -31,15 +31,60 @@ impl GitRepository for Git2Repository {
                 .shorthand()
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| "HEAD".to_string());
+            let upstream_branch = repo
+                .find_branch(&branch_name, git2::BranchType::Local)
+                .ok()
+                .and_then(|branch| {
+                    branch
+                        .upstream()
+                        .ok()
+                        .and_then(|u| u.name().ok().flatten().map(|s| s.to_string()))
+                });
 
             let mut opts = git2::StatusOptions::new();
             opts.include_untracked(true).recurse_untracked_dirs(true);
             let statuses = repo.statuses(Some(&mut opts))?;
             let is_dirty = !statuses.is_empty();
-            let changed_files = statuses
-                .iter()
-                .filter_map(|e| e.path().map(|p| p.to_string()))
-                .collect::<Vec<_>>();
+            let mut staged_files = Vec::new();
+            let mut modified_files = Vec::new();
+            let mut untracked_files = Vec::new();
+            let mut conflicted_files = Vec::new();
+
+            for entry in statuses.iter() {
+                if let Some(path) = entry.path() {
+                    let path = path.to_string();
+                    let status = entry.status();
+                    if status.contains(git2::Status::CONFLICTED) {
+                        conflicted_files.push(path.clone());
+                    }
+                    if status.intersects(
+                        git2::Status::INDEX_NEW
+                            | git2::Status::INDEX_MODIFIED
+                            | git2::Status::INDEX_DELETED
+                            | git2::Status::INDEX_RENAMED
+                            | git2::Status::INDEX_TYPECHANGE,
+                    ) {
+                        staged_files.push(path.clone());
+                    }
+                    if status.intersects(
+                        git2::Status::WT_MODIFIED
+                            | git2::Status::WT_DELETED
+                            | git2::Status::WT_RENAMED
+                            | git2::Status::WT_TYPECHANGE,
+                    ) {
+                        modified_files.push(path.clone());
+                    }
+                    if status.contains(git2::Status::WT_NEW) {
+                        untracked_files.push(path.clone());
+                    }
+                }
+            }
+
+            let mut stash_count = 0u32;
+            repo.stash_foreach(|_, _, _| {
+                stash_count += 1;
+                true
+            })?;
 
             let (ahead, behind) =
                 if let Ok(branch) = repo.find_branch(&branch_name, git2::BranchType::Local) {
@@ -56,10 +101,15 @@ impl GitRepository for Git2Repository {
 
             Ok(GitStatus {
                 branch: branch_name,
+                upstream_branch,
                 is_dirty,
                 ahead_by: ahead as u32,
                 behind_by: behind as u32,
-                changed_files,
+                staged_files,
+                modified_files,
+                untracked_files,
+                conflicted_files,
+                stash_count,
             })
         })
         .await

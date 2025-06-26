@@ -19,14 +19,24 @@ pub struct GetGitStatusTool {
 pub struct GetGitStatusResponse {
     /// Current branch name
     pub branch: String,
+    /// Upstream branch if configured
+    pub upstream_branch: Option<String>,
     /// Whether the working tree has uncommitted changes
     pub is_dirty: bool,
     /// Commits ahead of the upstream branch
     pub ahead_by: u32,
     /// Commits behind the upstream branch
     pub behind_by: u32,
-    /// Paths of files that have been modified
-    pub changed_files: Vec<String>,
+    /// Paths of files that have been staged
+    pub staged_files: Vec<String>,
+    /// Paths of tracked files modified but not staged
+    pub modified_files: Vec<String>,
+    /// Paths of untracked files
+    pub untracked_files: Vec<String>,
+    /// Files with merge conflicts
+    pub conflicted_files: Vec<String>,
+    /// Number of stashes in the repository
+    pub stash_count: u32,
 }
 
 impl GetGitStatusTool {
@@ -48,10 +58,15 @@ mod tests {
         git_repo.expect_get_status().returning(|_| {
             Ok(GitStatus {
                 branch: "main".to_string(),
+                upstream_branch: Some("origin/main".to_string()),
                 is_dirty: false,
                 ahead_by: 0,
                 behind_by: 0,
-                changed_files: vec![],
+                staged_files: vec![],
+                modified_files: vec![],
+                untracked_files: vec![],
+                conflicted_files: vec![],
+                stash_count: 0,
             })
         });
 
@@ -77,16 +92,22 @@ mod tests {
         let json: serde_json::Value = serde_json::from_str(&text).unwrap();
         let branch = json.get("branch").unwrap().as_str().unwrap();
         assert_eq!(branch, "main");
+        assert_eq!(
+            json.get("upstream_branch").unwrap().as_str().unwrap(),
+            "origin/main"
+        );
         assert!(!json.get("is_dirty").unwrap().as_bool().unwrap());
         assert_eq!(json.get("ahead_by").unwrap().as_u64().unwrap(), 0);
         assert_eq!(json.get("behind_by").unwrap().as_u64().unwrap(), 0);
-        assert!(
-            json.get("changed_files")
-                .unwrap()
-                .as_array()
-                .unwrap()
-                .is_empty()
-        );
+        for key in [
+            "staged_files",
+            "modified_files",
+            "untracked_files",
+            "conflicted_files",
+        ] {
+            assert!(json.get(key).unwrap().as_array().unwrap().is_empty());
+        }
+        assert_eq!(json.get("stash_count").unwrap().as_u64().unwrap(), 0);
     }
 
     #[tokio::test]

@@ -27,10 +27,15 @@ async fn test_get_status_success() {
     let service = create_git_service();
     let status = service.get_status(dir.path()).await.unwrap();
     assert_eq!(status.branch, expected_branch);
+    assert!(status.upstream_branch.is_none());
     assert!(!status.is_dirty);
     assert_eq!(status.ahead_by, 0);
     assert_eq!(status.behind_by, 0);
-    assert!(status.changed_files.is_empty());
+    assert!(status.staged_files.is_empty());
+    assert!(status.modified_files.is_empty());
+    assert!(status.untracked_files.is_empty());
+    assert!(status.conflicted_files.is_empty());
+    assert_eq!(status.stash_count, 0);
 }
 
 #[tokio::test]
@@ -43,6 +48,7 @@ async fn test_get_status_nested_directory() {
     let service = create_git_service();
     let status = service.get_status(&nested).await.unwrap();
     assert_eq!(status.branch, expected_branch);
+    assert!(status.upstream_branch.is_none());
 }
 
 #[tokio::test]

@@ -39,20 +39,30 @@ mod tests {
         let mut mock = MockGitRepository::new();
         let expected = GitStatus {
             branch: "main".to_string(),
+            upstream_branch: None,
             is_dirty: false,
             ahead_by: 0,
             behind_by: 0,
-            changed_files: vec![],
+            staged_files: vec![],
+            modified_files: vec![],
+            untracked_files: vec![],
+            conflicted_files: vec![],
+            stash_count: 0,
         };
         mock.expect_get_status()
             .withf(|p| p == Path::new("/tmp/repo"))
             .returning(|_| {
                 Ok(GitStatus {
                     branch: "main".to_string(),
+                    upstream_branch: None,
                     is_dirty: false,
                     ahead_by: 0,
                     behind_by: 0,
-                    changed_files: vec![],
+                    staged_files: vec![],
+                    modified_files: vec![],
+                    untracked_files: vec![],
+                    conflicted_files: vec![],
+                    stash_count: 0,
                 })
             });
 
@@ -60,9 +70,14 @@ mod tests {
         let path = PathBuf::from("/tmp/repo");
         let status = service.get_status(&path).await.unwrap();
         assert_eq!(status.branch, expected.branch);
+        assert_eq!(status.upstream_branch, expected.upstream_branch);
         assert_eq!(status.is_dirty, expected.is_dirty);
         assert_eq!(status.ahead_by, expected.ahead_by);
         assert_eq!(status.behind_by, expected.behind_by);
-        assert_eq!(status.changed_files, expected.changed_files);
+        assert_eq!(status.staged_files, expected.staged_files);
+        assert_eq!(status.modified_files, expected.modified_files);
+        assert_eq!(status.untracked_files, expected.untracked_files);
+        assert_eq!(status.conflicted_files, expected.conflicted_files);
+        assert_eq!(status.stash_count, expected.stash_count);
     }
 }

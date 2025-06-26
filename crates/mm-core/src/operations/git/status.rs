@@ -42,10 +42,15 @@ mod tests {
         git_repo.expect_get_status().returning(|_| {
             Ok(GitStatus {
                 branch: "main".to_string(),
+                upstream_branch: Some("origin/main".to_string()),
                 is_dirty: false,
                 ahead_by: 0,
                 behind_by: 0,
-                changed_files: vec![],
+                staged_files: vec![],
+                modified_files: vec![],
+                untracked_files: vec![],
+                conflicted_files: vec![],
+                stash_count: 0,
             })
         });
 
@@ -64,10 +69,15 @@ mod tests {
         assert!(result.is_ok());
         let status = result.unwrap();
         assert_eq!(status.branch, "main");
+        assert_eq!(status.upstream_branch.unwrap(), "origin/main");
         assert!(!status.is_dirty);
         assert_eq!(status.ahead_by, 0);
         assert_eq!(status.behind_by, 0);
-        assert!(status.changed_files.is_empty());
+        assert!(status.staged_files.is_empty());
+        assert!(status.modified_files.is_empty());
+        assert!(status.untracked_files.is_empty());
+        assert!(status.conflicted_files.is_empty());
+        assert_eq!(status.stash_count, 0);
     }
 
     #[tokio::test]
