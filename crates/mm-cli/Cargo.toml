@@ -8,6 +8,7 @@ default-run = "mm-cli"
 [dependencies]
 mm-server = { path = "../mm-server" }
 mm-git-git2 = { path = "../mm-git-git2" }
+mm-core = { path = "../mm-core" }
 clap = { version = "4.4", features = ["derive"] }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }

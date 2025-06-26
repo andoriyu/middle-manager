@@ -1473,6 +1473,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "mm-core",
  "mm-git-git2",
  "mm-server",
  "serde_json",

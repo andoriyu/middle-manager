@@ -52,8 +52,9 @@ pub use list_projects::{ListProjectsCommand, ListProjectsResult, list_projects};
 pub use projects::{ProjectContext, ProjectProperties, ProjectStatus, ProjectType};
 pub use tasks::{
     CreateTasksCommand, CreateTasksResult, DeleteTaskCommand, DeleteTaskResult, GetTaskCommand,
-    GetTaskResult, Priority, TaskInput, TaskProperties, TaskStatus, TaskType, UpdateTaskCommand,
-    UpdateTaskResult, create_tasks, delete_task, get_task, update_task,
+    GetTaskResult, ListTasksCommand, ListTasksResult, Priority, TaskInput, TaskProperties,
+    TaskStatus, TaskType, UpdateTaskCommand, UpdateTaskResult, create_tasks, delete_task, get_task,
+    list_tasks, update_task,
 };
 pub use update_entity::{UpdateEntityCommand, UpdateEntityResult, update_entity};
 pub use update_relationship::{
