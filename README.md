@@ -23,6 +23,7 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 | `delete_relationships` | Delete relationships between entities |
 | `find_entities_by_labels` | Find entities with specific labels |
 | `find_relationships` | Find relationships between entities |
+| `find_related_entities` | Find entities related to another entity (supports `depth` parameter) |
 | `create_tasks` | Create task entities |
 | `get_task` | Retrieve a task by name |
 | `update_task` | Update a task |
@@ -33,6 +34,9 @@ The `memory://` scheme is dynamic: any entity name can be requested. The server 
 | `list_projects` | List known projects |
 | `update_entity` | Update an entity |
 | `update_relationship` | Update a relationship |
+
+The `find_related_entities` tool accepts a `depth` parameter controlling how many
+relationship hops to follow. Depth values must be between 1 and 5.
 
 ## Project Structure
 
