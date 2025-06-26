@@ -8,9 +8,9 @@ pub use json_schema::IntoJsonSchema;
 
 /// Check if a string is in snake_case format.
 ///
-/// This function verifies that all characters are lowercase, digits, or
-/// underscores. It can be used when validating identifiers or any string that
-/// must follow the snake_case convention.
+/// This function verifies that all characters are ASCII lowercase letters,
+/// digits, or underscores. It can be used when validating identifiers or any
+/// string that must follow the snake_case convention.
 ///
 /// # Examples
 ///
@@ -23,8 +23,7 @@ pub use json_schema::IntoJsonSchema;
 /// assert!(!is_snake_case("Hello_World"));
 /// ```
 pub fn is_snake_case(s: &str) -> bool {
-    s.chars()
-        .all(|c| c.is_lowercase() || c == '_' || c.is_numeric())
+    s.chars().all(|c| matches!(c, 'a'..='z' | '0'..='9' | '_'))
 }
 
 #[cfg(test)]
@@ -104,6 +103,8 @@ mod tests {
         assert!(!is_snake_case("HelloWorld"));
         assert!(!is_snake_case("Hello_World"));
         assert!(!is_snake_case("hello-world"));
+        assert!(!is_snake_case("héllo"));
+        assert!(!is_snake_case("hello１23"));
     }
 
     #[test]
