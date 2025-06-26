@@ -1,20 +1,29 @@
+use tabled::{Table, Tabled};
+
+#[derive(Tabled)]
+struct TaskRow<'a> {
+    #[tabled(rename = "Name")]
+    name: &'a str,
+    #[tabled(rename = "Status")]
+    status: &'a str,
+    #[tabled(rename = "Priority")]
+    priority: &'a str,
+    #[tabled(rename = "Due")]
+    due: &'a str,
+}
+
 pub fn format_tasks_table(tasks: &[serde_json::Value]) -> String {
-    let mut output = String::new();
-    output.push_str(&format!(
-        "{:<40} {:<10} {:<8} Due\n",
-        "Name", "Status", "Priority"
-    ));
-    for t in tasks {
-        let name = t["name"].as_str().unwrap_or("");
-        let status = t["properties"]["status"].as_str().unwrap_or("");
-        let priority = t["properties"]["priority"].as_str().unwrap_or("");
-        let due = t["properties"]["due_date"].as_str().unwrap_or("");
-        output.push_str(&format!(
-            "{:<40} {:<10} {:<8} {}\n",
-            name, status, priority, due
-        ));
-    }
-    output
+    let rows: Vec<TaskRow> = tasks
+        .iter()
+        .map(|t| TaskRow {
+            name: t["name"].as_str().unwrap_or(""),
+            status: t["properties"]["status"].as_str().unwrap_or(""),
+            priority: t["properties"]["priority"].as_str().unwrap_or(""),
+            due: t["properties"]["due_date"].as_str().unwrap_or(""),
+        })
+        .collect();
+
+    Table::new(rows).to_string()
 }
 
 pub fn format_task_detail(task: &serde_json::Value) -> String {
