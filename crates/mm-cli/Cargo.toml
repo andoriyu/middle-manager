@@ -17,3 +17,4 @@ tracing = { workspace = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 anyhow = "1.0"
 serde_json = { workspace = true }
+tabled = "0.20"
