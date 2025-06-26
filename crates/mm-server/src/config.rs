@@ -88,7 +88,7 @@ password = "test_password"
         assert_eq!(config.neo4j.password, "test_password");
         assert_eq!(config.memory.default_label, Some("TestTag".to_string()));
         assert_eq!(config.memory.agent_name, "tester".to_string());
-        assert!(config.memory.default_relationships);
+        assert!(config.memory.allow_default_relationships);
     }
 
     #[test]
@@ -101,10 +101,10 @@ password = "test_password"
             },
             memory: MemoryConfig {
                 default_label: None,
-                default_relationships: true,
-                additional_relationships: std::collections::HashSet::default(),
-                default_labels: true,
-                additional_labels: std::collections::HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: std::collections::HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: std::collections::HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },

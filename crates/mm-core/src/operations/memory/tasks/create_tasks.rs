@@ -128,7 +128,7 @@ mod tests {
             mock,
             MemoryConfig {
                 default_project: Some("proj".into()),
-                additional_relationships: std::iter::once("depends_on".to_string())
+                allowed_relationships: std::iter::once("depends_on".to_string())
                     .collect::<HashSet<_>>(),
                 ..MemoryConfig::default()
             },
@@ -184,7 +184,7 @@ mod tests {
             mock,
             MemoryConfig {
                 default_project: Some("proj".into()),
-                additional_relationships: std::iter::once("depends_on".to_string())
+                allowed_relationships: std::iter::once("depends_on".to_string())
                     .collect::<HashSet<_>>(),
                 ..MemoryConfig::default()
             },
@@ -283,7 +283,7 @@ mod tests {
             mock,
             MemoryConfig {
                 default_project: Some("proj".into()),
-                additional_relationships: std::iter::once("depends_on".to_string())
+                allowed_relationships: std::iter::once("depends_on".to_string())
                     .collect::<HashSet<_>>(),
                 ..MemoryConfig::default()
             },
@@ -358,7 +358,7 @@ mod tests {
             mock,
             MemoryConfig {
                 default_project: Some("proj".into()),
-                additional_relationships: std::iter::once("depends_on".to_string())
+                allowed_relationships: std::iter::once("depends_on".to_string())
                     .collect::<HashSet<_>>(),
                 ..MemoryConfig::default()
             },
@@ -406,7 +406,7 @@ mod tests {
             mock,
             MemoryConfig {
                 default_project: Some("proj".into()),
-                additional_relationships: std::iter::once("depends_on".to_string())
+                allowed_relationships: std::iter::once("depends_on".to_string())
                     .collect::<HashSet<_>>(),
                 ..MemoryConfig::default()
             },

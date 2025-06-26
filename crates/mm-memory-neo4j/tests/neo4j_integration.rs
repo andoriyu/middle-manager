@@ -19,10 +19,10 @@ async fn new_test_service(label: &str) -> MemoryService<Neo4jRepository> {
         config,
         MemoryConfig {
             default_label: Some(label.to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: std::iter::once("Example".to_string()).collect(),
+            allow_default_relationships: true,
+            allowed_relationships: std::collections::HashSet::default(),
+            allow_default_labels: true,
+            allowed_labels: std::iter::once("Example".to_string()).collect(),
             default_project: None,
             agent_name: "test".to_string(),
         },
@@ -374,10 +374,10 @@ async fn test_find_entities_by_labels() {
         config,
         MemoryConfig {
             default_label: Some("LabelTest".to_string()),
-            default_relationships: true,
-            additional_relationships: std::collections::HashSet::default(),
-            default_labels: true,
-            additional_labels: ["Example".to_string(), "Extra".to_string()]
+            allow_default_relationships: true,
+            allowed_relationships: std::collections::HashSet::default(),
+            allow_default_labels: true,
+            allowed_labels: ["Example".to_string(), "Extra".to_string()]
                 .into_iter()
                 .collect(),
             default_project: None,

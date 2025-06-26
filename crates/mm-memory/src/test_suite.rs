@@ -19,10 +19,10 @@ where
     // Fixed configuration used for all tests
     let config = MemoryConfig {
         default_label: Some("TestSuite".to_string()),
-        default_relationships: true,
-        additional_relationships: HashSet::default(),
-        default_labels: true,
-        additional_labels: std::iter::once("Example".to_string()).collect(),
+        allow_default_relationships: true,
+        allowed_relationships: HashSet::default(),
+        allow_default_labels: true,
+        allowed_labels: std::iter::once("Example".to_string()).collect(),
         default_project: None,
         agent_name: "test".to_string(),
     };

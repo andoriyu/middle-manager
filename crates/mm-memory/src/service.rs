@@ -134,9 +134,9 @@ where
                 name.to_string(),
             ));
         }
-        if self.config.default_relationships
+        if self.config.allow_default_relationships
             && !DEFAULT_RELATIONSHIPS.contains(&name)
-            && !self.config.additional_relationships.contains(name)
+            && !self.config.allowed_relationships.contains(name)
         {
             errs.push(ValidationErrorKind::UnknownRelationship(name.to_string()));
         }
@@ -180,12 +180,12 @@ where
                 errs.push(ValidationErrorKind::NoLabels(entity.name.clone()));
             }
 
-            if self.config.default_labels {
+            if self.config.allow_default_labels {
                 for label in labels_iter.clone() {
                     let allowed_default_label = default_label == Some(label);
                     if !allowed_default_label
                         && !DEFAULT_LABELS.contains(&label)
-                        && !self.config.additional_labels.contains(label)
+                        && !self.config.allowed_labels.contains(label)
                     {
                         errs.push(ValidationErrorKind::UnknownLabel(label.to_string()));
                     }
@@ -543,10 +543,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: Some("Memory".to_string()),
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: false,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: false,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -575,10 +575,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: None,
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: false,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: false,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -611,10 +611,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: Some("Memory".to_string()),
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: false,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: false,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -642,10 +642,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: None,
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: false,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: false,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -679,10 +679,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: Some("Custom".to_string()),
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: true,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -710,10 +710,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: None,
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: true,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -744,10 +744,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: None,
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: true,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -775,10 +775,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: None,
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: true,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -813,10 +813,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: Some("Memory".to_string()),
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: false,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: false,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -842,10 +842,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: None,
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: true,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -953,10 +953,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: Some("Default".to_string()),
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: true,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },
@@ -983,10 +983,10 @@ mod tests {
             mock,
             MemoryConfig {
                 default_label: Some("Default".to_string()),
-                default_relationships: true,
-                additional_relationships: HashSet::default(),
-                default_labels: true,
-                additional_labels: HashSet::default(),
+                allow_default_relationships: true,
+                allowed_relationships: HashSet::default(),
+                allow_default_labels: true,
+                allowed_labels: HashSet::default(),
                 default_project: None,
                 agent_name: "test".to_string(),
             },

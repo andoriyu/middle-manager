@@ -41,7 +41,7 @@ mod tests {
         let service = MemoryService::new(
             mock,
             MemoryConfig {
-                default_labels: false,
+                allow_default_labels: false,
                 agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },

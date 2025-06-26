@@ -59,7 +59,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_label: None,
-                default_labels: false,
+                allow_default_labels: false,
                 agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
@@ -89,7 +89,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_label: None,
-                default_labels: false,
+                allow_default_labels: false,
                 agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
@@ -127,7 +127,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_label: None,
-                default_labels: false,
+                allow_default_labels: false,
                 agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
@@ -158,7 +158,7 @@ mod tests {
             mock_repo,
             MemoryConfig {
                 default_label: None,
-                default_labels: false,
+                allow_default_labels: false,
                 agent_name: "test".to_string(),
                 ..MemoryConfig::default()
             },
